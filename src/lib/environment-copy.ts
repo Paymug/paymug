@@ -5,7 +5,6 @@ import {
   createFeatureRecord,
   findFeatureRecord,
 } from "./feature-records";
-import { slugify } from "./format";
 import { uid } from "./utils";
 import type {
   CopyEnvironmentRecordsInput,
@@ -32,7 +31,7 @@ async function copyProductRecord(
     ...source,
     id: copiedId,
     environment: input.targetEnvironment,
-    slug: `${slugify(source.name) || "product"}-${copiedId.slice(0, 6)}`,
+    slug: "",
     createdAt: now,
     updatedAt: now,
   });

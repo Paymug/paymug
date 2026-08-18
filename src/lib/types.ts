@@ -30,6 +30,7 @@ export interface User {
   storeEmailFrom?: string;
   storeEmailReplyTo?: string;
   activeStoreId: string;
+  primaryStoreId: string;
   environment: PayPalMode;
   githubOAuthHostname?: string;
   createdAt: string;
@@ -45,6 +46,7 @@ export interface PublicUser {
   storeEmailFrom?: string;
   storeEmailReplyTo?: string;
   activeStoreId: string;
+  primaryStoreId: string;
   environment: PayPalMode;
   createdAt: string;
 }

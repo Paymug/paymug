@@ -1,6 +1,7 @@
 import "server-only";
 
-import { findUserById } from "./db";
+import { findProductById, findUserById } from "./db";
+import { getProductPublicPath } from "./product-paths";
 import { getStoreById } from "./stores";
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
 import { sendCloudflareEmail } from "./cloudflare-email";
@@ -72,12 +73,14 @@ export async function sendPurchaseConfirmationEmail(
 export async function sendOrderPaymentFailedEmail(
   input: OrderPaymentFailedEmailInput
 ) {
-  const store = await getStoreEmailContext(
-    input.order.userId,
-    input.order.storeId
-  );
+  const [store, product] = await Promise.all([
+    getStoreEmailContext(input.order.userId, input.order.storeId),
+    findProductById(input.order.productId),
+  ]);
   const retryUrl = await getRuntimeAbsoluteUrl(
-    `/buy/${encodeURIComponent(input.order.productId)}`,
+    product
+      ? getProductPublicPath(product)
+      : `/buy/${encodeURIComponent(input.order.productId)}`,
     input.requestUrl
   );
   return sendCloudflareEmail(

@@ -18,6 +18,7 @@ import {
   toStripeIntervalUnit,
 } from "@/lib/product-billing";
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
+import { getProductPublicPath } from "@/lib/product-paths";
 import { getRuntimeAbsoluteUrl } from "@/lib/runtime-env";
 import { createStripeCheckoutSession } from "@/lib/stripe";
 import { jsonError, uid } from "@/lib/utils";
@@ -167,7 +168,7 @@ export async function POST(request: Request) {
       request.url
     );
     const cancelUrl = await getRuntimeAbsoluteUrl(
-      `/buy/${product.id}?cancelled=1`,
+      `${getProductPublicPath(product)}?cancelled=1`,
       request.url
     );
     const recurringAmountCents = limitedSubscriptionDiscount

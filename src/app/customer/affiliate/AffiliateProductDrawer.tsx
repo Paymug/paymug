@@ -53,7 +53,7 @@ export function AffiliateProductDrawer({
   if (!mounted || !program.affiliate) return null;
 
   const trackingPath = getProductAffiliatePath(
-    product.id,
+    product,
     program.affiliate.code,
   );
   const trackingUrl = `${window.location.origin}${trackingPath}`;

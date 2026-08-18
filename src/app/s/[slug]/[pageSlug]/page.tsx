@@ -10,7 +10,8 @@ import { getSessionUser } from "@/lib/auth";
 import { findUserById } from "@/lib/db";
 import { findStorePageBySlug, listStorePages } from "@/lib/store-pages";
 import { resolveStorefrontEnvironment } from "@/lib/storefront-environment.utils";
-import { getStoreBySlug } from "@/lib/stores";
+import { getPrimaryStore, getStoreBySlug } from "@/lib/stores";
+import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import type { ScopedPublicStorePageProps } from "./page.types";
 
 export default async function ScopedPublicStorePage({
@@ -20,9 +21,10 @@ export default async function ScopedPublicStorePage({
   const { slug, pageSlug } = await params;
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
-  const [viewer, seller, affiliatesUnlocked] = await Promise.all([
+  const [viewer, seller, primaryStore, affiliatesUnlocked] = await Promise.all([
     getSessionUser(),
     findUserById(store.userId),
+    getPrimaryStore(),
     hasProFeature("affiliates"),
   ]);
   if (!seller) notFound();
@@ -45,7 +47,7 @@ export default async function ScopedPublicStorePage({
   const footerPages = publishedPages.filter(
     (candidate) => candidate.navigation === "footer",
   );
-  const basePath = `/s/${store.slug}`;
+  const basePath = getStorefrontBasePath(store, primaryStore);
 
   return (
     <div className="flex min-h-screen flex-col bg-white">

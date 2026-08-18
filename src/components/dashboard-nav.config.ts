@@ -62,7 +62,6 @@ export const dashboardNavGroups: DashboardNavGroupConfig[] = [
         exact: true,
       },
       { href: "/dashboard/settings/store", label: "Store" },
-      { href: "/dashboard/stores", label: "Stores" },
       { href: "/dashboard/pages", label: "Pages" },
       { href: "/dashboard/settings/payments", label: "Payments" },
       { href: "/dashboard/settings/github", label: "GitHub" },

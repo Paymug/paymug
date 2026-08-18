@@ -6,6 +6,7 @@ import {
   GearSix,
   House,
   Network,
+  Plus,
   SignOut,
   SlidersHorizontal,
   Storefront,
@@ -31,6 +32,8 @@ import { cardClass } from "./ui.styles";
 
 export function DashboardNav({
   storeName,
+  stores,
+  activeStoreId,
   userName,
   environment,
   environmentAvailability,
@@ -41,6 +44,7 @@ export function DashboardNav({
   const pathname = usePathname();
   const router = useRouter();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [storeSwitching, setStoreSwitching] = useState(false);
   const visibleNavGroups = getVisibleDashboardNavGroups(dashboardNavGroups, {
     affiliatesEnabled,
     emailCampaignsEnabled,
@@ -54,6 +58,18 @@ export function DashboardNav({
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
+    router.refresh();
+  }
+
+  async function switchStore(storeId: string) {
+    if (storeId === activeStoreId) return;
+    setStoreSwitching(true);
+    const response = await fetch(`/api/stores/${storeId}/activate`, {
+      method: "POST",
+    });
+    setStoreSwitching(false);
+    if (!response.ok) return;
+    setAccountMenuOpen(false);
     router.refresh();
   }
 
@@ -136,7 +152,40 @@ export function DashboardNav({
         >
           {accountMenuOpen && (
             <div className="absolute bottom-full left-0 z-30 mb-2 w-full overflow-hidden rounded-xl border border-[#e8e8ee] bg-white py-2 shadow-xl">
-              <div className="px-1">
+              <div className="max-h-64 overflow-y-auto px-1">
+                {stores.map((store) => {
+                  const active = store.id === activeStoreId;
+                  return (
+                    <div key={store.id} className="flex items-center rounded-lg hover:bg-[#f7f7f8]">
+                      <button
+                        type="button"
+                        disabled={storeSwitching || active}
+                        onClick={() => void switchStore(store.id)}
+                        className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-sm disabled:cursor-default"
+                      >
+                        <Storefront size={16} className="shrink-0" />
+                        <span className="min-w-0 flex-1 truncate">
+                          {store.name}
+                        </span>
+                        {/* {active && (
+                          <span className="text-xs font-medium text-muted">
+                            Active
+                          </span>
+                        )} */}
+                      </button>
+                    </div>
+                  );
+                })}
+                <Link
+                  href="/dashboard/stores#add-store"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-[#f7f7f8]"
+                >
+                  <Plus size={16} />
+                  Add store
+                </Link>
+              </div>
+              <div className="mx-1 mt-1 border-t border-[#e8e8ee] pt-1">
                 <button
                   type="button"
                   onClick={logout}

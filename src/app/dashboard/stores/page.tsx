@@ -15,6 +15,7 @@ export default async function StoresPage() {
       <StoresWorkspace
         initialStores={await listStoresByUser(user.id)}
         activeStoreId={user.activeStoreId}
+        primaryStoreId={user.primaryStoreId}
       />
     </div>
   );

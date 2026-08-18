@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       license: await activateAppLicense(parsed.data.licenseKey),
     });
   } catch (error) {
+    console.log("activeerr", error)
     return jsonError(
       error instanceof Error ? error.message : "Could not activate license",
       409,

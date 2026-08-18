@@ -9,6 +9,7 @@ import { getStoreById } from "@/lib/stores";
 import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
 import { jsonError } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
+import { getProductPublicPath } from "@/lib/product-paths";
 
 export async function POST(request: Request) {
   const denied = await requireProFeature("affiliates");
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     userId: product.userId,
     storeId: product.storeId,
     affiliate,
-    destination: `/buy/${product.id}?ref=${encodeURIComponent(ref)}`,
+    destination: `${getProductPublicPath(product)}?ref=${encodeURIComponent(ref)}`,
     referrer: request.headers.get("referer") || undefined,
   });
 

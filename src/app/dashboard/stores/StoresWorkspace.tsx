@@ -13,6 +13,7 @@ import type {
 export function StoresWorkspace({
   initialStores,
   activeStoreId,
+  primaryStoreId,
 }: StoresWorkspaceProps) {
   const router = useRouter();
   const [stores, setStores] = useState(initialStores);
@@ -59,13 +60,11 @@ export function StoresWorkspace({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stores.map((store) => {
           const active = store.id === activeStoreId;
+          const primary = store.id === primaryStoreId;
           return (
-            <button
+            <div
               key={store.id}
-              type="button"
-              disabled={working || active}
-              onClick={() => void activate(store.id)}
-              className="rounded-2xl border border-[#e8e8ee] bg-white p-5 text-left transition hover:border-[#d1d1dc] disabled:cursor-default"
+              className="rounded-2xl border border-[#e8e8ee] bg-white p-5"
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#f7f7f8]">
@@ -78,13 +77,26 @@ export function StoresWorkspace({
                 )}
               </div>
               <p className="mt-4 font-semibold">{store.name}</p>
-              <p className="mt-1 truncate text-sm text-muted">/{store.slug}</p>
-            </button>
+              <p className="mt-1 truncate text-sm text-muted">
+                {primary ? "/" : `/s/${store.slug}`}
+              </p>
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={working || active}
+                  onClick={() => void activate(store.id)}
+                >
+                  {active ? "Active" : "Manage store"}
+                </Button>
+              </div>
+            </div>
           );
         })}
       </div>
 
       <form
+        id="add-store"
         className="rounded-2xl border border-[#e8e8ee] bg-white p-5 sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();

@@ -10,12 +10,14 @@ import { getSessionUser } from "@/lib/auth";
 import { findUserByStoreSlug, listProductsByUser } from "@/lib/db";
 import { formatMoney } from "@/lib/format";
 import { formatProductPriceSuffix } from "@/lib/product-billing";
+import { getProductPublicPath } from "@/lib/product-paths";
 import {
   formatLicenseUpdatePeriodLabel,
   isPerpetualLicenseProduct,
 } from "@/lib/license-entitlements";
 import { getProductDescriptionPlainText } from "@/components/product-description.utils";
-import { getStoreById } from "@/lib/stores";
+import { getPrimaryStore, getStoreById } from "@/lib/stores";
+import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import { listStorePages } from "@/lib/store-pages";
 import { resolveStorefrontEnvironment } from "@/lib/storefront-environment.utils";
 import { generateStorefrontMetadata } from "./page.utils";
@@ -35,8 +37,16 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
     seller.environment,
     viewer?.id,
   );
-  const [store, allProducts, storePages, pagesUnlocked, affiliatesUnlocked] = await Promise.all([
+  const [
+    store,
+    primaryStore,
+    allProducts,
+    storePages,
+    pagesUnlocked,
+    affiliatesUnlocked,
+  ] = await Promise.all([
     getStoreById(seller.activeStoreId, seller.id),
+    getPrimaryStore(),
     listProductsByUser(seller.id, seller.activeStoreId, environment),
     listStorePages(seller.id, seller.activeStoreId, environment),
     hasProFeature("pages"),
@@ -51,6 +61,8 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
     (page) => page.navigation === "footer",
   );
   const isTestMode = environment === "sandbox";
+  if (!store) notFound();
+  const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -58,9 +70,9 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-12">
         <StorefrontNavigation
           pages={topPages}
-          basePath={`/s/${store?.slug || slug}`}
+          basePath={storefrontBasePath}
           affiliatesEnabled={
-            affiliatesUnlocked && (store?.affiliatesEnabled ?? false)
+            affiliatesUnlocked && store.affiliatesEnabled
           }
           showDashboard={viewer?.id === seller.id}
           className="mb-4 border border-border/60 rounded-full sticky top-4 bg-white/80 z-10 justify-center w-fit mx-auto px-4 backdrop-blur-xl"
@@ -80,7 +92,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
             />
           )}
 
-          {store?.logoImageUrl ? (
+          {store.logoImageUrl ? (
             <img
               src={store.logoImageUrl}
               alt={`${store.name} logo`}
@@ -95,7 +107,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
             {seller.storeName}
           </h1>
           <p className="mt-2 max-w-xl whitespace-pre-line text-muted">
-            {store?.description || `Digital products from ${seller.name}`}
+            {store.description || `Digital products from ${seller.name}`}
           </p>
         </header>
 
@@ -110,7 +122,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
             {products.map((p) => (
               <Link
                 key={p.id}
-                href={`/buy/${p.id}${isTestMode ? "?preview" : ""}`}
+                href={`${getProductPublicPath(p)}${isTestMode ? "?preview" : ""}`}
                 className={`group flex flex-col transition shadow-gray-300/20`}
               >
                 {p.imageUrl ? (
@@ -154,7 +166,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
       <StoreSubscribeForm storeSlug={seller.storeSlug} />
       <StorefrontFooter
         pages={footerPages}
-        basePath={`/s/${store?.slug || slug}`}
+        basePath={storefrontBasePath}
       />
     </div>
   );

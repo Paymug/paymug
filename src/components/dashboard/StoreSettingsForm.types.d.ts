@@ -1,6 +1,10 @@
+import type { Store } from "@/lib/types";
+
 export interface StoreSettingsFormProps {
   storeId: string;
   initialName: string;
+  initialSlug: string;
+  initialIsPrimary: boolean;
   initialDescription: string;
   initialLogoImageUrl?: string;
   initialCoverImageUrl?: string;
@@ -17,5 +21,6 @@ export type StoreTransactionFeeSelection =
   | "percentage";
 
 export interface StoreSettingsResponse {
+  store?: Store;
   error?: string;
 }

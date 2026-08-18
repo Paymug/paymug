@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getProductDescriptionPlainText } from "@/components/product-description.utils";
-import { findProductById } from "@/lib/db";
+import { findProductByPublicIdentifier } from "@/lib/db";
 import { formatMoney } from "@/lib/format";
 import { isSubscriptionProduct } from "@/lib/product-billing";
+import { getProductPublicPath } from "@/lib/product-paths";
 import {
   buildPublicPageMetadata,
   getProductSocialImagePath,
@@ -14,7 +15,7 @@ export async function generateProductMetadata({
   params,
 }: BuyPageProps): Promise<Metadata> {
   const { productId } = await params;
-  const product = await findProductById(productId);
+  const product = await findProductByPublicIdentifier(productId);
   if (!product) {
     return {
       title: "Product not found",
@@ -38,7 +39,7 @@ export async function generateProductMetadata({
   return buildPublicPageMetadata({
     title: `${product.name} by ${storeName}`,
     description,
-    canonicalPath: `/buy/${encodeURIComponent(product.id)}`,
+    canonicalPath: getProductPublicPath(product),
     siteName: storeName,
     imageUrl: getProductSocialImagePath(product.id),
     imageAlt: `${product.name} by ${storeName}`,

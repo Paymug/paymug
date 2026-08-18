@@ -15,6 +15,7 @@ import {
 } from "@/lib/product-files.utils";
 import { PendingCaptureClient } from "./PendingCaptureClient";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
+import { getProductPublicPath } from "@/lib/product-paths";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
@@ -67,6 +68,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   }
 
   if (order.status !== "paid") {
+    const product = await findProductById(order.productId);
     return (
       <Shell>
         <h1 className="text-2xl font-bold">Payment incomplete</h1>
@@ -74,7 +76,11 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           This order is currently <strong>{order.status}</strong>.
         </p>
         <Link
-          href={`/buy/${order.productId}`}
+          href={
+            product
+              ? getProductPublicPath(product)
+              : `/buy/${order.productId}`
+          }
           className={`${buttonBaseClass} ${buttonVariantClasses.primary} mt-6`}
         >
           Try again

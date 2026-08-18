@@ -3,6 +3,7 @@ import type { ProductFile } from "@/lib/product-files.types";
 
 export interface ProductFormSavePayload {
   name: string;
+  slug: string;
   description: string;
   imageUrl: string;
   price: number;

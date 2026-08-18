@@ -3,7 +3,8 @@ import {
   buildPublicPageMetadata,
   getStoreSocialImagePath,
 } from "@/lib/public-page-metadata";
-import { getStoreBySlug } from "@/lib/stores";
+import { getPrimaryStore, getStoreBySlug } from "@/lib/stores";
+import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import { getAffiliateCommissionSummary } from "./affiliate-program.utils";
 import type { AffiliateProgramPageProps } from "./page.types";
 import { hasProFeature } from "@/lib/app-license";
@@ -24,7 +25,10 @@ export async function buildAffiliateProgramMetadata(
       robots: { index: false, follow: false },
     };
   }
-  const store = await getStoreBySlug(slug);
+  const [store, primaryStore] = await Promise.all([
+    getStoreBySlug(slug),
+    getPrimaryStore(),
+  ]);
   if (!store?.affiliatesEnabled) {
     return {
       title: "Affiliate program not found",
@@ -36,7 +40,7 @@ export async function buildAffiliateProgramMetadata(
   return buildPublicPageMetadata({
     title: `Join the ${store.name} Affiliate Program`,
     description,
-    canonicalPath: "/affiliates",
+    canonicalPath: `${getStorefrontBasePath(store, primaryStore)}/affiliates`,
     siteName: store.name,
     imageUrl: getStoreSocialImagePath(slug),
     imageAlt: `${store.name} affiliate program`,

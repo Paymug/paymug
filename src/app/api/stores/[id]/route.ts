@@ -7,6 +7,7 @@ import { requireProFeature } from "@/lib/pro-feature-access";
 
 const updateStoreSchema = z.object({
   name: z.string().trim().min(1).max(80),
+  slug: z.string().trim().min(1).max(80),
   description: z.string().trim().max(1000),
   logoImageUrl: z
     .string()
@@ -64,6 +65,7 @@ export async function PATCH(
     }
     const store = await updateStore(id, user.id, {
       name: parsed.data.name,
+      slug: parsed.data.slug,
       description: parsed.data.description,
       logoImageUrl: parsed.data.logoImageUrl || null,
       coverImageUrl: parsed.data.coverImageUrl || null,

@@ -17,6 +17,8 @@ import type {
 export function StoreSettingsForm({
   storeId,
   initialName,
+  initialSlug,
+  initialIsPrimary,
   initialDescription,
   initialLogoImageUrl,
   initialCoverImageUrl,
@@ -28,6 +30,8 @@ export function StoreSettingsForm({
 }: StoreSettingsFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
+  const [slug, setSlug] = useState(initialSlug);
+  const [isPrimary, setIsPrimary] = useState(initialIsPrimary);
   const [description, setDescription] = useState(initialDescription);
   const [logoImageUrl, setLogoImageUrl] = useState(initialLogoImageUrl || "");
   const [coverImageUrl, setCoverImageUrl] = useState(
@@ -46,6 +50,7 @@ export function StoreSettingsForm({
     (initialTransactionFeeValue / 100).toFixed(2),
   );
   const [saving, setSaving] = useState(false);
+  const [primarySaving, setPrimarySaving] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -84,6 +89,24 @@ export function StoreSettingsForm({
     }
   }
 
+  async function makePrimary() {
+    if (isPrimary) return;
+    setPrimarySaving(true);
+    setError(null);
+    setSuccess(false);
+    const response = await fetch(`/api/stores/${storeId}/primary`, {
+      method: "POST",
+    });
+    const data = (await response.json()) as StoreSettingsResponse;
+    setPrimarySaving(false);
+    if (!response.ok) {
+      setError(data.error || "Could not set primary store");
+      return;
+    }
+    setIsPrimary(true);
+    router.refresh();
+  }
+
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -112,6 +135,7 @@ export function StoreSettingsForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
+        slug,
         description,
         logoImageUrl,
         coverImageUrl,
@@ -129,6 +153,7 @@ export function StoreSettingsForm({
       setError(data.error || "Could not save store");
       return;
     }
+    if (data.store) setSlug(data.store.slug);
     setSuccess(true);
     router.refresh();
   }
@@ -140,7 +165,7 @@ export function StoreSettingsForm({
     >
       <section className="relative min-h-full min-w-0 flex-1 lg:sticky lg:top-0 lg:self-start">
         <Link
-          href="/"
+          href={isPrimary ? "/" : `/s/${slug}`}
           target="_blank"
           className="absolute right-4 top-4 z-10 rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-accent-dark shadow-sm backdrop-blur hover:underline"
         >
@@ -255,6 +280,48 @@ export function StoreSettingsForm({
           onChange={(event) => setName(event.target.value)}
           required
         />
+        <Input
+          label="Store URL slug"
+          name="storeSlug"
+          value={slug}
+          onChange={(event) => setSlug(event.target.value)}
+          placeholder="my-store"
+          required
+        />
+        <p className="text-sm text-muted">
+          {isPrimary
+            ? "Primary storefront: /. Published pages use /page-slug."
+            : `Storefront: /s/${slug || "my-store"}`}
+        </p>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3.5">
+          <div>
+            <p className="text-sm font-medium text-foreground">Primary store</p>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {isPrimary
+                ? "This store uses the root domain and clean page URLs."
+                : "Use this store at the root domain."}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isPrimary}
+            aria-label={
+              isPrimary ? "This is the primary store" : "Set as primary store"
+            }
+            disabled={primarySaving || isPrimary}
+            onClick={() => void makePrimary()}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition disabled:cursor-default disabled:opacity-70 ${
+              isPrimary ? "bg-accent" : "bg-[#d9d9e2]"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                isPrimary ? "left-5.5" : "left-0.5"
+              }`}
+            />
+          </button>
+        </div>
         <Input
           label="Store contact email (optional)"
           name="emailFrom"

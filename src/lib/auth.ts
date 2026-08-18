@@ -26,6 +26,7 @@ export function toPublicUser(user: User, store?: Store): PublicUser {
     storeEmailFrom: store?.emailFrom || user.storeEmailFrom,
     storeEmailReplyTo: store?.emailReplyTo || user.storeEmailReplyTo,
     activeStoreId: store?.id || user.activeStoreId,
+    primaryStoreId: user.primaryStoreId,
     environment: user.environment,
     createdAt: user.createdAt,
   };

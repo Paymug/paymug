@@ -4,16 +4,22 @@ import {
   buildPublicPageMetadata,
   getStoreSocialImagePath,
 } from "@/lib/public-page-metadata";
-import { getStoreById } from "@/lib/stores";
+import { getPrimaryStore, getStoreById } from "@/lib/stores";
+import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import type { StorefrontPageProps } from "./page.types";
 
 export async function generateStorefrontMetadata({
   params,
 }: StorefrontPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const seller = await findUserByStoreSlug(slug);
+  const [store, primaryStore] = await Promise.all([
+    seller ? getStoreById(seller.activeStoreId, seller.id) : undefined,
+    getPrimaryStore(),
+  ]);
   return buildStorefrontMetadata(
     slug,
-    "/",
+    store ? getStorefrontBasePath(store, primaryStore) || "/" : "/",
   );
 }
 

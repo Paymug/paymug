@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
-import { deleteProduct, findProductById, updateProduct } from "@/lib/db";
+import {
+  deleteProduct,
+  findProductById,
+  findProductBySlug,
+  updateProduct,
+} from "@/lib/db";
+import { slugify } from "@/lib/format";
 import {
   revokeProductGitHubAccess,
 } from "@/lib/github-access";
@@ -59,6 +65,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 
 const updateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
+  slug: z.string().trim().max(100).optional(),
   description: z.string().max(100000).optional(),
   price: z.number().int().nonnegative().optional(),
   transactionFeeType: z.enum(["fixed", "percentage"]).optional(),
@@ -108,6 +115,23 @@ export async function PATCH(req: Request, ctx: Ctx) {
       existing.environment !== user.environment
     ) {
       return jsonError("Not found", 404);
+    }
+    const productSlug =
+      parsed.data.slug === undefined ? undefined : slugify(parsed.data.slug);
+    if (parsed.data.slug && !productSlug) {
+      return jsonError("Enter a valid product slug");
+    }
+    if (productSlug) {
+      const [slugOwner, idOwner] = await Promise.all([
+        findProductBySlug(productSlug),
+        findProductById(productSlug),
+      ]);
+      if (
+        (slugOwner && slugOwner.id !== existing.id) ||
+        (idOwner && idOwner.id !== existing.id)
+      ) {
+        return jsonError("Product slug already taken", 409);
+      }
     }
     if (
       (parsed.data.status ?? existing.status) === "published" &&
@@ -172,6 +196,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     const patch = {
       ...parsed.data,
+      ...(productSlug !== undefined ? { slug: productSlug } : {}),
       generateLicense,
       licenseType,
       licenseUpdatePeriodUnit: licenseUpdatePeriod.unit,

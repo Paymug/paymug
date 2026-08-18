@@ -6,6 +6,7 @@ import { hasProFeature } from "./app-license";
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
 import { getStoreById } from "./stores";
 import { uid } from "./utils";
+import { getProductPublicPath } from "./product-paths";
 import type { ScheduleCheckoutReminderInput } from "./checkout-reminders.types";
 
 const reminderDelayMs = 60 * 60 * 1000;
@@ -30,7 +31,7 @@ export async function scheduleCheckoutReminder(
     customerName: input.customerName?.trim() || null,
     productName: input.productName,
     checkoutUrl: await getRuntimeAbsoluteUrl(
-      `/buy/${encodeURIComponent(input.productId)}`,
+      getProductPublicPath({ id: input.productId, slug: input.productSlug }),
       input.requestUrl,
     ),
     dueAt: new Date(now.getTime() + reminderDelayMs).toISOString(),

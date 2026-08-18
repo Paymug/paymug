@@ -80,6 +80,10 @@ function rowToUser(row: typeof usersTable.$inferSelect): User {
       row.activeStoreId && row.activeStoreId !== "active_store_id"
         ? row.activeStoreId
         : row.id,
+    primaryStoreId:
+      row.primaryStoreId && row.primaryStoreId !== "primary_store_id"
+        ? row.primaryStoreId
+        : row.activeStoreId || row.id,
     environment: row.environment,
     githubOAuthHostname: getStoredGitHubHostname(row.githubOAuthHostname),
     createdAt: row.createdAt,
@@ -227,6 +231,7 @@ export async function createUser(user: CreateUserInput): Promise<User> {
       storeSlug: user.storeSlug,
       environment: user.environment,
       activeStoreId: storeId,
+      primaryStoreId: storeId,
       githubOAuthHostname: user.githubOAuthHostname ?? null,
       createdAt: user.createdAt,
     });
@@ -247,7 +252,12 @@ export async function createUser(user: CreateUserInput): Promise<User> {
     if (isUniqueViolation(err)) mapUniqueError(err);
     throw err;
   }
-  return { ...user, email, activeStoreId: storeId };
+  return {
+    ...user,
+    email,
+    activeStoreId: storeId,
+    primaryStoreId: storeId,
+  };
 }
 
 export async function findUserByEmail(email: string): Promise<User | undefined> {
@@ -355,6 +365,22 @@ export async function findProductById(id: string): Promise<Product | undefined> 
     where: eq(productsTable.id, id),
   });
   return row ? rowToProduct(row) : undefined;
+}
+
+export async function findProductBySlug(
+  slug: string,
+): Promise<Product | undefined> {
+  const db = await getDb();
+  const row = await db.query.products.findFirst({
+    where: eq(productsTable.slug, slug),
+  });
+  return row ? rowToProduct(row) : undefined;
+}
+
+export async function findProductByPublicIdentifier(
+  identifier: string,
+): Promise<Product | undefined> {
+  return (await findProductById(identifier)) || findProductBySlug(identifier);
 }
 
 export async function findPublishedProduct(

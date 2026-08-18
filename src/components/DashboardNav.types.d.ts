@@ -2,9 +2,12 @@ import type {
   PayPalEnvironmentAvailability,
 } from "@/lib/paypal-environment.types";
 import type { PayPalMode } from "@/lib/types";
+import type { Store } from "@/lib/types";
 
 export interface DashboardNavProps {
   storeName: string;
+  stores: Store[];
+  activeStoreId: string;
   userName: string;
   environment: PayPalMode;
   environmentAvailability: PayPalEnvironmentAvailability;

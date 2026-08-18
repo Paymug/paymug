@@ -10,6 +10,7 @@ import { EnvironmentCopyMenu } from "@/components/dashboard/EnvironmentCopyMenu"
 import { useRowSelection } from "@/components/dashboard/use-row-selection";
 import { badgeBaseClass, badgeVariantClasses } from "@/components/ui.styles";
 import { formatMoney } from "@/lib/format";
+import { getProductPublicPath } from "@/lib/product-paths";
 import { ProductActionsMenu } from "./ProductActionsMenu";
 import type { ProductsWorkspaceProps } from "./ProductsWorkspace.types";
 
@@ -149,7 +150,7 @@ export function ProductsWorkspace({
                   </td>
                   <td className="px-4 py-3">
                     <Link
-                      href={`/buy/${product.id}${
+                      href={`${getProductPublicPath(product)}${
                         product.status === "published" &&
                         product.environment === "live"
                           ? ""
@@ -158,7 +159,7 @@ export function ProductsWorkspace({
                       target="_blank"
                       className="font-mono text-xs text-muted hover:text-foreground hover:underline"
                     >
-                      /buy/{product.id.slice(0, 8)}…
+                      {getProductPublicPath(product)}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-right">

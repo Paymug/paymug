@@ -5,7 +5,7 @@ import { ProductDescription } from "@/components/ProductDescription";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { cardClass } from "@/components/ui.styles";
 import { getSessionUser } from "@/lib/auth";
-import { findProductById, findUserById } from "@/lib/db";
+import { findProductByPublicIdentifier, findUserById } from "@/lib/db";
 import {
   getPayPalCredentials,
   getStripeCredentials,
@@ -36,7 +36,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const { productId } = await params;
   const { cancelled, discount, preview, ref } = await searchParams;
 
-  const product = await findProductById(productId);
+  const product = await findProductByPublicIdentifier(productId);
   if (!product) notFound();
   const isPreview = product.status !== "published";
   if (isPreview) {
@@ -57,6 +57,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       userId: product.userId,
       storeId: product.storeId,
       productId: product.id,
+      productSlug: product.slug,
       environment: product.environment,
       customerEmail: customer.email,
       customerName: customer.name,

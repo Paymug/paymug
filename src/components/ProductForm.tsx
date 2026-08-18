@@ -19,6 +19,7 @@ import type {
   ProductLicenseUpdatePeriodUnit,
 } from "@/lib/types";
 import { formatLicenseUpdatePeriodLabel } from "@/lib/license-entitlements";
+import { slugify } from "@/lib/format";
 import {
   fetchGitHubRepositories,
   findGitHubRepository,
@@ -44,6 +45,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const router = useRouter();
   const [name, setName] = useState(product?.name || "");
+  const [slug, setSlug] = useState(product?.slug || "");
   const [description, setDescription] = useState(product?.description || "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
   const [price, setPrice] = useState(
@@ -165,6 +167,7 @@ export function ProductForm({
       : "";
   const savePayload: ProductFormSavePayload = {
     name: name.trim() || "Untitled product",
+    slug,
     description,
     imageUrl,
     price: autosavePriceCents,
@@ -201,6 +204,7 @@ export function ProductForm({
   };
   const hasMeaningfulContent = Boolean(
     name.trim() ||
+    slug.trim() ||
     description.trim() ||
     imageUrl ||
     price.trim() ||
@@ -232,6 +236,7 @@ export function ProductForm({
     onError: setError,
     onSaved: () => setError(null),
   });
+  const productPublicIdentifier = slug.trim() || productId;
 
   useEffect(() => {
     void fetchGitHubRepositories()
@@ -340,7 +345,7 @@ export function ProductForm({
       <div className="flex-1 min-w-0 lg:sticky lg:top-0 lg:self-start">
         <div className="p-6 sm:p-8">
           <Link
-            href={`/buy/${productId}${
+            href={`/buy/${productPublicIdentifier}${
               status === "published" && product?.environment === "live"
                 ? ""
                 : "?preview"
@@ -440,6 +445,20 @@ export function ProductForm({
           placeholder="e.g. Ultimate UI Kit"
           required
         />
+
+        <div>
+          <Input
+            label="Product URL slug (optional)"
+            name="slug"
+            value={slug}
+            onChange={(event) => setSlug(slugify(event.target.value))}
+            placeholder={productId || "product-id"}
+            maxLength={100}
+          />
+          <p className="mt-1.5 text-xs text-muted">
+            /buy/{slug.trim() || productId || "product-id"}
+          </p>
+        </div>
 
         <div>
           <label className={labelClass} htmlFor="price">

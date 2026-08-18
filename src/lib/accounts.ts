@@ -30,6 +30,7 @@ export async function createAccount(
     storeSlug: pendingStoreSlug,
     environment: input.environment,
     activeStoreId: null,
+    primaryStoreId: null,
     createdAt: input.createdAt,
   });
 
@@ -39,5 +40,6 @@ export async function createAccount(
     storeName: "",
     storeSlug: pendingStoreSlug,
     activeStoreId: input.id,
+    primaryStoreId: input.id,
   };
 }

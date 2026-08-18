@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createProduct, findProductById } from "./db";
-import { slugify } from "./format";
 import { uid } from "./utils";
 import type { Product } from "./types";
 
@@ -20,12 +19,11 @@ export async function duplicateProduct(
 
   const id = uid();
   const now = new Date().toISOString();
-  const baseSlug = slugify(name) || "product";
   return createProduct({
     ...source,
     id,
     name,
-    slug: `${baseSlug}-${id.slice(0, 6)}`,
+    slug: "",
     createdAt: now,
     updatedAt: now,
   });

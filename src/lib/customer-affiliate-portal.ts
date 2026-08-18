@@ -82,6 +82,7 @@ export async function getCustomerAffiliatePortalData(
           .filter((product) => product.status === "published")
           .map((product) => ({
             id: product.id,
+            slug: product.slug,
             name: product.name,
             description: product.description,
             price: product.price,

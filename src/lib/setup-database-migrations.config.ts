@@ -39,5 +39,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "CREATE INDEX `customer_access_tokens_expiry_idx` ON `customer_access_tokens` (`expires_at`);",
       "CREATE TRIGGER `users_single_account_insert`\nBEFORE INSERT ON `users`\nWHEN EXISTS (SELECT 1 FROM `users`)\nBEGIN\n\tSELECT RAISE(ABORT, 'Only one account is allowed');\nEND;"
     ]
+  },
+  {
+    "name": "0001_primary_store.sql",
+    "statements": [
+      "ALTER TABLE `users` ADD `primary_store_id` text;",
+      "UPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
+    ]
   }
 ];

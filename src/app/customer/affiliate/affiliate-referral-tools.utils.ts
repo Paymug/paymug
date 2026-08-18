@@ -10,10 +10,10 @@ function escapeHtmlAttribute(value: string) {
 }
 
 export function getProductAffiliatePath(
-  productId: string,
+  product: Pick<CustomerAffiliateProduct, "id" | "slug">,
   username: string,
 ) {
-  return `/buy/${encodeURIComponent(productId)}?ref=${encodeURIComponent(username)}`;
+  return `/buy/${encodeURIComponent(product.slug || product.id)}?ref=${encodeURIComponent(username)}`;
 }
 
 export function buildAffiliateEmbedCode(

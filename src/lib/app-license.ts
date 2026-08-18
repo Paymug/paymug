@@ -53,7 +53,7 @@ function mapLicenseRow(
   };
 }
 
-async function getLicenseApiUrl() {
+function getLicenseApiUrl() {
   return "https://api.paymug.co";
 }
 
@@ -63,8 +63,9 @@ async function requestLicenseAuthority(
   instanceId: string,
 ): Promise<LicenseAuthorityResponse> {
   const instanceUrl = (await getRuntimeEnvValue("NEXT_PUBLIC_APP_URL")) || "";
+  console.log("requestLicenseAuthority", `${getLicenseApiUrl()}/v1/licenses/${action}`)
   const response = await fetch(
-    `${await getLicenseApiUrl()}/v1/licenses/${action}`,
+    `${getLicenseApiUrl()}/v1/licenses/${action}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

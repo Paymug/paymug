@@ -19,6 +19,7 @@ export const users = sqliteTable("users", {
     .notNull()
     .default("sandbox"),
   activeStoreId: text("active_store_id"),
+  primaryStoreId: text("primary_store_id"),
   githubOAuthHostname: text("github_oauth_hostname"),
   createdAt: text("created_at").notNull(),
 });

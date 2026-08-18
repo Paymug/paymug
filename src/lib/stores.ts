@@ -92,9 +92,11 @@ export async function getPrimaryStore(): Promise<Store | undefined> {
   const primaryUser = await db.query.users.findFirst({
     orderBy: [asc(users.createdAt)],
   });
-  if (primaryUser?.activeStoreId) {
+  const primaryStoreId =
+    primaryUser?.primaryStoreId || primaryUser?.activeStoreId;
+  if (primaryUser && primaryStoreId) {
     const activeStore = await getStoreById(
-      primaryUser.activeStoreId,
+      primaryStoreId,
       primaryUser.id,
     );
     if (activeStore) return activeStore;
@@ -128,6 +130,10 @@ export async function createStore(
   input: CreateStoreInput
 ): Promise<Store> {
   const db = await getDb();
+  const owner = await db.query.users.findFirst({
+    columns: { primaryStoreId: true },
+    where: eq(users.id, input.userId),
+  });
   const now = new Date().toISOString();
   const storeId = uid();
   const storeSlug = `${slugify(input.name) || "store"}-${storeId.slice(0, 6)}`;
@@ -170,6 +176,7 @@ export async function createStore(
     .update(users)
     .set({
       activeStoreId: store.id,
+      primaryStoreId: owner?.primaryStoreId || store.id,
       storeName: store.name,
       storeSlug: store.slug,
     })
@@ -195,16 +202,41 @@ export async function activateStore(
   return store;
 }
 
+export async function setPrimaryStore(
+  storeId: string,
+  userId: string,
+): Promise<Store | undefined> {
+  const db = await getDb();
+  const store = await getStoreById(storeId, userId);
+  if (!store) return undefined;
+  await db
+    .update(users)
+    .set({ primaryStoreId: store.id })
+    .where(eq(users.id, userId));
+  return store;
+}
+
 export async function updateStore(
   storeId: string,
   userId: string,
   input: UpdateStoreInput
 ): Promise<Store | undefined> {
   const db = await getDb();
+  const slug = input.slug === undefined ? undefined : slugify(input.slug);
+  if (input.slug !== undefined && !slug) {
+    throw new Error("Enter a valid store slug");
+  }
+  if (slug !== undefined) {
+    const existingStore = await getStoreBySlug(slug);
+    if (existingStore && existingStore.id !== storeId) {
+      throw new Error("Store slug already taken");
+    }
+  }
   await db
     .update(stores)
     .set({
       ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(slug !== undefined ? { slug } : {}),
       ...(input.description !== undefined
         ? { description: input.description }
         : {}),
@@ -257,10 +289,13 @@ export async function updateStore(
       updatedAt: new Date().toISOString(),
     })
     .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
-  if (input.name !== undefined) {
+  if (input.name !== undefined || slug !== undefined) {
     await db
       .update(users)
-      .set({ storeName: input.name })
+      .set({
+        ...(input.name !== undefined ? { storeName: input.name } : {}),
+        ...(slug !== undefined ? { storeSlug: slug } : {}),
+      })
       .where(
         and(eq(users.id, userId), eq(users.activeStoreId, storeId)),
       );

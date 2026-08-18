@@ -6,7 +6,8 @@ import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { findUserById, listProductsByUser } from "@/lib/db";
 import { listStorePages } from "@/lib/store-pages";
-import { getStoreBySlug } from "@/lib/stores";
+import { getPrimaryStore, getStoreBySlug } from "@/lib/stores";
+import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import { AffiliateApplicationForm } from "./AffiliateApplicationForm";
 import { AffiliateEarningsCalculator } from "./AffiliateEarningsCalculator";
 import {
@@ -53,10 +54,12 @@ export default async function AffiliateProgramPage({
   const seller = await findUserById(store.userId);
   if (!seller) notFound();
   const environment = seller.environment;
-  const [allProducts, storePages] = await Promise.all([
+  const [allProducts, storePages, primaryStore] = await Promise.all([
     listProductsByUser(store.userId, store.id, environment),
     listStorePages(store.userId, store.id, environment),
+    getPrimaryStore(),
   ]);
+  const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
   const products = allProducts.filter((product) => product.status === "published");
   const publishedPages = storePages.filter((page) => page.status === "published");
   const topPages = publishedPages.filter((page) => page.navigation === "top");
@@ -90,7 +93,7 @@ export default async function AffiliateProgramPage({
             aria-label="Store navigation"
           >
             <Link
-              href="/"
+              href={storefrontBasePath || "/"}
               className="text-sm font-semibold hover:text-[#9b7600]"
             >
               Back to store
@@ -98,7 +101,7 @@ export default async function AffiliateProgramPage({
             {topPages.map((page) => (
               <Link
                 key={page.id}
-                href={`/s/${store.slug}/${page.slug}`}
+                href={`${storefrontBasePath}/${page.slug}`}
                 className="text-sm font-semibold hover:text-[#9b7600]"
               >
                 {page.title}
@@ -238,7 +241,7 @@ export default async function AffiliateProgramPage({
         </section>
       </main>
 
-      <StorefrontFooter pages={footerPages} basePath={`/s/${store.slug}`} />
+      <StorefrontFooter pages={footerPages} basePath={storefrontBasePath} />
     </div>
   );
 }

@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
-import { createProduct, listProductsByUser } from "@/lib/db";
+import {
+  createProduct,
+  findProductById,
+  findProductBySlug,
+  listProductsByUser,
+} from "@/lib/db";
 import { slugify } from "@/lib/format";
 import { validateGitHubProductRepository } from "@/lib/github-products";
 import {
@@ -32,6 +37,7 @@ export async function GET() {
 
 const createSchema = z.object({
   name: z.string().min(1).max(120),
+  slug: z.string().trim().max(100).optional().default(""),
   description: z.string().max(100000).optional().default(""),
   price: z.number().int().nonnegative(),
   transactionFeeType: z.enum(["fixed", "percentage"]).default("fixed"),
@@ -135,14 +141,26 @@ export async function POST(req: Request) {
         400
       );
     }
-    const baseSlug = slugify(parsed.data.name) || "product";
+    const productSlug = slugify(parsed.data.slug);
+    if (parsed.data.slug && !productSlug) {
+      return jsonError("Enter a valid product slug");
+    }
+    if (productSlug) {
+      const [slugOwner, idOwner] = await Promise.all([
+        findProductBySlug(productSlug),
+        findProductById(productSlug),
+      ]);
+      if (slugOwner || idOwner) {
+        return jsonError("Product slug already taken", 409);
+      }
+    }
     const product = await createProduct({
       id: uid(),
       userId: user.id,
       storeId: user.activeStoreId,
       environment: user.environment,
       name: parsed.data.name,
-      slug: `${baseSlug}-${uid().slice(0, 6)}`,
+      slug: productSlug,
       description: parsed.data.description,
       price: parsed.data.price,
       transactionFeeType: parsed.data.transactionFeeType,

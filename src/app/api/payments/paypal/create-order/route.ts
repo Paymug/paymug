@@ -14,6 +14,7 @@ import { getPayPalCredentials } from "@/lib/payment-credentials";
 import { notifyInvoiceCreated } from "@/lib/notification-events";
 import { createPayPalOrder } from "@/lib/paypal";
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
+import { getProductPublicPath } from "@/lib/product-paths";
 import { getRuntimeAbsoluteUrl } from "@/lib/runtime-env";
 import { jsonError, uid } from "@/lib/utils";
 import { getStoreById } from "@/lib/stores";
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
       req.url
     );
     const cancelUrl = await getRuntimeAbsoluteUrl(
-      `/buy/${product.id}?cancelled=1`,
+      `${getProductPublicPath(product)}?cancelled=1`,
       req.url
     );
     const paypalOrder = await createPayPalOrder({
