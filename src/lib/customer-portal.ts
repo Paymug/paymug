@@ -97,13 +97,13 @@ export async function getCustomerPortalData(
         productName: order.productName,
         productDescription:
           order.productDescription ?? product?.description ?? "",
-        productImageUrl: product?.imageUrl,
+        productImageUrl: product?.imageUrl ?? undefined,
         productPrice:
           order.productPrice ??
           product?.price ??
           order.amount + order.discountAmount - order.transactionFeeAmount,
         storeName: store?.name || "Store",
-        storeLogoImageUrl: store?.logoImageUrl,
+        storeLogoImageUrl: store?.logoImageUrl ?? undefined,
         amount: order.amount,
         currency: order.currency,
         status: order.status,
@@ -167,7 +167,7 @@ export async function getCustomerPortalData(
           id: record.id,
           planName: record.title,
           storeName: store?.name || "Store",
-          storeLogoImageUrl: store?.logoImageUrl,
+          storeLogoImageUrl: store?.logoImageUrl ?? undefined,
           status: record.status,
           amount: typeof data.amount === "number" ? data.amount : undefined,
           interval:
