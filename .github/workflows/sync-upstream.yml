@@ -1,0 +1,65 @@
+name: Sync upstream updates
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paymug-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-upstream:
+    name: Sync private Paymug upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UPSTREAM_REPOSITORY: hieunc/paymug
+      UPSTREAM_BRANCH: latest
+      UPSTREAM_TOKEN: ${{ secrets.UPSTREAM_TOKEN }}
+
+    steps:
+      - name: Check out UserGitRepo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Pull latest Paymug changes
+        shell: bash
+        run: |
+          if [ -z "$UPSTREAM_TOKEN" ]; then
+            echo "UPSTREAM_TOKEN must have read access to the private hieunc/paymug repository."
+            exit 1
+          fi
+
+          git config user.name "paymug-updater[bot]"
+          git config user.email "paymug-updater[bot]@users.noreply.github.com"
+          auth_header="AUTHORIZATION: basic $(printf '%s' "x-access-token:${UPSTREAM_TOKEN}" | base64 -w0)"
+          git remote add paymug-upstream "https://github.com/${UPSTREAM_REPOSITORY}.git"
+          git -c "http.https://github.com/.extraheader=${auth_header}" fetch paymug-upstream "$UPSTREAM_BRANCH"
+
+          upstream_commit="$(git rev-parse "paymug-upstream/${UPSTREAM_BRANCH}")"
+          if ! git merge-base --is-ancestor "$upstream_commit" HEAD; then
+            git merge --no-edit "paymug-upstream/${UPSTREAM_BRANCH}"
+          fi
+
+          node scripts/write-paymug-build-info.mjs \
+            "$GITHUB_REPOSITORY" \
+            "-" \
+            "$UPSTREAM_REPOSITORY" \
+            "$upstream_commit"
+          git add src/generated/paymug-build-info.ts
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: record Paymug upstream ${upstream_commit:0:12}"
+          fi
+
+          if [ "$(git rev-parse "origin/${GITHUB_REF_NAME}")" = "$(git rev-parse HEAD)" ]; then
+            echo "UserGitRepo is already up to date."
+            exit 0
+          fi
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo "Updated UserGitRepo to Paymug ${upstream_commit}. Cloudflare will deploy this push automatically."

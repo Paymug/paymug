@@ -1,0 +1,208 @@
+import "server-only";
+
+import { desc, sql } from "drizzle-orm";
+import { getDb } from "@/db";
+import { featureRecords, orders } from "@/db/schema";
+import { findProductById } from "./db";
+import { parseProductFiles } from "./product-files.utils";
+import { getStoreById } from "./stores";
+import { getLicenseEntitlementSummary } from "./license-entitlements";
+import type { FeatureRecordValue } from "./feature-records.types";
+import type {
+  CustomerPortalData,
+  CustomerPortalPurchase,
+  CustomerPortalSubscription,
+} from "./customer-portal.types";
+import { hasProFeature } from "./app-license";
+
+function parseRecordData(value: string): Record<string, FeatureRecordValue> {
+  try {
+    return JSON.parse(value) as Record<string, FeatureRecordValue>;
+  } catch {
+    return {};
+  }
+}
+
+export async function getCustomerPortalData(
+  email: string,
+): Promise<CustomerPortalData> {
+  const db = await getDb();
+  const [affiliatesUnlocked, githubUnlocked] = await Promise.all([
+    hasProFeature("affiliates"),
+    hasProFeature("private_github"),
+  ]);
+  const normalizedEmail = email.trim().toLowerCase();
+  const [orderRows, records] = await Promise.all([
+    db.query.orders.findMany({
+      where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = 'live' AND ${orders.status} IN ('paid', 'refunded')`,
+      orderBy: [desc(orders.createdAt)],
+    }),
+    db.query.featureRecords.findMany({
+      where: sql`lower(${featureRecords.subtitle}) = ${normalizedEmail} AND ${featureRecords.environment} = 'live' AND (${featureRecords.feature} = 'licenses' OR ${featureRecords.feature} = 'subscriptions')`,
+      orderBy: [desc(featureRecords.updatedAt)],
+    }),
+  ]);
+  const licenses = records
+    .filter((record) => record.feature === "licenses")
+    .map((record) => ({ record, data: parseRecordData(record.data) }));
+  const purchases = await Promise.all(
+    orderRows.map(async (order): Promise<CustomerPortalPurchase> => {
+      const orderProductFiles = parseProductFiles(order.productFiles);
+      const [product, store] = await Promise.all([
+        findProductById(order.productId),
+        order.storeId ? getStoreById(order.storeId, order.userId) : undefined,
+      ]);
+      const license = licenses.find(
+        (candidate) =>
+          candidate.data.orderId === order.id ||
+          (candidate.data.subscriptionLicense === true &&
+            candidate.data.productId === order.productId &&
+            String(candidate.record.subtitle || "").toLowerCase() ===
+              order.customerEmail.toLowerCase()),
+      );
+      const licenseEntitlement = license
+        ? getLicenseEntitlementSummary({
+            status: license.record.status,
+            data: license.data,
+          })
+        : undefined;
+      const currentUpdatesIncluded = Boolean(
+        licenseEntitlement?.perpetual && licenseEntitlement.updatesActive,
+      );
+      const currentProductFiles = product?.productFiles || [];
+      const availableProductFiles = currentUpdatesIncluded
+        ? [
+            ...currentProductFiles,
+            ...orderProductFiles.filter(
+              (orderFile) =>
+                !currentProductFiles.some(
+                  (currentFile) => currentFile.id === orderFile.id,
+                ),
+            ),
+          ]
+        : orderProductFiles.length
+          ? orderProductFiles
+          : currentProductFiles;
+      return {
+        id: order.id,
+        productName: order.productName,
+        productDescription:
+          order.productDescription ?? product?.description ?? "",
+        productImageUrl: product?.imageUrl,
+        productPrice:
+          order.productPrice ??
+          product?.price ??
+          order.amount + order.discountAmount - order.transactionFeeAmount,
+        storeName: store?.name || "Store",
+        storeLogoImageUrl: store?.logoImageUrl,
+        amount: order.amount,
+        currency: order.currency,
+        status: order.status,
+        discountCode: order.discountCode ?? undefined,
+        discountAmount: order.discountAmount,
+        transactionFeeAmount: order.transactionFeeAmount,
+        gateway: order.gateway,
+        environment: order.environment,
+        paypalOrderId: order.paypalOrderId ?? undefined,
+        paypalCaptureId: order.paypalCaptureId ?? undefined,
+        stripeCheckoutSessionId: order.stripeCheckoutSessionId ?? undefined,
+        stripePaymentIntentId: order.stripePaymentIntentId ?? undefined,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt ?? undefined,
+        deliveryContent:
+          order.status === "paid"
+            ? currentUpdatesIncluded
+              ? (product?.deliveryContent ?? order.deliveryContent ?? undefined)
+              : (order.deliveryContent ?? product?.deliveryContent ?? undefined)
+            : undefined,
+        productFiles:
+          order.status === "paid"
+            ? availableProductFiles
+            : [],
+        license: license
+          ? {
+              key: license.record.title,
+              status: license.record.status,
+              expiresAt:
+                typeof license.data.expiresAt === "string"
+                  ? license.data.expiresAt
+                  : undefined,
+              type: licenseEntitlement?.type || "standard",
+              perpetual: licenseEntitlement?.perpetual || false,
+              updatesExpireAt: licenseEntitlement?.updatesExpireAt,
+              updatesActive: licenseEntitlement?.updatesActive ?? false,
+            }
+          : undefined,
+        githubRepository: githubUnlocked &&
+          (order.githubRepoOwner || product?.githubRepoOwner) &&
+          (order.githubRepoName || product?.githubRepoName)
+            ? `${order.githubRepoOwner || product?.githubRepoOwner}/${order.githubRepoName || product?.githubRepoName}`
+            : undefined,
+        githubAccessStatus: githubUnlocked &&
+          (order.githubRepoOwner || product?.githubRepoOwner) &&
+          (order.githubRepoName || product?.githubRepoName)
+            ? order.githubAccessStatus
+            : undefined,
+        githubUsername: order.githubUsername ?? undefined,
+        githubAccessError: order.githubAccessError ?? undefined,
+        affiliateProgramEnabled:
+          affiliatesUnlocked && (store?.affiliatesEnabled ?? false),
+      };
+    }),
+  );
+  const subscriptions = await Promise.all(
+    records
+      .filter((record) => record.feature === "subscriptions")
+      .map(async (record): Promise<CustomerPortalSubscription> => {
+        const data = parseRecordData(record.data);
+        const storeId =
+          typeof data.storeId === "string" ? data.storeId : undefined;
+        const store = storeId
+          ? await getStoreById(storeId, record.userId)
+          : undefined;
+        return {
+          id: record.id,
+          planName: record.title,
+          storeName: store?.name || "Store",
+          storeLogoImageUrl: store?.logoImageUrl,
+          status: record.status,
+          amount: typeof data.amount === "number" ? data.amount : undefined,
+          interval:
+            typeof data.interval === "string" ? data.interval : undefined,
+          trialDays:
+            typeof data.trialDays === "number" ? data.trialDays : undefined,
+          trialEndsAt:
+            typeof data.trialEndsAt === "string" ? data.trialEndsAt : undefined,
+          nextBillingAt:
+            typeof data.nextBillingAt === "string"
+              ? data.nextBillingAt
+              : undefined,
+          updatedAt: record.updatedAt,
+          affiliateProgramEnabled:
+            affiliatesUnlocked && (store?.affiliatesEnabled ?? false),
+        };
+      }),
+  );
+  return {
+    purchases,
+    subscriptions,
+    affiliatesEnabled:
+      purchases.some((purchase) => purchase.affiliateProgramEnabled) ||
+      subscriptions.some(
+        (subscription) => subscription.affiliateProgramEnabled,
+      ),
+    branding: purchases[0]
+      ? {
+          storeSlug: purchases[0].storeName,
+          storeName: purchases[0].storeName,
+          storeLogoImageUrl: purchases[0].storeLogoImageUrl,
+        }
+      : subscriptions[0]
+        ? {
+            storeSlug: subscriptions[0].storeName,
+            storeName: subscriptions[0].storeName,
+            storeLogoImageUrl: subscriptions[0].storeLogoImageUrl,
+          }
+        : undefined,
+  };
+}

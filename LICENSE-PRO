@@ -1,0 +1,189 @@
+# Paymug Commercial License
+
+This license is applied for all Pro features
+
+**Version 1.0**
+
+Copyright © Paymug. All rights reserved.
+
+This license applies to the portions of Paymug identified as **Paymug Pro**, **Commercial**, **Enterprise**, or otherwise marked as being subject to the Paymug Commercial License ("Commercial Software").
+
+Other portions of Paymug may be licensed separately, including under the Apache License 2.0. Those components remain governed by their respective licenses.
+
+## 1. License Grant
+
+Subject to payment of the applicable license fee and compliance with this license, Paymug grants you a limited, non-exclusive, non-transferable license to use the Commercial Software for your own business or organization.
+
+Your purchased license determines the features and usage limits available to you, including where applicable:
+
+* Number of stores
+* Number of installations
+* Commercial features available
+* Update entitlement period
+* Support entitlement
+* Other limits shown at the time of purchase
+
+You may modify the Commercial Software for your own internal use.
+
+## 2. Self-Hosting
+
+A valid Paymug Commercial License allows you to deploy and operate the Commercial Software on infrastructure controlled by you or on your behalf.
+
+You are responsible for operating, securing, maintaining, and backing up your self-hosted installation.
+
+Unless your license specifically permits it, you may not operate the Commercial Software as a hosted service for third parties.
+
+## 3. Pro Features
+
+Commercial features may include, but are not limited to:
+
+* Affiliate management
+* Email campaigns and automations
+* Multi-store functionality
+* Advanced analytics
+* Advanced licensing features
+* Premium integrations
+* Other features identified as Paymug Pro
+
+Access to these features requires a valid commercial license.
+
+The presence of Commercial Software source code in a public repository does not grant permission to use those features without a valid license.
+
+## 4. License Keys
+
+Paymug may use a license key or similar mechanism to confirm your license and determine the features available to your installation.
+
+You may not intentionally:
+
+* Circumvent or disable license enforcement
+* Forge, modify, or share license credentials
+* Enable paid functionality without the required license
+* Modify the software primarily for the purpose of bypassing license restrictions
+
+Reasonable modifications to Paymug for your own licensed use are permitted.
+
+## 5. Perpetual Licenses
+
+If you purchase a perpetual license, you may continue using the version of the Commercial Software that you are entitled to indefinitely.
+
+A perpetual license does **not necessarily include updates forever**.
+
+For example, a license may include:
+
+**1 year of updates from the purchase date.**
+
+When your update entitlement expires:
+
+* Your existing licensed installation continues to work
+* Your existing Pro features remain available
+* You may continue using versions released during your update entitlement period
+* Versions released after your update entitlement expires may require renewal
+
+Renewing your update entitlement is optional unless otherwise stated when you purchased your license.
+
+## 6. Subscription Licenses
+
+If your Commercial License is sold as a subscription, your right to use the Commercial Software continues while the subscription remains active.
+
+The applicable pricing page or purchase agreement will specify what happens when a subscription expires.
+
+## 7. Restrictions
+
+Unless Paymug gives you written permission, you may not:
+
+* Sell, sublicense, rent, lease, or redistribute the Commercial Software
+* Share your commercial license with another individual or organization
+* Publish the Commercial Software as your own product
+* Offer substantially the same software as a competing hosted or self-hosted product
+* Remove copyright, licensing, or attribution notices
+* Circumvent Paymug's licensing system
+* Use one license across more installations, stores, organizations, or users than your license permits
+
+You may not redistribute modified versions of the Commercial Software unless explicitly authorized by Paymug.
+
+## 8. Source Availability
+
+The Commercial Software may be distributed with source code.
+
+Access to the source code is provided for transparency, auditing, customization, debugging, and operating your licensed Paymug installation.
+
+**Source availability does not make the Commercial Software open source.**
+
+Except for rights explicitly granted by this license, Paymug retains all rights to the Commercial Software.
+
+## 9. Community Edition
+
+Components explicitly licensed under Apache License 2.0 or another open-source license are not subject to this Commercial License.
+
+You may use those components according to their respective licenses without purchasing Paymug Pro.
+
+Commercial licensing requirements apply only to code and features identified as Commercial Software.
+
+## 10. Ownership
+
+Paymug and its licensors retain all ownership and intellectual property rights in the Commercial Software.
+
+Purchasing a license gives you permission to use the software according to these terms. It does not transfer ownership of Paymug or its source code to you.
+
+Your own data, products, customer information, content, and other materials remain yours.
+
+## 11. Updates and Compatibility
+
+Paymug may change, add, replace, or remove features in future versions.
+
+A commercial license does not guarantee that every future version will remain compatible with your infrastructure, integrations, modifications, or third-party services.
+
+## 12. Support
+
+Support is included only when stated in your purchased plan.
+
+Unless otherwise specified, purchasing a Commercial License does not guarantee custom development, migration assistance, deployment assistance, or priority support.
+
+## 13. Termination
+
+Your rights under this license automatically terminate if you materially violate these terms and fail to correct the violation after receiving reasonable notice from Paymug.
+
+Upon termination, you must stop using Commercial Software for which you no longer have a valid license.
+
+Termination of this Commercial License does not affect your rights to components separately licensed under an open-source license.
+
+## 14. Warranty Disclaimer
+
+To the maximum extent permitted by law, the Commercial Software is provided **"as is"** and **"as available"**, without warranties of any kind, express or implied.
+
+Paymug does not guarantee uninterrupted operation, error-free software, or compatibility with every third-party service or environment.
+
+## 15. Limitation of Liability
+
+To the maximum extent permitted by applicable law, Paymug will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages arising from your use of the Commercial Software.
+
+Paymug's total liability arising from the Commercial Software will not exceed the amount you paid Paymug for the applicable license during the 12 months preceding the event giving rise to the claim.
+
+## 16. Changes to This License
+
+The license terms that apply to a version of the Commercial Software are the terms distributed with that version unless you separately agree to updated terms.
+
+Paymug may use different licensing terms for future versions without changing the rights already granted to you for versions you validly licensed.
+
+## 17. Commercial Agreements
+
+If you have a separately signed agreement with Paymug, that agreement takes precedence over this license where the terms conflict.
+
+## 18. Contact
+
+For commercial licensing questions, contact:
+
+**Paymug**
+https://paymug.co
+
+---
+
+### Summary
+
+Paymug Core is open source.
+
+Paymug Pro is source-available commercial software.
+
+You are welcome to read, audit, and modify Paymug Pro for your own licensed installation, but using Pro features in production requires a valid Paymug Commercial License.
+
+A perpetual license lets you keep using the version you purchased. Your update period determines which future versions you are entitled to receive.

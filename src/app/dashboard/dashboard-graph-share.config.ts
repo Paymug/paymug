@@ -1,0 +1,58 @@
+import type { DashboardGraphShareBackground } from "./dashboard-graph-share.types";
+
+export const dashboardGraphShareBackgrounds: DashboardGraphShareBackground[] = [
+  {
+    id: "sunrise",
+    label: "Sunrise",
+    css: "linear-gradient(135deg, #fff2bf 0%, #f5c150 52%, #f08bd8 100%)",
+    colors: ["#fff2bf", "#f5c150", "#f08bd8"],
+    textColor: "#211b18",
+    mutedColor: "#675745",
+    lineColor: "#211b18",
+  },
+  {
+    id: "midnight",
+    label: "Midnight",
+    css: "linear-gradient(135deg, #11101c 0%, #4338ca 54%, #d946ef 100%)",
+    colors: ["#11101c", "#4338ca", "#d946ef"],
+    textColor: "#ffffff",
+    mutedColor: "#e4e1ff",
+    lineColor: "#fde047",
+  },
+  {
+    id: "ocean",
+    label: "Ocean",
+    css: "linear-gradient(135deg, #071f3a 0%, #0284c7 52%, #67e8f9 100%)",
+    colors: ["#071f3a", "#0284c7", "#67e8f9"],
+    textColor: "#ffffff",
+    mutedColor: "#d8f6ff",
+    lineColor: "#fef08a",
+  },
+  {
+    id: "forest",
+    label: "Forest",
+    css: "linear-gradient(135deg, #082f27 0%, #16a34a 55%, #bef264 100%)",
+    colors: ["#082f27", "#16a34a", "#bef264"],
+    textColor: "#ffffff",
+    mutedColor: "#e8ffd9",
+    lineColor: "#fef08a",
+  },
+  {
+    id: "coral",
+    label: "Coral",
+    css: "linear-gradient(135deg, #4c0519 0%, #fb7185 54%, #fdba74 100%)",
+    colors: ["#4c0519", "#fb7185", "#fdba74"],
+    textColor: "#ffffff",
+    mutedColor: "#fff1ed",
+    lineColor: "#fef08a",
+  },
+  {
+    id: "lavender",
+    label: "Lavender",
+    css: "linear-gradient(135deg, #f5f3ff 0%, #c4b5fd 52%, #f0abfc 100%)",
+    colors: ["#f5f3ff", "#c4b5fd", "#f0abfc"],
+    textColor: "#2e1f47",
+    mutedColor: "#68577d",
+    lineColor: "#5b21b6",
+  },
+];

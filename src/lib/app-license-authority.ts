@@ -1,0 +1,222 @@
+import "server-only";
+
+import { eq, sql } from "drizzle-orm";
+import { getDb } from "@/db";
+import { featureRecords } from "@/db/schema";
+import { proFeatures } from "./app-license.config";
+import { getRuntimeAbsoluteUrl } from "./runtime-env";
+import type {
+  LicenseAuthorityActivation,
+  LicenseAuthorityRequest,
+  LicenseAuthorityResponse,
+} from "./app-license.types";
+
+function parseLicenseData(value: string): Record<string, unknown> {
+  try {
+    return JSON.parse(value) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function parseActivations(value: unknown): LicenseAuthorityActivation[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((activation) => {
+    if (!activation || typeof activation !== "object") return [];
+    const item = activation as Partial<LicenseAuthorityActivation>;
+    return typeof item.instanceId === "string" &&
+      typeof item.instanceUrl === "string" &&
+      typeof item.appVersion === "string" &&
+      typeof item.activatedAt === "string" &&
+      typeof item.lastSeenAt === "string"
+      ? [item as LicenseAuthorityActivation]
+      : [];
+  });
+}
+
+async function getAuthorityLicense(licenseKey: string) {
+  const db = await getDb();
+  return db.query.featureRecords.findFirst({
+    where: sql`${featureRecords.feature} = 'licenses' AND lower(${featureRecords.title}) = ${licenseKey.trim().toLowerCase()}`,
+  });
+}
+
+async function getAuthorityLicenseError(
+  license: typeof featureRecords.$inferSelect,
+  data: Record<string, unknown>,
+): Promise<string | undefined> {
+  if (license.environment !== "live") {
+    return "This license was issued in test mode and cannot activate Paymug Pro";
+  }
+  const appProductId = `52119aae-9737-4015-806d-51bc3aadeb22`;
+
+  return String(data.productId || "") === appProductId
+    ? undefined
+    : "This license is not for the Paymug application";
+}
+
+function getLicenseState(
+  status: string,
+  data: Record<string, unknown>,
+): "active" | "invalid" | "expired" {
+  if (status !== "active") return "invalid";
+  const expiresAt =
+    typeof data.expiresAt === "string" ? data.expiresAt : undefined;
+  return expiresAt && new Date(expiresAt).getTime() <= Date.now()
+    ? "expired"
+    : "active";
+}
+
+async function createAuthorityResponse(
+  requestUrl: string,
+  state: "active" | "invalid" | "expired" | "deactivated",
+  expiresAt?: string,
+  error?: string,
+): Promise<LicenseAuthorityResponse> {
+  return {
+    valid: state === "active",
+    state,
+    plan: "pro",
+    features: state === "active" ? proFeatures : [],
+    manageUrl: await getRuntimeAbsoluteUrl("/customer", requestUrl),
+    expiresAt,
+    error,
+  };
+}
+
+export async function activateAuthorityLicense(
+  input: LicenseAuthorityRequest,
+  requestUrl: string,
+): Promise<LicenseAuthorityResponse> {
+  const db = await getDb();
+  const license = await getAuthorityLicense(input.licenseKey);
+  if (!license) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      undefined,
+      "License key not found",
+    );
+  }
+  const data = parseLicenseData(license.data);
+  const authorityError = await getAuthorityLicenseError(license, data);
+  if (authorityError) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      undefined,
+      authorityError,
+    );
+  }
+  const expiresAt =
+    typeof data.expiresAt === "string" ? data.expiresAt : undefined;
+  const state = getLicenseState(license.status, data);
+  if (state !== "active") {
+    return createAuthorityResponse(
+      requestUrl,
+      state,
+      expiresAt,
+      state === "expired" ? "License has expired" : "License is not active",
+    );
+  }
+  const activations = parseActivations(data.appActivations);
+  const existing = activations.find(
+    (activation) => activation.instanceId === input.instanceId,
+  );
+  if (!existing && activations.length > 0) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      expiresAt,
+      "License is already active on another installation",
+    );
+  }
+  const now = new Date().toISOString();
+  const nextActivation: LicenseAuthorityActivation = {
+    instanceId: input.instanceId,
+    instanceUrl: input.instanceUrl,
+    appVersion: input.appVersion,
+    activatedAt: existing?.activatedAt || now,
+    lastSeenAt: now,
+  };
+  await db
+    .update(featureRecords)
+    .set({
+      data: JSON.stringify({
+        ...data,
+        appActivations: [nextActivation],
+      }),
+      updatedAt: now,
+    })
+    .where(eq(featureRecords.id, license.id));
+  return createAuthorityResponse(requestUrl, "active", expiresAt);
+}
+
+export async function validateAuthorityLicense(
+  input: LicenseAuthorityRequest,
+  requestUrl: string,
+): Promise<LicenseAuthorityResponse> {
+  const license = await getAuthorityLicense(input.licenseKey);
+  if (!license) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      undefined,
+      "License key not found",
+    );
+  }
+  const data = parseLicenseData(license.data);
+  const authorityError = await getAuthorityLicenseError(license, data);
+  if (authorityError) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      undefined,
+      authorityError,
+    );
+  }
+  const expiresAt =
+    typeof data.expiresAt === "string" ? data.expiresAt : undefined;
+  const state = getLicenseState(license.status, data);
+  if (state !== "active") {
+    return createAuthorityResponse(requestUrl, state, expiresAt);
+  }
+  const activation = parseActivations(data.appActivations).find(
+    (item) => item.instanceId === input.instanceId,
+  );
+  if (!activation) {
+    return createAuthorityResponse(
+      requestUrl,
+      "invalid",
+      expiresAt,
+      "License is not activated for this installation",
+    );
+  }
+  return activateAuthorityLicense(input, requestUrl);
+}
+
+export async function deactivateAuthorityLicense(
+  input: LicenseAuthorityRequest,
+  requestUrl: string,
+): Promise<LicenseAuthorityResponse> {
+  const db = await getDb();
+  const license = await getAuthorityLicense(input.licenseKey);
+  if (!license) {
+    return createAuthorityResponse(requestUrl, "deactivated");
+  }
+  const data = parseLicenseData(license.data);
+  if (await getAuthorityLicenseError(license, data)) {
+    return createAuthorityResponse(requestUrl, "deactivated");
+  }
+  const activations = parseActivations(data.appActivations).filter(
+    (activation) => activation.instanceId !== input.instanceId,
+  );
+  await db
+    .update(featureRecords)
+    .set({
+      data: JSON.stringify({ ...data, appActivations: activations }),
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(featureRecords.id, license.id));
+  return createAuthorityResponse(requestUrl, "deactivated");
+}
