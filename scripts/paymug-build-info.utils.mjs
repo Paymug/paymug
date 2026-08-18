@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 
-export const paymugUpstreamRepository = "hieunc/paymug";
+export const paymugUpstreamRepository = "Paymug/paymug";
 
 function readGit(args) {
   try {

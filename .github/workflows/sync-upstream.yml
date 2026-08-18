@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      UPSTREAM_REPOSITORY: hieunc/paymug
+      UPSTREAM_REPOSITORY: Paymug/paymug
       UPSTREAM_BRANCH: latest
       UPSTREAM_TOKEN: ${{ secrets.UPSTREAM_TOKEN }}
 
@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$UPSTREAM_TOKEN" ]; then
-            echo "UPSTREAM_TOKEN must have read access to the private hieunc/paymug repository."
+            echo "UPSTREAM_TOKEN must have read access to the private Paymug/paymug repository."
             exit 1
           fi
 

@@ -141,21 +141,21 @@ Cloudflare's Deploy to Cloudflare button clones its source into a new repository
 in the deploying user's GitHub account and connects that repository to Workers
 Builds. The button source must be public, but the newly created `UserGitRepo`
 can be private. If the deployment must start directly from the private
-`hieunc/paymug` repository, use Cloudflare's authenticated repository import
+`Paymug/paymug` repository, use Cloudflare's authenticated repository import
 instead of a public Deploy button.
 
-The update source is hardcoded as `hieunc/paymug`; users do not configure the
+The update source is hardcoded as `Paymug/paymug`; users do not configure the
 source or destination repository name. `GITHUB_REPOSITORY` identifies
 `UserGitRepo` automatically inside GitHub Actions.
 
 1. Give the purchaser's GitHub account read access to the private
-   `hieunc/paymug` repository.
+   `Paymug/paymug` repository.
 2. In `UserGitRepo`, open **Settings → Secrets and variables → Actions** and
    add one secret:
 
 | Secret | Value |
 |--------|-------|
-| `UPSTREAM_TOKEN` | A GitHub credential belonging to that purchaser with Contents read access to `hieunc/paymug` |
+| `UPSTREAM_TOKEN` | A GitHub credential belonging to that purchaser with Contents read access to `Paymug/paymug` |
 
 3. Ensure GitHub Actions is enabled for `UserGitRepo`. The included workflow
    declares `contents: write`, so its repository-scoped `GITHUB_TOKEN` can push
@@ -163,7 +163,7 @@ source or destination repository name. `GITHUB_REPOSITORY` identifies
 
 After setup:
 
-- `.github/workflows/sync-upstream.yml` checks `hieunc/paymug/latest` every six
+- `.github/workflows/sync-upstream.yml` checks `Paymug/paymug/latest` every six
   hours and can also be run manually. It safely merges new upstream commits and
   pushes `UserGitRepo/main`.
 - That push triggers the Cloudflare Workers Build already connected during the
