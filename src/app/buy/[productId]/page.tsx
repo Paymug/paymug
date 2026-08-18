@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ProductDescription } from "@/components/ProductDescription";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { cardClass } from "@/components/ui.styles";
@@ -22,7 +22,10 @@ import {
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
 import { getStoreById } from "@/lib/stores";
 import { CheckoutClient } from "./CheckoutClient";
-import { formatProductPageMoney } from "./product-page.utils";
+import {
+  buildProductSlugRedirectPath,
+  formatProductPageMoney,
+} from "./product-page.utils";
 import { generateProductMetadata } from "./page-metadata.utils";
 import type { BuyPageProps } from "./page.types";
 import Powered from "@/components/PoweredBy";
@@ -34,10 +37,14 @@ export const generateMetadata = generateProductMetadata;
 
 export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const { productId } = await params;
-  const { cancelled, discount, preview, ref } = await searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { cancelled, discount, preview, ref } = resolvedSearchParams;
 
   const product = await findProductByPublicIdentifier(productId);
   if (!product) notFound();
+  if (product.slug && productId === product.id && product.slug !== product.id) {
+    redirect(buildProductSlugRedirectPath(product, resolvedSearchParams));
+  }
   const isPreview = product.status !== "published";
   if (isPreview) {
     if (preview === undefined) notFound();
