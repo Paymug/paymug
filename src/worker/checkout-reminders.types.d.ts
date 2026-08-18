@@ -10,6 +10,7 @@ export interface WorkerCheckoutReminderRow {
   store_name: string;
   store_email_from: string | null;
   store_email_reply_to: string | null;
+  has_paid_order: number;
 }
 
 export interface CheckoutReminderProcessingResult {

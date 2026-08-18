@@ -3,7 +3,6 @@ import "server-only";
 import { getPayPalCredentials } from "./payment-credentials";
 import {
   findFeatureRecordByDataValue,
-  listFeatureRecords,
   updateFeatureRecord,
 } from "./feature-records";
 import {
@@ -498,14 +497,12 @@ export async function processPayPalSubscriptionWebhook(
   const subscriptionId = getSubscriptionId(input.event);
   if (!subscriptionId) return { updated: false };
 
-  const records = await listFeatureRecords(
-    input.userId,
+  const record = await findFeatureRecordByDataValue(
     "subscriptions",
-    input.mode
-  );
-  const record = records.find(
-    (candidate) =>
-      candidate.data.paypalSubscriptionId === subscriptionId
+    "paypalSubscriptionId",
+    subscriptionId,
+    input.mode,
+    input.userId,
   );
   if (!record) return { updated: false };
   await ensurePendingSubscriptionOrder(record);

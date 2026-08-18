@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   githubConnections as githubConnectionsTable,
@@ -380,7 +380,16 @@ export async function findProductBySlug(
 export async function findProductByPublicIdentifier(
   identifier: string,
 ): Promise<Product | undefined> {
-  return (await findProductById(identifier)) || findProductBySlug(identifier);
+  const db = await getDb();
+  const rows = await db.query.products.findMany({
+    where: or(
+      eq(productsTable.id, identifier),
+      eq(productsTable.slug, identifier),
+    ),
+    limit: 2,
+  });
+  const row = rows.find((candidate) => candidate.id === identifier) || rows[0];
+  return row ? rowToProduct(row) : undefined;
 }
 
 export async function findPublishedProduct(

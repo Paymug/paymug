@@ -3,9 +3,7 @@ import "server-only";
 import { desc, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { featureRecords, orders } from "@/db/schema";
-import { findProductById } from "./db";
 import { parseProductFiles } from "./product-files.utils";
-import { getStoreById } from "./stores";
 import { getLicenseEntitlementSummary } from "./license-entitlements";
 import type { FeatureRecordValue } from "./feature-records.types";
 import type {
@@ -13,7 +11,8 @@ import type {
   CustomerPortalPurchase,
   CustomerPortalSubscription,
 } from "./customer-portal.types";
-import { hasProFeature } from "./app-license";
+import { getAppLicenseStatus } from "./app-license";
+import { loadCustomerPortalResources } from "./customer-portal.queries";
 
 function parseRecordData(value: string): Record<string, FeatureRecordValue> {
   try {
@@ -27,12 +26,9 @@ export async function getCustomerPortalData(
   email: string,
 ): Promise<CustomerPortalData> {
   const db = await getDb();
-  const [affiliatesUnlocked, githubUnlocked] = await Promise.all([
-    hasProFeature("affiliates"),
-    hasProFeature("private_github"),
-  ]);
   const normalizedEmail = email.trim().toLowerCase();
-  const [orderRows, records] = await Promise.all([
+  const [licenseStatus, orderRows, records] = await Promise.all([
+    getAppLicenseStatus(),
     db.query.orders.findMany({
       where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = 'live' AND ${orders.status} IN ('paid', 'refunded')`,
       orderBy: [desc(orders.createdAt)],
@@ -42,16 +38,29 @@ export async function getCustomerPortalData(
       orderBy: [desc(featureRecords.updatedAt)],
     }),
   ]);
+  const affiliatesUnlocked =
+    licenseStatus.pro && licenseStatus.features.includes("affiliates");
+  const githubUnlocked =
+    licenseStatus.pro && licenseStatus.features.includes("private_github");
   const licenses = records
     .filter((record) => record.feature === "licenses")
     .map((record) => ({ record, data: parseRecordData(record.data) }));
-  const purchases = await Promise.all(
-    orderRows.map(async (order): Promise<CustomerPortalPurchase> => {
+  const subscriptionsWithData = records
+    .filter((record) => record.feature === "subscriptions")
+    .map((record) => ({ record, data: parseRecordData(record.data) }));
+  const { productsById, storesById } = await loadCustomerPortalResources(
+    orderRows.map((order) => order.productId),
+    [
+      ...orderRows.flatMap((order) => (order.storeId ? [order.storeId] : [])),
+      ...subscriptionsWithData.flatMap(({ data }) =>
+        typeof data.storeId === "string" ? [data.storeId] : [],
+      ),
+    ],
+  );
+  const purchases = orderRows.map((order): CustomerPortalPurchase => {
       const orderProductFiles = parseProductFiles(order.productFiles);
-      const [product, store] = await Promise.all([
-        findProductById(order.productId),
-        order.storeId ? getStoreById(order.storeId, order.userId) : undefined,
-      ]);
+      const product = productsById.get(order.productId);
+      const store = order.storeId ? storesById.get(order.storeId) : undefined;
       const license = licenses.find(
         (candidate) =>
           candidate.data.orderId === order.id ||
@@ -69,7 +78,7 @@ export async function getCustomerPortalData(
       const currentUpdatesIncluded = Boolean(
         licenseEntitlement?.perpetual && licenseEntitlement.updatesActive,
       );
-      const currentProductFiles = product?.productFiles || [];
+      const currentProductFiles = parseProductFiles(product?.productFiles);
       const availableProductFiles = currentUpdatesIncluded
         ? [
             ...currentProductFiles,
@@ -148,18 +157,12 @@ export async function getCustomerPortalData(
         affiliateProgramEnabled:
           affiliatesUnlocked && (store?.affiliatesEnabled ?? false),
       };
-    }),
-  );
-  const subscriptions = await Promise.all(
-    records
-      .filter((record) => record.feature === "subscriptions")
-      .map(async (record): Promise<CustomerPortalSubscription> => {
-        const data = parseRecordData(record.data);
+    });
+  const subscriptions = subscriptionsWithData.map(
+      ({ record, data }): CustomerPortalSubscription => {
         const storeId =
           typeof data.storeId === "string" ? data.storeId : undefined;
-        const store = storeId
-          ? await getStoreById(storeId, record.userId)
-          : undefined;
+        const store = storeId ? storesById.get(storeId) : undefined;
         return {
           id: record.id,
           planName: record.title,
@@ -181,7 +184,7 @@ export async function getCustomerPortalData(
           affiliateProgramEnabled:
             affiliatesUnlocked && (store?.affiliatesEnabled ?? false),
         };
-      }),
+      },
   );
   return {
     purchases,

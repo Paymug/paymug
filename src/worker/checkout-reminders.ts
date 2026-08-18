@@ -27,7 +27,7 @@ export async function processCheckoutReminders(
   const result = { sent: 0, cancelled: 0, failed: 0 };
   if (!(await workerHasProFeature(env.DB, "automations", now))) return result;
   const reminders = await env.DB.prepare(
-    "SELECT cr.id, cr.store_id, cr.product_id, cr.customer_email, cr.customer_name, cr.product_name, cr.checkout_url, cr.created_at, s.name AS store_name, s.email_from AS store_email_from, s.email_reply_to AS store_email_reply_to FROM checkout_reminders cr JOIN stores s ON s.id = cr.store_id WHERE cr.due_at <= ? AND cr.sent_at IS NULL AND cr.cancelled_at IS NULL AND s.abandoned_checkout_reminders_enabled = 1 ORDER BY cr.due_at ASC LIMIT 100",
+    "SELECT cr.id, cr.store_id, cr.product_id, cr.customer_email, cr.customer_name, cr.product_name, cr.checkout_url, cr.created_at, s.name AS store_name, s.email_from AS store_email_from, s.email_reply_to AS store_email_reply_to, EXISTS (SELECT 1 FROM orders o WHERE o.store_id = cr.store_id AND o.product_id = cr.product_id AND lower(o.customer_email) = lower(cr.customer_email) AND o.status = 'paid' AND o.created_at >= cr.created_at) AS has_paid_order FROM checkout_reminders cr JOIN stores s ON s.id = cr.store_id WHERE cr.due_at <= ? AND cr.sent_at IS NULL AND cr.cancelled_at IS NULL AND s.abandoned_checkout_reminders_enabled = 1 ORDER BY cr.due_at ASC LIMIT 100",
   )
     .bind(now.toISOString())
     .all<WorkerCheckoutReminderRow>();
@@ -35,17 +35,7 @@ export async function processCheckoutReminders(
   if (!configuredFrom) return { ...result, failed: reminders.results.length };
 
   for (const reminder of reminders.results) {
-    const paidOrder = await env.DB.prepare(
-      "SELECT id FROM orders WHERE store_id = ? AND product_id = ? AND lower(customer_email) = ? AND status = 'paid' AND created_at >= ? LIMIT 1",
-    )
-      .bind(
-        reminder.store_id,
-        reminder.product_id,
-        reminder.customer_email.toLowerCase(),
-        reminder.created_at,
-      )
-      .first<{ id: string }>();
-    if (paidOrder) {
+    if (reminder.has_paid_order) {
       await env.DB.prepare(
         "UPDATE checkout_reminders SET cancelled_at = ?, updated_at = ? WHERE id = ?",
       )

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   apiKeys as apiKeysTable,
@@ -134,22 +134,21 @@ export async function findFeatureRecordByDataValue(
   feature: DashboardFeatureKey,
   key: string,
   value: string,
-  environment?: FeatureRecord["environment"]
+  environment?: FeatureRecord["environment"],
+  userId?: string,
 ): Promise<FeatureRecord | undefined> {
   const db = await getDb();
-  const rows = await db.query.featureRecords.findMany({
+  const row = await db.query.featureRecords.findFirst({
     where: and(
       eq(featureRecordsTable.feature, feature),
       ...(environment
         ? [eq(featureRecordsTable.environment, environment)]
-        : [])
+        : []),
+      ...(userId ? [eq(featureRecordsTable.userId, userId)] : []),
+      sql`json_extract(${featureRecordsTable.data}, ${`$.${key}`}) = ${value}`,
     ),
   });
-  for (const row of rows) {
-    const record = mapFeatureRecord(row);
-    if (String(record.data[key] ?? "") === value) return record;
-  }
-  return undefined;
+  return row ? mapFeatureRecord(row) : undefined;
 }
 
 export async function createFeatureRecord(

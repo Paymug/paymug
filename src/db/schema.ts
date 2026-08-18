@@ -7,6 +7,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -97,8 +98,10 @@ export const stores = sqliteTable(
   ]
 );
 
-export const products = sqliteTable("products", {
-  id: text("id").primaryKey(),
+export const products = sqliteTable(
+  "products",
+  {
+    id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -150,11 +153,23 @@ export const products = sqliteTable("products", {
   githubRepoOwner: text("github_repo_owner"),
   githubRepoName: text("github_repo_name"),
   createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
-});
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("products_slug_idx").on(table.slug),
+    index("products_user_store_environment_created_idx").on(
+      table.userId,
+      table.storeId,
+      table.environment,
+      table.createdAt,
+    ),
+  ],
+);
 
-export const orders = sqliteTable("orders", {
-  id: text("id").primaryKey(),
+export const orders = sqliteTable(
+  "orders",
+  {
+    id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -206,8 +221,38 @@ export const orders = sqliteTable("orders", {
   githubInvitationId: text("github_invitation_id"),
   githubAccessError: text("github_access_error"),
   githubAccessGrantedAt: text("github_access_granted_at"),
-  githubAccessRevokedAt: text("github_access_revoked_at"),
-});
+    githubAccessRevokedAt: text("github_access_revoked_at"),
+  },
+  (table) => [
+    index("orders_user_store_environment_created_idx").on(
+      table.userId,
+      table.storeId,
+      table.environment,
+      table.createdAt,
+    ),
+    index("orders_paypal_order_environment_idx").on(
+      table.paypalOrderId,
+      table.environment,
+    ),
+    index("orders_paypal_capture_environment_idx").on(
+      table.paypalCaptureId,
+      table.environment,
+    ),
+    index("orders_customer_environment_status_created_idx").on(
+      sql`lower(${table.customerEmail})`,
+      table.environment,
+      table.status,
+      table.createdAt,
+    ),
+    index("orders_reminder_purchase_lookup_idx").on(
+      table.storeId,
+      table.productId,
+      sql`lower(${table.customerEmail})`,
+      table.status,
+      table.createdAt,
+    ),
+  ],
+);
 
 export const checkoutReminders = sqliteTable(
   "checkout_reminders",
@@ -345,6 +390,23 @@ export const featureRecords = sqliteTable(
     index("feature_records_user_feature_idx").on(
       table.userId,
       table.feature
+    ),
+    index("feature_records_user_feature_environment_created_idx").on(
+      table.userId,
+      table.feature,
+      table.environment,
+      table.createdAt,
+    ),
+    index("feature_records_customer_portal_idx").on(
+      sql`lower(${table.subtitle})`,
+      table.environment,
+      table.feature,
+      table.updatedAt,
+    ),
+    index("feature_records_paypal_subscription_idx").on(
+      table.feature,
+      table.environment,
+      sql`json_extract(${table.data}, '$.paypalSubscriptionId')`,
     ),
   ]
 );
