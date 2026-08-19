@@ -64,7 +64,6 @@ export async function importStoreBackup(
     throw new Error("Backup must contain exactly one store");
   }
   const sourceStore = backup.data.stores[0];
-  const storeIds = new Map([[sourceStore.id, currentStoreId]]);
   const productIds = createStoreBackupIdMap(
     backup.data.products.map((product) => product.id),
     options.preserveIds,
@@ -221,13 +220,16 @@ export async function importStoreBackup(
   const importedFeatures = backup.data.featureRecords.map((source) => {
     let data = source.data;
     try {
-      const remapped = remapStoreBackupData(JSON.parse(source.data), {
-        stores: storeIds,
-        products: productIds,
-        orders: orderIds,
-        features: featureIds,
-        customers: customerIds,
-      });
+      const remapped = remapStoreBackupData(
+        JSON.parse(source.data),
+        currentStoreId,
+        {
+          products: productIds,
+          orders: orderIds,
+          features: featureIds,
+          customers: customerIds,
+        },
+      );
       if (!remapped || typeof remapped !== "object" || Array.isArray(remapped)) {
         throw new Error("Feature data must be an object");
       }

@@ -69,8 +69,8 @@ export function createImportedSlug(
 
 export function remapStoreBackupData(
   value: unknown,
+  currentStoreId: string,
   maps: {
-    stores: Map<string, string>;
     products: Map<string, string>;
     orders: Map<string, string>;
     features: Map<string, string>;
@@ -78,24 +78,28 @@ export function remapStoreBackupData(
   },
 ): unknown {
   if (Array.isArray(value)) {
-    return value.map((item) => remapStoreBackupData(item, maps));
+    return value.map((item) =>
+      remapStoreBackupData(item, currentStoreId, maps),
+    );
   }
   if (!isRecord(value)) return value;
   const result: Record<string, unknown> = {};
   for (const [key, item] of Object.entries(value)) {
+    if (key === "storeId") {
+      result[key] = currentStoreId;
+      continue;
+    }
     if (typeof item === "string") {
       const map =
-        key === "storeId"
-          ? maps.stores
-          : key === "productId"
-            ? maps.products
-            : key === "orderId" || key === "latestOrderId"
-              ? maps.orders
-              : key === "affiliateId" || key === "payoutReportId"
-                ? maps.features
-                : key === "customerId"
-                  ? maps.customers
-                  : undefined;
+        key === "productId"
+          ? maps.products
+          : key === "orderId" || key === "latestOrderId"
+            ? maps.orders
+            : key === "affiliateId" || key === "payoutReportId"
+              ? maps.features
+              : key === "customerId"
+                ? maps.customers
+                : undefined;
       result[key] = map?.get(item) || item;
       continue;
     }
@@ -104,7 +108,7 @@ export function remapStoreBackupData(
       result[key] = item.map((id) => (typeof id === "string" ? map.get(id) || id : id));
       continue;
     }
-    result[key] = remapStoreBackupData(item, maps);
+    result[key] = remapStoreBackupData(item, currentStoreId, maps);
   }
   return result;
 }
