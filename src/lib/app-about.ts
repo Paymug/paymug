@@ -1,7 +1,6 @@
 import "server-only";
 
 import packageJson from "../../package.json";
-import { paymugBuildInfo } from "@/generated/paymug-build-info";
 import { getRuntimeConfiguration } from "./runtime-env";
 import type { AppAboutStatus } from "./app-about.types";
 
@@ -9,9 +8,6 @@ export async function getAppAboutStatus(): Promise<AppAboutStatus> {
   const runtime = await getRuntimeConfiguration();
   return {
     version: packageJson.version,
-    commitSha: paymugBuildInfo.commitSha || undefined,
-    upstreamSha: paymugBuildInfo.upstreamSha || undefined,
-    repository: paymugBuildInfo.repository || undefined,
     configurations: [
       {
         id: "database",

@@ -14,7 +14,7 @@ export default async function AboutPage() {
           Paymug application status
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-[#74748f]">
-          Review the installed version, private upstream updates, and deployment configuration.
+          Review the installed version, available updates, and deployment configuration.
         </p>
       </section>
       <AboutPanel status={status} />

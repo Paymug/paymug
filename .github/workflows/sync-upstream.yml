@@ -48,10 +48,7 @@ jobs:
           fi
 
           node scripts/write-paymug-build-info.mjs \
-            "$GITHUB_REPOSITORY" \
-            "-" \
-            "$UPSTREAM_REPOSITORY" \
-            "$upstream_commit"
+            "$GITHUB_REPOSITORY"
           git add src/generated/paymug-build-info.ts
           if ! git diff --cached --quiet; then
             git commit -m "chore: record Paymug upstream ${upstream_commit:0:12}"

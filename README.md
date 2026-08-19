@@ -168,12 +168,11 @@ After setup:
   pushes `UserGitRepo/main`.
 - That push triggers the Cloudflare Workers Build already connected during the
   one-click deployment. The sync workflow does not deploy a second time.
-- `/api/deployments` exposes the current official Paymug version and release
-  SHA. **Settings → About → Check for update** reads that endpoint, so no GitHub
+- `/api/deployments` exposes the current official Paymug version.
+  **Settings → About → Check for update** reads that endpoint, so no GitHub
   token is stored in the Worker runtime.
-- Build metadata discovers `UserGitRepo` from the Git remote and uses
-  Cloudflare's `WORKERS_CI_COMMIT_SHA`; no repository or commit environment
-  variables are required.
+- Build metadata discovers `UserGitRepo` from the Git remote; no repository
+  environment variable is required.
 - A merge conflict stops the update instead of overwriting user changes.
   Resolve it in `UserGitRepo`, then rerun **Sync upstream updates**.
 - `.github/workflows/deploy.yml` remains an optional manual fallback. It needs

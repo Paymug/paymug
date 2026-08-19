@@ -8,20 +8,13 @@ export interface AppConfigurationStatus {
 
 export interface AppAboutStatus {
   version: string;
-  commitSha?: string;
-  upstreamSha?: string;
-  repository?: string;
   configurations: AppConfigurationStatus[];
 }
 
 export interface AppUpdateStatus {
   currentVersion: string;
   latestVersion: string;
-  currentSha: string;
-  latestSha: string;
-  repository: string;
-  updateAvailable: boolean;
-  latestCommitUrl?: string;
+  isLatest: boolean;
   workflowUrl?: string;
   checkedAt: string;
 }
