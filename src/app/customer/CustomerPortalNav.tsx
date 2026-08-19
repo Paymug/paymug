@@ -148,7 +148,9 @@ export function CustomerPortalNav({
             </div>
           </div>
         </div>
+        <div className="px-6">
         <Powered />
+        </div>
       </aside>
 
       <header className="row-start-1 border-b border-[#e8e8ee] bg-white lg:hidden">
