@@ -159,15 +159,15 @@ export function AboutPanel({ status }: AboutPanelProps) {
         <div className="border-b border-[#e8e8ee] px-5 py-5 sm:px-6">
           <h3 className="font-semibold">Store data backup</h3>
           <p className="mt-1 text-sm leading-6 text-[#85859d]">
-            Export or import every store, product, order, customer, page, campaign,
-            subscription, discount, affiliate record, and store setting.
+            Export or import the current store’s products, orders, customers, pages,
+            campaigns, subscriptions, discounts, affiliate records, and settings.
           </p>
         </div>
         <div className="grid gap-0 md:grid-cols-2">
           <div className="border-b border-[#e8e8ee] p-5 sm:p-6 md:border-b-0 md:border-r">
             <p className="text-sm font-semibold">Export data</p>
             <p className="mt-2 text-sm leading-6 text-[#85859d]">
-              Downloads a portable JSON backup. Payment credentials, API keys,
+              Downloads a portable JSON backup of the current store. Payment credentials, API keys,
               access tokens, and app-license secrets are excluded. The file contains
               customer personal data and password hashes, so store it securely.
             </p>
@@ -185,8 +185,9 @@ export function AboutPanel({ status }: AboutPanelProps) {
           <div className="p-5 sm:p-6">
             <p className="text-sm font-semibold">Import data</p>
             <p className="mt-2 text-sm leading-6 text-[#85859d]">
-              Product file metadata and URLs are preserved, but R2 file binaries
-              are not embedded in the JSON backup.
+              Imports into the current store. All store references are reassigned to
+              the current store ID. Product file metadata and URLs are preserved, but
+              R2 file binaries are not embedded in the JSON backup.
             </p>
             <label className="mt-4 block text-sm font-medium text-[#3f3f49]">
               Backup file
@@ -206,8 +207,9 @@ export function AboutPanel({ status }: AboutPanelProps) {
               />
               <span>
                 <span className="block font-semibold text-[#3f3f49]">Preserve IDs</span>
-                Restore records with their original IDs and update matching IDs.
-                Leave this off to create independent copies with remapped IDs and slugs.
+                Preserve product, order, customer, and feature-record IDs and update
+                matching records. The store ID always remains the current store ID.
+                Leave this off to generate new record IDs and product slugs.
               </span>
             </label>
             <Button

@@ -5,7 +5,7 @@ import { jsonError } from "@/lib/utils";
 export async function GET() {
   const user = await getSessionUser();
   if (!user) return jsonError("Unauthorized", 401);
-  const backup = await exportStoreBackup(user.id);
+  const backup = await exportStoreBackup(user.id, user.activeStoreId);
   const date = backup.exportedAt.slice(0, 10);
   return new Response(JSON.stringify(backup, null, 2), {
     headers: {

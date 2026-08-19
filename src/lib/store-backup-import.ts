@@ -25,14 +25,26 @@ import { uid } from "./utils";
 
 export async function importStoreBackup(
   userId: string,
+  currentStoreId: string,
   backup: StoreBackupFile,
   options: StoreBackupImportOptions,
 ): Promise<StoreBackupImportResult> {
   const db = await getDb();
-  const [existingStores, existingProducts, existingCustomers, existingReminders] =
+  const [
+    existingStores,
+    existingProducts,
+    existingOrders,
+    existingFeatures,
+    existingCustomers,
+    existingReminders,
+  ] =
     await Promise.all([
-      db.query.stores.findMany({ columns: { id: true, slug: true } }),
-      db.query.products.findMany({ columns: { id: true, slug: true } }),
+      db.query.stores.findMany({
+        columns: { id: true, userId: true, slug: true, createdAt: true },
+      }),
+      db.query.products.findMany({ columns: { id: true, slug: true, storeId: true } }),
+      db.query.orders.findMany({ columns: { id: true, storeId: true } }),
+      db.query.featureRecords.findMany({ columns: { id: true, data: true } }),
       db.query.customerAccounts.findMany({ columns: { id: true, email: true } }),
       db.query.checkoutReminders.findMany({
         columns: {
@@ -44,10 +56,15 @@ export async function importStoreBackup(
         },
       }),
     ]);
-  const storeIds = createStoreBackupIdMap(
-    backup.data.stores.map((store) => store.id),
-    options.preserveIds,
+  const currentStore = existingStores.find(
+    (store) => store.id === currentStoreId && store.userId === userId,
   );
+  if (!currentStore) throw new Error("Current store was not found");
+  if (backup.data.stores.length !== 1) {
+    throw new Error("Backup must contain exactly one store");
+  }
+  const sourceStore = backup.data.stores[0];
+  const storeIds = new Map([[sourceStore.id, currentStoreId]]);
   const productIds = createStoreBackupIdMap(
     backup.data.products.map((product) => product.id),
     options.preserveIds,
@@ -64,6 +81,40 @@ export async function importStoreBackup(
     backup.data.featureRecords.map((feature) => feature.id),
     options.preserveIds,
   );
+  if (options.preserveIds) {
+    for (const product of backup.data.products) {
+      const existing = existingProducts.find((candidate) => candidate.id === product.id);
+      if (existing && existing.storeId !== currentStoreId) {
+        throw new Error(`Product ID ${product.id} belongs to another store`);
+      }
+    }
+    for (const order of backup.data.orders) {
+      const existing = existingOrders.find((candidate) => candidate.id === order.id);
+      if (existing && existing.storeId !== currentStoreId) {
+        throw new Error(`Order ID ${order.id} belongs to another store`);
+      }
+    }
+    for (const reminder of backup.data.checkoutReminders) {
+      const existing = existingReminders.find((candidate) => candidate.id === reminder.id);
+      if (existing && existing.storeId !== currentStoreId) {
+        throw new Error(`Checkout reminder ID ${reminder.id} belongs to another store`);
+      }
+    }
+    for (const feature of backup.data.featureRecords) {
+      const existing = existingFeatures.find((candidate) => candidate.id === feature.id);
+      if (!existing) continue;
+      let existingStoreId: unknown;
+      try {
+        const data = JSON.parse(existing.data) as Record<string, unknown>;
+        existingStoreId = data.storeId;
+      } catch {
+        // Invalid legacy data has no reliable store owner.
+      }
+      if (typeof existingStoreId === "string" && existingStoreId !== currentStoreId) {
+        throw new Error(`Feature record ID ${feature.id} belongs to another store`);
+      }
+    }
+  }
   const existingCustomersByEmail = new Map(
     existingCustomers.map((customer) => [customer.email.toLowerCase(), customer]),
   );
@@ -82,28 +133,11 @@ export async function importStoreBackup(
     }
   }
 
-  const existingStoreSlugOwners = new Map(
-    existingStores.map((store) => [store.slug, store.id]),
-  );
   const existingProductSlugOwners = new Map(
     existingProducts.map((product) => [product.slug, product.id]),
   );
-  const usedStoreSlugs = new Set(existingStoreSlugOwners.keys());
   const usedProductSlugs = new Set(existingProductSlugOwners.keys());
-  const storeSlugs = new Map<string, string>();
   const productSlugs = new Map<string, string>();
-  for (const store of backup.data.stores) {
-    const owner = existingStoreSlugOwners.get(store.slug);
-    if (options.preserveIds && owner && owner !== store.id) {
-      throw new Error(`Store slug ${store.slug} is already in use`);
-    }
-    storeSlugs.set(
-      store.id,
-      options.preserveIds
-        ? store.slug
-        : createImportedSlug(store.slug, storeIds.get(store.id)!, usedStoreSlugs),
-    );
-  }
   for (const product of backup.data.products) {
     const owner = existingProductSlugOwners.get(product.slug);
     if (options.preserveIds && product.slug && owner && owner !== product.id) {
@@ -122,11 +156,9 @@ export async function importStoreBackup(
   }
 
   const textReplacements = new Map<string, string>();
+  textReplacements.set(sourceStore.id, currentStoreId);
+  textReplacements.set(sourceStore.slug, currentStore.slug);
   if (!options.preserveIds) {
-    for (const store of backup.data.stores) {
-      textReplacements.set(store.id, storeIds.get(store.id)!);
-      textReplacements.set(store.slug, storeSlugs.get(store.id)!);
-    }
     for (const product of backup.data.products) {
       textReplacements.set(product.id, productSlugs.get(product.id)!);
       if (product.slug) textReplacements.set(product.slug, productSlugs.get(product.id)!);
@@ -136,56 +168,52 @@ export async function importStoreBackup(
     }
   }
 
-  const importedStores = backup.data.stores.map((source) => ({
-    ...source,
-    id: storeIds.get(source.id)!,
+  const importedStores = [{
+    ...sourceStore,
+    id: currentStoreId,
     userId,
-    slug: storeSlugs.get(source.id)!,
-    paymentCredentialSourceStoreId: source.paymentCredentialSourceStoreId
-      ? storeIds.get(source.paymentCredentialSourceStoreId) || null
+    slug: currentStore.slug,
+    createdAt: currentStore.createdAt,
+    paymentCredentialSourceStoreId: sourceStore.paymentCredentialSourceStoreId
+      ? currentStoreId
       : null,
-    githubCredentialSourceStoreId: source.githubCredentialSourceStoreId
-      ? storeIds.get(source.githubCredentialSourceStoreId) || null
+    githubCredentialSourceStoreId: sourceStore.githubCredentialSourceStoreId
+      ? currentStoreId
       : null,
-  }));
+  }];
   const importedProducts = backup.data.products.map((source) => {
-    const storeId = source.storeId ? storeIds.get(source.storeId) : undefined;
-    if (source.storeId && !storeId) throw new Error(`Product ${source.id} references a missing store`);
     return {
       ...source,
       id: productIds.get(source.id)!,
       userId,
-      storeId: storeId || null,
+      storeId: currentStoreId,
       slug: productSlugs.get(source.id)!,
     };
   });
   const importedOrders = backup.data.orders.map((source) => {
     const productId = productIds.get(source.productId);
-    const storeId = source.storeId ? storeIds.get(source.storeId) : undefined;
     if (!productId) throw new Error(`Order ${source.id} references a missing product`);
-    if (source.storeId && !storeId) throw new Error(`Order ${source.id} references a missing store`);
     return {
       ...source,
       id: orderIds.get(source.id)!,
       userId,
-      storeId: storeId || null,
+      storeId: currentStoreId,
       productId,
       affiliateId: source.affiliateId
-        ? featureIds.get(source.affiliateId) || source.affiliateId
+        ? featureIds.get(source.affiliateId) || null
         : null,
     };
   });
   const importedReminders = backup.data.checkoutReminders.map((source) => {
-    const storeId = storeIds.get(source.storeId);
     const productId = productIds.get(source.productId);
-    if (!storeId || !productId) {
-      throw new Error(`Checkout reminder ${source.id} has a missing store or product`);
+    if (!productId) {
+      throw new Error(`Checkout reminder ${source.id} has a missing product`);
     }
     return {
       ...source,
       id: reminderIds.get(source.id)!,
       userId,
-      storeId,
+      storeId: currentStoreId,
       productId,
       checkoutUrl: replaceStoreBackupUrlReferences(source.checkoutUrl, textReplacements),
     };
@@ -200,9 +228,15 @@ export async function importStoreBackup(
         features: featureIds,
         customers: customerIds,
       });
-      data = replaceStoreBackupUrlReferences(JSON.stringify(remapped), textReplacements);
+      if (!remapped || typeof remapped !== "object" || Array.isArray(remapped)) {
+        throw new Error("Feature data must be an object");
+      }
+      data = replaceStoreBackupUrlReferences(
+        JSON.stringify({ ...remapped, storeId: currentStoreId }),
+        textReplacements,
+      );
     } catch {
-      data = replaceStoreBackupUrlReferences(source.data, textReplacements);
+      throw new Error(`Feature record ${source.id} contains invalid data`);
     }
     return {
       ...source,
@@ -239,9 +273,7 @@ export async function importStoreBackup(
     const { id: _id, ...set } = row;
     const statement = db.insert(stores).values(row);
     statements.push(
-      options.preserveIds
-        ? statement.onConflictDoUpdate({ target: stores.id, set })
-        : statement,
+      statement.onConflictDoUpdate({ target: stores.id, set }),
     );
   }
   for (const row of importedProducts) {
