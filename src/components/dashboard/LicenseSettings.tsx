@@ -1,10 +1,14 @@
 "use client";
 
-import { Check, Crown, Key, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, Check, Crown, Key, Warning } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Input } from "@/components/ui";
-import { proFeatureLabels, proFeatures } from "@/lib/app-license.config";
+import {
+  proFeatureLabels,
+  proFeatures,
+  proPurchaseUrl,
+} from "@/lib/app-license.config";
 import type {
   AppLicenseApiResponse,
   AppLicenseStatus,
@@ -101,25 +105,44 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
               </Button>
             </div>
           ) : (
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void updateLicense("POST");
-              }}
-            >
-              <Input
-                label="License key"
-                value={licenseKey}
-                onChange={(event) => setLicenseKey(event.target.value)}
-                placeholder="Enter your Paymug Pro license key"
-                required
-              />
-              <Button type="submit" disabled={working}>
-                <Key size={16} />
-                {working ? "Activating…" : "Activate Pro"}
-              </Button>
-            </form>
+            <div className="space-y-5">
+              <div className="rounded-xl border border-accent/40 bg-accent-soft p-4">
+                <p className="text-sm font-semibold text-foreground">
+                  Don’t have a Paymug Pro license yet?
+                </p>
+                <p className="mt-1 text-sm leading-6 text-muted">
+                  Purchase Pro, then return here to activate your license key.
+                </p>
+                <a
+                  href={proPurchaseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-dark hover:bg-accent-hover"
+                >
+                  Get Paymug Pro
+                  <ArrowSquareOut size={15} />
+                </a>
+              </div>
+              <form
+                className="space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void updateLicense("POST");
+                }}
+              >
+                <Input
+                  label="License key"
+                  value={licenseKey}
+                  onChange={(event) => setLicenseKey(event.target.value)}
+                  placeholder="Enter your Paymug Pro license key"
+                  required
+                />
+                <Button type="submit" disabled={working}>
+                  <Key size={16} />
+                  {working ? "Activating…" : "Activate Pro"}
+                </Button>
+              </form>
+            </div>
           )}
           {error && <div className="mt-4"><Alert>{error}</Alert></div>}
           {license.validationError && (

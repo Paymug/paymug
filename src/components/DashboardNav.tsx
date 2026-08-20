@@ -3,6 +3,8 @@
 import {
   DotsThree,
   EnvelopeSimple,
+  Eye,
+  EyeSlash,
   GearSix,
   House,
   Network,
@@ -45,6 +47,11 @@ export function DashboardNav({
   const router = useRouter();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [storeSwitching, setStoreSwitching] = useState(false);
+  const [showInactiveStores, setShowInactiveStores] = useState(false);
+  const hasInactiveStores = stores.some((store) => !store.isActive);
+  const menuStores = showInactiveStores
+    ? stores
+    : stores.filter((store) => store.isActive);
   const visibleNavGroups = getVisibleDashboardNavGroups(dashboardNavGroups, {
     affiliatesEnabled,
     emailCampaignsEnabled,
@@ -61,9 +68,19 @@ export function DashboardNav({
     router.refresh();
   }
 
-  async function switchStore(storeId: string) {
+  async function switchStore(storeId: string, isActive: boolean) {
     if (storeId === activeStoreId) return;
     setStoreSwitching(true);
+    if (!isActive) {
+      const reactivationResponse = await fetch(
+        `/api/stores/${storeId}/reactivate`,
+        { method: "POST" },
+      );
+      if (!reactivationResponse.ok) {
+        setStoreSwitching(false);
+        return;
+      }
+    }
     const response = await fetch(`/api/stores/${storeId}/activate`, {
       method: "POST",
     });
@@ -153,20 +170,25 @@ export function DashboardNav({
           {accountMenuOpen && (
             <div className="absolute bottom-full left-0 z-30 mb-2 w-full overflow-hidden rounded-xl border border-[#e8e8ee] bg-white py-2 shadow-xl">
               <div className="max-h-64 overflow-y-auto px-1">
-                {stores.map((store) => {
+                {menuStores.map((store) => {
                   const active = store.id === activeStoreId;
                   return (
                     <div key={store.id} className="flex items-center rounded-lg hover:bg-[#f7f7f8]">
                       <button
                         type="button"
                         disabled={storeSwitching || active}
-                        onClick={() => void switchStore(store.id)}
+                        onClick={() => void switchStore(store.id, store.isActive)}
                         className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-sm disabled:cursor-default"
                       >
                         <Storefront size={16} className="shrink-0" />
                         <span className="min-w-0 flex-1 truncate">
                           {store.name}
                         </span>
+                        {!store.isActive && (
+                          <span className="text-xs font-medium text-muted">
+                            Inactive
+                          </span>
+                        )}
                         {/* {active && (
                           <span className="text-xs font-medium text-muted">
                             Active
@@ -184,6 +206,18 @@ export function DashboardNav({
                   <Plus size={16} />
                   Add store
                 </Link>
+                {hasInactiveStores && (
+                  <button
+                    type="button"
+                    onClick={() => setShowInactiveStores((visible) => !visible)}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-muted hover:bg-[#f7f7f8] hover:text-foreground"
+                  >
+                    {showInactiveStores ? <EyeSlash size={16} /> : <Eye size={16} />}
+                    {showInactiveStores
+                      ? "Hide inactive stores"
+                      : "Show inactive stores"}
+                  </button>
+                )}
               </div>
               <div className="mx-1 mt-1 border-t border-[#e8e8ee] pt-1">
                 <button

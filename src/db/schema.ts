@@ -89,6 +89,9 @@ export const stores = sqliteTable(
       .notNull()
       .default("fixed"),
     transactionFeeValue: integer("transaction_fee_value").notNull().default(0),
+    isActive: integer("is_active", { mode: "boolean" })
+      .notNull()
+      .default(true),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },

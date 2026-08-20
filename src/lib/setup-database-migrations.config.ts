@@ -61,5 +61,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "CREATE INDEX `feature_records_customer_portal_idx` ON `feature_records` (lower(`subtitle`),`environment`,`feature`,`updated_at`);",
       "CREATE INDEX `feature_records_paypal_subscription_idx` ON `feature_records` (`feature`,`environment`,json_extract(`data`, '$.paypalSubscriptionId'));"
     ]
+  },
+  {
+    "name": "0003_inactive_stores.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `is_active` integer DEFAULT 1 NOT NULL;"
+    ]
   }
 ];
