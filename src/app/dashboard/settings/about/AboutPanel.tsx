@@ -84,7 +84,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
       const result = await uploadAboutBackup(backupFile, preserveIds);
       setBackupMessage({
         variant: "success",
-        text: `Imported ${result.stores || 0} stores, ${result.products || 0} products, ${result.orders || 0} orders, ${result.featureRecords || 0} feature records, and ${result.customers || 0} customer accounts${result.reusedCustomers ? ` (${result.reusedCustomers} existing customers reused)` : ""}.`,
+        text: `Imported ${result.products || 0} products, ${result.orders || 0} orders, ${result.featureRecords || 0} feature records, and ${result.customers || 0} customer accounts into the current store${result.reusedCustomers ? ` (${result.reusedCustomers} existing customers reused)` : ""}.`,
       });
       router.refresh();
     } catch (error) {
@@ -157,17 +157,17 @@ export function AboutPanel({ status }: AboutPanelProps) {
 
       <section className="overflow-hidden rounded-2xl border border-[#e8e8ee] bg-white">
         <div className="border-b border-[#e8e8ee] px-5 py-5 sm:px-6">
-          <h3 className="font-semibold">Store data backup</h3>
+          <h3 className="font-semibold">Store record transfer</h3>
           <p className="mt-1 text-sm leading-6 text-[#85859d]">
             Export or import the current store’s products, orders, customers, pages,
-            campaigns, subscriptions, discounts, affiliate records, and settings.
+            campaigns, subscriptions, discounts, and affiliate records.
           </p>
         </div>
         <div className="grid gap-0 md:grid-cols-2">
           <div className="border-b border-[#e8e8ee] p-5 sm:p-6 md:border-b-0 md:border-r">
             <p className="text-sm font-semibold">Export data</p>
             <p className="mt-2 text-sm leading-6 text-[#85859d]">
-              Downloads a portable JSON backup of the current store. Payment credentials, API keys,
+              Downloads the current store’s records as portable JSON. The store itself, payment credentials, API keys,
               access tokens, and app-license secrets are excluded. The file contains
               customer personal data and password hashes, so store it securely.
             </p>
@@ -186,8 +186,9 @@ export function AboutPanel({ status }: AboutPanelProps) {
             <p className="text-sm font-semibold">Import data</p>
             <p className="mt-2 text-sm leading-6 text-[#85859d]">
               Imports into the current store. All store references are reassigned to
-              the current store ID. Product file metadata and URLs are preserved, but
-              R2 file binaries are not embedded in the JSON backup.
+              the current store ID, and all records use the currently selected test or
+              live mode. Product file metadata and URLs are preserved, but R2 file
+              binaries are not embedded in the JSON backup.
             </p>
             <label className="mt-4 block text-sm font-medium text-[#3f3f49]">
               Backup file

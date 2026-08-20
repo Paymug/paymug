@@ -20,7 +20,10 @@ export async function POST(request: Request) {
     const backup = parseStoreBackup(JSON.parse(body) as unknown);
     const preserveIds = new URL(request.url).searchParams.get("preserveIds") === "true";
     return Response.json(
-      await importStoreBackup(user.id, user.activeStoreId, backup, { preserveIds }),
+      await importStoreBackup(user.id, user.activeStoreId, backup, {
+        preserveIds,
+        environment: user.environment,
+      }),
     );
   } catch (error) {
     return jsonError(

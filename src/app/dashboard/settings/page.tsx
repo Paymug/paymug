@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { GeneralSettingsForm } from "@/components/dashboard/GeneralSettingsForm";
 import { GrowthSettingsForm } from "@/components/dashboard/GrowthSettingsForm";
+import { StoreStatusSettings } from "@/components/dashboard/StoreStatusSettings";
 import { getStoreById } from "@/lib/stores";
 
 export default async function SettingsPage() {
@@ -39,6 +40,7 @@ export default async function SettingsPage() {
         initialAffiliateAttributionModel={store.affiliateAttributionModel}
         initialEmailCampaignsEnabled={store.emailCampaignsEnabled}
       />
+      <StoreStatusSettings storeId={store.id} storeName={store.name} />
     </div>
   );
 }

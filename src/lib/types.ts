@@ -74,6 +74,7 @@ export interface Store {
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
