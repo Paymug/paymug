@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne } from "drizzle-orm";
 import { stores, users } from "@/db/schema";
 import { getDb } from "@/db";
 import type { Store } from "./types";
@@ -53,6 +53,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
+    isActive: row.isActive,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -65,8 +66,12 @@ export async function getStoreById(
   const db = await getDb();
   const row = await db.query.stores.findFirst({
     where: userId
-      ? and(eq(stores.id, storeId), eq(stores.userId, userId))
-      : eq(stores.id, storeId),
+      ? and(
+          eq(stores.id, storeId),
+          eq(stores.userId, userId),
+          eq(stores.isActive, true),
+        )
+      : and(eq(stores.id, storeId), eq(stores.isActive, true)),
   });
   return row ? rowToStore(row) : undefined;
 }
@@ -81,7 +86,7 @@ export async function getActiveStoreForUser(
   }
   const db = await getDb();
   const row = await db.query.stores.findFirst({
-    where: eq(stores.userId, userId),
+    where: and(eq(stores.userId, userId), eq(stores.isActive, true)),
     orderBy: [asc(stores.createdAt)],
   });
   return row ? rowToStore(row) : undefined;
@@ -102,6 +107,7 @@ export async function getPrimaryStore(): Promise<Store | undefined> {
     if (activeStore) return activeStore;
   }
   const row = await db.query.stores.findFirst({
+    where: eq(stores.isActive, true),
     orderBy: [asc(stores.createdAt)],
   });
   return row ? rowToStore(row) : undefined;
@@ -121,7 +127,7 @@ export async function getStoreBySlug(
 ): Promise<Store | undefined> {
   const db = await getDb();
   const row = await db.query.stores.findFirst({
-    where: eq(stores.slug, slug),
+    where: and(eq(stores.slug, slug), eq(stores.isActive, true)),
   });
   return row ? rowToStore(row) : undefined;
 }
@@ -158,6 +164,7 @@ export async function createStore(
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
+    isActive: true,
     createdAt: now,
     updatedAt: now,
   };
@@ -200,6 +207,60 @@ export async function activateStore(
     })
     .where(eq(users.id, userId));
   return store;
+}
+
+export async function deactivateStore(
+  storeId: string,
+  userId: string,
+): Promise<Store | undefined> {
+  const db = await getDb();
+  const store = await getStoreById(storeId, userId);
+  if (!store) return undefined;
+  const replacementRow = await db.query.stores.findFirst({
+    where: and(
+      eq(stores.userId, userId),
+      eq(stores.isActive, true),
+      ne(stores.id, storeId),
+    ),
+    orderBy: [asc(stores.createdAt)],
+  });
+  if (!replacementRow) {
+    throw new Error("Create or reactivate another store before deactivating this one");
+  }
+  const owner = await db.query.users.findFirst({
+    columns: { primaryStoreId: true },
+    where: eq(users.id, userId),
+  });
+  const replacement = rowToStore(replacementRow);
+  await db
+    .update(stores)
+    .set({ isActive: false, updatedAt: new Date().toISOString() })
+    .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+  await db
+    .update(users)
+    .set({
+      activeStoreId: replacement.id,
+      ...(owner?.primaryStoreId === storeId
+        ? { primaryStoreId: replacement.id }
+        : {}),
+      storeName: replacement.name,
+      storeSlug: replacement.slug,
+    })
+    .where(eq(users.id, userId));
+  return replacement;
+}
+
+export async function reactivateStore(
+  storeId: string,
+  userId: string,
+): Promise<Store | undefined> {
+  const db = await getDb();
+  const updated = await db
+    .update(stores)
+    .set({ isActive: true, updatedAt: new Date().toISOString() })
+    .where(and(eq(stores.id, storeId), eq(stores.userId, userId)))
+    .returning();
+  return updated[0] ? rowToStore(updated[0]) : undefined;
 }
 
 export async function setPrimaryStore(

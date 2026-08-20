@@ -1,5 +1,6 @@
 import "server-only";
 
+import { and, eq } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from "@/db";
 import {
@@ -31,7 +32,7 @@ export async function importStoreBackup(
 ): Promise<StoreBackupImportResult> {
   const db = await getDb();
   const [
-    existingStores,
+    currentStore,
     existingProducts,
     existingOrders,
     existingFeatures,
@@ -39,8 +40,9 @@ export async function importStoreBackup(
     existingReminders,
   ] =
     await Promise.all([
-      db.query.stores.findMany({
-        columns: { id: true, userId: true, slug: true, createdAt: true },
+      db.query.stores.findFirst({
+        columns: { id: true, slug: true },
+        where: and(eq(stores.id, currentStoreId), eq(stores.userId, userId)),
       }),
       db.query.products.findMany({ columns: { id: true, slug: true, storeId: true } }),
       db.query.orders.findMany({ columns: { id: true, storeId: true } }),
@@ -56,14 +58,10 @@ export async function importStoreBackup(
         },
       }),
     ]);
-  const currentStore = existingStores.find(
-    (store) => store.id === currentStoreId && store.userId === userId,
-  );
   if (!currentStore) throw new Error("Current store was not found");
-  if (backup.data.stores.length !== 1) {
-    throw new Error("Backup must contain exactly one store");
-  }
-  const sourceStore = backup.data.stores[0];
+  const legacySourceStore = backup.data.stores?.[0];
+  const sourceStoreId = backup.sourceStoreId || legacySourceStore?.id;
+  const sourceStoreSlug = backup.sourceStoreSlug || legacySourceStore?.slug;
   const productIds = createStoreBackupIdMap(
     backup.data.products.map((product) => product.id),
     options.preserveIds,
@@ -155,8 +153,8 @@ export async function importStoreBackup(
   }
 
   const textReplacements = new Map<string, string>();
-  textReplacements.set(sourceStore.id, currentStoreId);
-  textReplacements.set(sourceStore.slug, currentStore.slug);
+  if (sourceStoreId) textReplacements.set(sourceStoreId, currentStoreId);
+  if (sourceStoreSlug) textReplacements.set(sourceStoreSlug, currentStore.slug);
   if (!options.preserveIds) {
     for (const product of backup.data.products) {
       textReplacements.set(product.id, productSlugs.get(product.id)!);
@@ -167,25 +165,13 @@ export async function importStoreBackup(
     }
   }
 
-  const importedStores = [{
-    ...sourceStore,
-    id: currentStoreId,
-    userId,
-    slug: currentStore.slug,
-    createdAt: currentStore.createdAt,
-    paymentCredentialSourceStoreId: sourceStore.paymentCredentialSourceStoreId
-      ? currentStoreId
-      : null,
-    githubCredentialSourceStoreId: sourceStore.githubCredentialSourceStoreId
-      ? currentStoreId
-      : null,
-  }];
   const importedProducts = backup.data.products.map((source) => {
     return {
       ...source,
       id: productIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
+      environment: options.environment,
       slug: productSlugs.get(source.id)!,
     };
   });
@@ -197,6 +183,7 @@ export async function importStoreBackup(
       id: orderIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
+      environment: options.environment,
       productId,
       affiliateId: source.affiliateId
         ? featureIds.get(source.affiliateId) || null
@@ -213,6 +200,7 @@ export async function importStoreBackup(
       id: reminderIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
+      environment: options.environment,
       productId,
       checkoutUrl: replaceStoreBackupUrlReferences(source.checkoutUrl, textReplacements),
     };
@@ -223,6 +211,7 @@ export async function importStoreBackup(
       const remapped = remapStoreBackupData(
         JSON.parse(source.data),
         currentStoreId,
+        options.environment,
         {
           products: productIds,
           orders: orderIds,
@@ -234,7 +223,11 @@ export async function importStoreBackup(
         throw new Error("Feature data must be an object");
       }
       data = replaceStoreBackupUrlReferences(
-        JSON.stringify({ ...remapped, storeId: currentStoreId }),
+        JSON.stringify({
+          ...remapped,
+          storeId: currentStoreId,
+          environment: options.environment,
+        }),
         textReplacements,
       );
     } catch {
@@ -244,6 +237,7 @@ export async function importStoreBackup(
       ...source,
       id: featureIds.get(source.id)!,
       userId,
+      environment: options.environment,
       subtitle: source.subtitle
         ? replaceStoreBackupUrlReferences(source.subtitle, textReplacements)
         : null,
@@ -271,13 +265,6 @@ export async function importStoreBackup(
   }
 
   const statements: BatchItem<"sqlite">[] = [];
-  for (const row of importedStores) {
-    const { id: _id, ...set } = row;
-    const statement = db.insert(stores).values(row);
-    statements.push(
-      statement.onConflictDoUpdate({ target: stores.id, set }),
-    );
-  }
   for (const row of importedProducts) {
     const { id: _id, ...set } = row;
     const statement = db.insert(products).values(row);
@@ -331,7 +318,6 @@ export async function importStoreBackup(
 
   return {
     preserveIds: options.preserveIds,
-    stores: importedStores.length,
     products: importedProducts.length,
     orders: importedOrders.length,
     checkoutReminders: importedReminders.length,

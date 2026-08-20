@@ -78,13 +78,12 @@ export async function exportStoreBackup(
 
   return {
     format: "paymug-store-backup",
-    version: 1,
+    version: 2,
     appVersion: packageJson.version,
     exportedAt: new Date().toISOString(),
+    sourceStoreId: storeRow.id,
+    sourceStoreSlug: storeRow.slug,
     data: {
-      stores: [
-        (({ userId: _userId, ...store }) => store)(storeRow),
-      ],
       products: productRows.map(({ userId: _userId, ...product }) => product),
       orders: orderRows.map(({ userId: _userId, ...order }) => order),
       checkoutReminders: reminderRows.map(

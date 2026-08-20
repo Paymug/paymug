@@ -1,8 +1,9 @@
 import { uid } from "./utils";
 import type { StoreBackupFile } from "./store-backup.types";
+import type { PayPalMode } from "./types";
 
 const backupFormat = "paymug-store-backup";
-const backupVersion = 1;
+const backupVersion = 2;
 const maximumBackupRecords = 100_000;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -21,18 +22,33 @@ function assertBackupRows(value: unknown, name: string): asserts value is Array<
 }
 
 export function parseStoreBackup(value: unknown): StoreBackupFile {
-  if (!isRecord(value) || value.format !== backupFormat || value.version !== backupVersion) {
+  if (
+    !isRecord(value) ||
+    value.format !== backupFormat ||
+    (value.version !== 1 && value.version !== backupVersion)
+  ) {
     throw new Error("Select a supported Paymug store backup file");
   }
   if (!isRecord(value.data)) throw new Error("Backup data is missing");
-  assertBackupRows(value.data.stores, "stores");
+  if (value.version === 1) {
+    assertBackupRows(value.data.stores, "stores");
+    if (value.data.stores.length !== 1) {
+      throw new Error("Backup must contain exactly one source store");
+    }
+  } else if (
+    typeof value.sourceStoreId !== "string" ||
+    !value.sourceStoreId ||
+    typeof value.sourceStoreSlug !== "string" ||
+    !value.sourceStoreSlug
+  ) {
+    throw new Error("Backup source store metadata is missing");
+  }
   assertBackupRows(value.data.products, "products");
   assertBackupRows(value.data.orders, "orders");
   assertBackupRows(value.data.checkoutReminders, "checkout reminders");
   assertBackupRows(value.data.featureRecords, "feature records");
   assertBackupRows(value.data.customers, "customers");
   const totalRecords =
-    value.data.stores.length +
     value.data.products.length +
     value.data.orders.length +
     value.data.checkoutReminders.length +
@@ -70,6 +86,7 @@ export function createImportedSlug(
 export function remapStoreBackupData(
   value: unknown,
   currentStoreId: string,
+  currentEnvironment: PayPalMode,
   maps: {
     products: Map<string, string>;
     orders: Map<string, string>;
@@ -79,7 +96,7 @@ export function remapStoreBackupData(
 ): unknown {
   if (Array.isArray(value)) {
     return value.map((item) =>
-      remapStoreBackupData(item, currentStoreId, maps),
+      remapStoreBackupData(item, currentStoreId, currentEnvironment, maps),
     );
   }
   if (!isRecord(value)) return value;
@@ -87,6 +104,10 @@ export function remapStoreBackupData(
   for (const [key, item] of Object.entries(value)) {
     if (key === "storeId") {
       result[key] = currentStoreId;
+      continue;
+    }
+    if (key === "environment") {
+      result[key] = currentEnvironment;
       continue;
     }
     if (typeof item === "string") {
@@ -108,7 +129,12 @@ export function remapStoreBackupData(
       result[key] = item.map((id) => (typeof id === "string" ? map.get(id) || id : id));
       continue;
     }
-    result[key] = remapStoreBackupData(item, currentStoreId, maps);
+    result[key] = remapStoreBackupData(
+      item,
+      currentStoreId,
+      currentEnvironment,
+      maps,
+    );
   }
   return result;
 }

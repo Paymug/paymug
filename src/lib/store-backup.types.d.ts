@@ -6,6 +6,7 @@ import {
   products,
   stores,
 } from "@/db/schema";
+import type { PayPalMode } from "./types";
 
 export type StoreBackupStore = Omit<typeof stores.$inferSelect, "userId">;
 export type StoreBackupProduct = Omit<typeof products.$inferSelect, "userId">;
@@ -22,11 +23,13 @@ export type StoreBackupCustomer = typeof customerAccounts.$inferSelect;
 
 export interface StoreBackupFile {
   format: "paymug-store-backup";
-  version: 1;
+  version: 1 | 2;
   appVersion: string;
   exportedAt: string;
+  sourceStoreId?: string;
+  sourceStoreSlug?: string;
   data: {
-    stores: StoreBackupStore[];
+    stores?: StoreBackupStore[];
     products: StoreBackupProduct[];
     orders: StoreBackupOrder[];
     checkoutReminders: StoreBackupCheckoutReminder[];
@@ -37,11 +40,11 @@ export interface StoreBackupFile {
 
 export interface StoreBackupImportOptions {
   preserveIds: boolean;
+  environment: PayPalMode;
 }
 
 export interface StoreBackupImportResult {
   preserveIds: boolean;
-  stores: number;
   products: number;
   orders: number;
   checkoutReminders: number;
