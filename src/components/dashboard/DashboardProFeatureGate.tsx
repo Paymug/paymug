@@ -3,7 +3,11 @@
 import { Crown } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { proDashboardPaths, proFeatureLabels } from "@/lib/app-license.config";
+import {
+  proDashboardPaths,
+  proFeatureLabels,
+  proPurchaseUrl,
+} from "@/lib/app-license.config";
 import type { DashboardProFeatureGateProps } from "./DashboardProFeatureGate.types";
 
 export function DashboardProFeatureGate({
@@ -40,12 +44,22 @@ export function DashboardProFeatureGate({
             <p className="mt-3 text-sm leading-6 text-muted">
               Upgrade to Paymug Pro to use this feature on your store.
             </p>
-            <Link
-              href="/dashboard/settings/license"
-              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-dark hover:bg-accent-hover"
-            >
-              Upgrade to Pro
-            </Link>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <a
+                href={proPurchaseUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-semibold text-dark hover:bg-accent-hover"
+              >
+                Get Paymug Pro
+              </a>
+              <Link
+                href="/dashboard/settings/license"
+                className="text-sm font-medium text-muted underline-offset-4 hover:text-foreground hover:underline"
+              >
+                I already have a license key
+              </Link>
+            </div>
           </section>
         </div>
       )}
