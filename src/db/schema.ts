@@ -301,6 +301,25 @@ export const checkoutReminders = sqliteTable(
   ],
 );
 
+export const campaignDeliveries = sqliteTable(
+  "campaign_deliveries",
+  {
+    id: text("id").primaryKey(),
+    campaignId: text("campaign_id")
+      .notNull()
+      .references(() => featureRecords.id, { onDelete: "cascade" }),
+    subscriberId: text("subscriber_id"),
+    email: text("email").notNull(),
+    openedAt: text("opened_at"),
+    clickedAt: text("clicked_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("campaign_deliveries_campaign_idx").on(table.campaignId),
+    index("campaign_deliveries_email_idx").on(table.email),
+  ],
+);
+
 export const appLicenses = sqliteTable("app_licenses", {
   id: text("id").primaryKey(),
   licenseKeyEncrypted: text("license_key_encrypted").notNull(),
@@ -435,6 +454,66 @@ export const apiKeys = sqliteTable(
   (table) => [index("api_keys_user_idx").on(table.userId)]
 );
 
+export const webhooks = sqliteTable(
+  "webhooks",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    environment: text("environment", { enum: ["sandbox", "live"] })
+      .notNull()
+      .default("sandbox"),
+    name: text("name").notNull(),
+    url: text("url").notNull(),
+    authEncrypted: text("auth_encrypted"),
+    secretEncrypted: text("secret_encrypted").notNull(),
+    events: text("events").notNull().default("[]"),
+    status: text("status", { enum: ["active", "paused"] })
+      .notNull()
+      .default("active"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("webhooks_user_store_environment_idx").on(
+      table.userId,
+      table.storeId,
+      table.environment,
+    ),
+  ],
+);
+
+export const webhookDeliveries = sqliteTable(
+  "webhook_deliveries",
+  {
+    id: text("id").primaryKey(),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => webhooks.id, { onDelete: "cascade" }),
+    eventName: text("event_name").notNull(),
+    status: text("status", { enum: ["pending", "success", "failed"] })
+      .notNull()
+      .default("pending"),
+    requestBody: text("request_body").notNull(),
+    responseStatus: integer("response_status"),
+    responseBody: text("response_body"),
+    error: text("error"),
+    durationMs: integer("duration_ms"),
+    createdAt: text("created_at").notNull(),
+    completedAt: text("completed_at"),
+  },
+  (table) => [
+    index("webhook_deliveries_webhook_created_idx").on(
+      table.webhookId,
+      table.createdAt,
+    ),
+  ],
+);
+
 export const notifications = sqliteTable(
   "notifications",
   {
@@ -476,6 +555,39 @@ export const customerAccounts = sqliteTable("customer_accounts", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
+
+export const customerEmailPreferences = sqliteTable(
+  "customer_email_preferences",
+  {
+    id: text("id").primaryKey(),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    marketingEnabled: integer("marketing_enabled", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    productUpdatesEnabled: integer("product_updates_enabled", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(true),
+    affiliateUpdatesEnabled: integer("affiliate_updates_enabled", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(true),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("customer_email_preferences_store_email_unique").on(
+      table.storeId,
+      table.email,
+    ),
+    index("customer_email_preferences_email_idx").on(sql`lower(${table.email})`),
+  ],
+);
 
 export const customerAccessTokens = sqliteTable(
   "customer_access_tokens",

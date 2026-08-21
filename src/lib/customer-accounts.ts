@@ -73,7 +73,7 @@ export async function customerHasPortalAccess(
 ): Promise<boolean> {
   const db = await getDb();
   const normalizedEmail = email.trim().toLowerCase();
-  const [order, subscription] = await Promise.all([
+  const [order, subscription, subscriber] = await Promise.all([
     db.query.orders.findFirst({
       columns: { id: true },
       where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.status} IN ('paid', 'refunded')`,
@@ -82,8 +82,12 @@ export async function customerHasPortalAccess(
       columns: { id: true },
       where: sql`lower(${featureRecords.subtitle}) = ${normalizedEmail} AND ${featureRecords.feature} = 'subscriptions'`,
     }),
+    db.query.featureRecords.findFirst({
+      columns: { id: true },
+      where: sql`lower(${featureRecords.title}) = ${normalizedEmail} AND ${featureRecords.feature} = 'subscribers'`,
+    }),
   ]);
-  return Boolean(order || subscription);
+  return Boolean(order || subscription || subscriber);
 }
 
 export async function saveCustomerAccessToken(

@@ -14,6 +14,7 @@ import type {
   TransactionalEmailContent,
 } from "./transactional-email.types";
 import { getLicenseEntitlementSummary } from "./license-entitlements";
+import { absoluteUrl } from "./utils";
 
 const paymugMark =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzE0MTIwYiIvPgogIDxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9IiNmNWM1MTgiLz4KICA8cGF0aCBkPSJNMTYgOGMuOCAxLjYgMi40IDIuNSA0LjIgMy4xQzE5LjIgMTQgMTcuOCAxNi40IDE2IDE5LjIgMTQuMiAxNi40IDEyLjggMTQgMTEuOCAxMS4xIDEzLjYgMTAuNSAxNS4yIDkuNiAxNiA4eiIgZmlsbD0iIzE0MTIwYiIgb3BhY2l0eT0iLjE1Ii8+Cjwvc3ZnPgo=";
@@ -38,14 +39,18 @@ export function renderPoweredByFooter(footer: string) {
     <table role="presentation" style="width:100%;margin:28px 0 0;border-collapse:collapse;border-top:1px solid #eeeeF2">
       <tr>
         <td style="padding:18px 0 0;color:#9292a3;font-size:12px;line-height:1.6">
-          <p style="margin:0 0 14px">${footer}</p>
+          ${footer ? `<p style="margin:0 0 14px">${footer}</p>` : ""}
           <table role="presentation" style="border-collapse:collapse">
             <tr>
-              <td style="padding:0;vertical-align:middle">
-                <img src="${paymugMark}" alt="" width="16" height="16" style="display:block;width:16px;height:16px;border-radius:4px">
+              <td style="padding:0;vertical-align:middle;font-size:13px;font-weight:500;line-height:18px;color:#9999aa">
+                <a href="https://paymug.co" style="display:inline-block;color:#9999aa;text-decoration:none">
+                  Powered by <span style="font-weight:600;color:#555563">Paymug</span>
+                </a>
               </td>
-              <td style="padding:0 0 0 6px;vertical-align:middle">
-                <span style="font-size:11px;font-weight:700;color:#27272f">Powered by Paymug</span>
+              <td style="padding:0 0 0 4px;vertical-align:middle">
+                <a href="https://paymug.co" style="display:block;text-decoration:none">
+                  <img src="${paymugMark}" alt="" width="18" height="18" style="display:block;width:18px;height:18px;border-radius:4px">
+                </a>
               </td>
             </tr>
           </table>
@@ -84,6 +89,8 @@ export function renderEmailLayout(input: EmailLayoutInput) {
   const footerText = escapeEmailHtml(
     input.footer || `This transactional email was sent by ${input.storeName}.`
   );
+  const preferencesUrl = absoluteUrl("/customer/account/email-preferences");
+  const footer = `${footerText}<br><a href="${escapeEmailHtml(preferencesUrl)}" style="color:#9292a3;text-decoration:underline">Manage Preferences</a>`;
 
   return {
     html: `<!doctype html>
@@ -99,12 +106,12 @@ export function renderEmailLayout(input: EmailLayoutInput) {
               ${rows ? `<table style="width:100%;margin-top:22px;border-collapse:collapse">${rows}</table>` : ""}
               ${detail}
               ${action}
-              ${renderPoweredByFooter(footerText)}
+              ${renderPoweredByFooter(footer)}
             </div>
           </div>
         </body>
       </html>`,
-    text: `${input.storeName}\n\n${input.title}\n\n${input.intro}${textRows ? `\n\n${textRows}` : ""}${input.detail ? `\n\n${input.detailTitle || "Details"}:\n${input.detail}` : ""}${input.actionUrl ? `\n\n${input.actionLabel}: ${input.actionUrl}` : ""}\n\n${input.footer || `This transactional email was sent by ${input.storeName}.`}`,
+    text: `${input.storeName}\n\n${input.title}\n\n${input.intro}${textRows ? `\n\n${textRows}` : ""}${input.detail ? `\n\n${input.detailTitle || "Details"}:\n${input.detail}` : ""}${input.actionUrl ? `\n\n${input.actionLabel}: ${input.actionUrl}` : ""}\n\n${input.footer || `This transactional email was sent by ${input.storeName}.`}\nManage Preferences: ${preferencesUrl}`,
   };
 }
 

@@ -7,6 +7,7 @@ export default function Powered() {
   return (
     <a
       href={`https://paymug.co/?ref=${ref}`}
+      suppressHydrationWarning
       className="flex items-center gap-1 py-4 text-[13px] font-medium text-[#9999aa]"
     >
       <span>Powered by</span>
