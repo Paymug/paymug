@@ -43,8 +43,7 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
   {
     "name": "0001_primary_store.sql",
     "statements": [
-      "ALTER TABLE `users` ADD `primary_store_id` text;",
-      "UPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
+      "ALTER TABLE `users` ADD `primary_store_id` text;\nUPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
     ]
   },
   {
