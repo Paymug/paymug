@@ -2,11 +2,22 @@
 
 # Paymug
 
-A self-hosted platform for selling digital products where **merchants connect their own payment gateway**. Payments go straight to the seller. PayPal ships first; more providers can plug into the same architecture.
+Paymug is a self-hosted Lemon Squeezy / Polar alternative for selling digital products
+and subscriptions. Connect PayPal or Stripe, get paid directly, and manage your
+store from one dashboard.
 
-Built with OpenNext (Next.js 16), Tailwind CSS, **Cloudflare D1** (SQLite) with  **Drizzle ORM**
+Built with Next.js 16, Tailwind CSS, Cloudflare D1, and Drizzle ORM.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Paymug/paymug)
+
+
+## Links and demo access
+
+| Demos | URL | Login |
+|------|-----|-------|
+| Storefront | [demo.paymug.co](https://demo.paymug.co) | — |
+| Admin | [demo.paymug.co/dashboard](https://demo.paymug.co/dashboard) | `demo@paymug.co` / `demo1234` |
+| Customer | [demo.paymug.co/customer](https://demo.paymug.co/customer) | `demo@paymug.co` / `demo1234` |
 
 ## Features
 
