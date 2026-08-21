@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 15
     env:
       UPSTREAM_REPOSITORY: Paymug/paymug
-      UPSTREAM_BRANCH: latest
+      UPSTREAM_BRANCH: main
       UPSTREAM_TOKEN: ${{ secrets.UPSTREAM_TOKEN }}
 
     steps:
