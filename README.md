@@ -10,6 +10,8 @@ Built with Next.js 16, Tailwind CSS, Cloudflare D1, and Drizzle ORM.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Paymug/paymug)
 
+![](/demo.png)
+
 
 ## Links and demo access
 
