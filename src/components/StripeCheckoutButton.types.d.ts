@@ -1,5 +1,6 @@
 export interface StripeCheckoutDetails {
   productId: string;
+  customAmount?: number;
   customerEmail: string;
   customerName?: string;
   githubUsername?: string;

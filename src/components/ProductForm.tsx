@@ -99,6 +99,9 @@ export function ProductForm({
   const [billingType, setBillingType] = useState<ProductBillingType>(
     product?.billingType || "one_time",
   );
+  const [customAmountEnabled, setCustomAmountEnabled] = useState(
+    product?.customAmountEnabled || false,
+  );
   const [intervalUnit, setIntervalUnit] = useState<ProductIntervalUnit>(
     product?.intervalUnit || "month",
   );
@@ -191,6 +194,8 @@ export function ProductForm({
         : parsedLicenseUpdatePeriodCount
       : 1,
     billingType,
+    customAmountEnabled:
+      billingType === "one_time" && customAmountEnabled,
     intervalUnit: billingType === "subscription" ? intervalUnit : null,
     intervalCount:
       billingType === "subscription" ? parsedIntervalCount : 1,
@@ -214,7 +219,8 @@ export function ProductForm({
     githubDelivery ||
     transactionFeeType !== storeTransactionFeeSelection ||
     transactionFeeValue !== storeTransactionFeeDisplayValue ||
-    status !== "draft",
+    status !== "draft" ||
+    customAmountEnabled,
   );
   const {
     productId,
@@ -462,7 +468,7 @@ export function ProductForm({
 
         <div>
           <label className={labelClass} htmlFor="price">
-            Price
+            {customAmountEnabled ? "Default price" : "Price"}
           </label>
           <div className="flex">
             <input
@@ -489,6 +495,7 @@ export function ProductForm({
           value={billingType}
           onValueChange={(value) => {
             setBillingType(value as ProductBillingType);
+            if (value === "subscription") setCustomAmountEnabled(false);
             requestAutosave(1);
           }}
           options={[
@@ -496,6 +503,27 @@ export function ProductForm({
             { value: "subscription", label: "Subscription" },
           ]}
         />
+
+        {billingType === "one_time" && (
+          <label className="flex items-start gap-3 rounded-xl border border-border bg-[#fafafd] p-4 text-sm text-muted">
+            <input
+              type="checkbox"
+              checked={customAmountEnabled}
+              onChange={(event) => {
+                setCustomAmountEnabled(event.target.checked);
+                requestAutosave(1);
+              }}
+              className="mt-0.5 h-4 w-4 rounded border-border"
+            />
+            <span>
+              <span className="block font-semibold text-foreground">
+                Allow custom checkout amount
+              </span>
+              Checkout links can override the default price, for example
+              {" "}<code>?amount=300</code>.
+            </span>
+          </label>
+        )}
 
         {billingType === "subscription" && (
           <div className="space-y-4 rounded-xl border border-border bg-[#fafafd] p-4">

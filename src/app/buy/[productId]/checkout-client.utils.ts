@@ -10,12 +10,13 @@ export function isValidCheckoutEmail(value: string): boolean {
 
 export async function fetchDiscountPreview(
   productId: string,
-  code: string
+  code: string,
+  customAmount?: number,
 ): Promise<DiscountPreviewResponse> {
   const response = await fetch("/api/checkout/discount", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId, code }),
+    body: JSON.stringify({ productId, code, customAmount }),
   });
   const data = (await response.json()) as DiscountPreviewResponse & {
     error?: string;

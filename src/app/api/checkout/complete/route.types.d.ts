@@ -1,5 +1,6 @@
 export interface CompleteFreePurchaseInput {
   productId: string;
+  customAmount?: number;
   customerEmail: string;
   customerName?: string;
   discountCode?: string;

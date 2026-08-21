@@ -67,5 +67,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `stores` ADD `is_active` integer DEFAULT 1 NOT NULL;"
     ]
+  },
+  {
+    "name": "0004_custom_product_amount.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `custom_amount_enabled` integer DEFAULT 0 NOT NULL;"
+    ]
   }
 ];

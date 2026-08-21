@@ -10,4 +10,5 @@ export interface ScheduleCheckoutReminderInput {
   customerName?: string;
   productName: string;
   requestUrl: string;
+  customAmount?: string;
 }

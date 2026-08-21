@@ -24,6 +24,7 @@ import type {
   CompleteFreePurchaseInput,
   CompleteFreePurchaseResponse,
 } from "./route.types";
+import { resolveProductCheckoutPrice } from "@/lib/custom-product-amount";
 
 export async function completeFreePurchase(
   input: CompleteFreePurchaseInput,
@@ -33,13 +34,17 @@ export async function completeFreePurchase(
   if (!product || product.status !== "published") {
     throw new Error("Product not available");
   }
+  const checkoutPrice = resolveProductCheckoutPrice(
+    product,
+    input.customAmount,
+  );
   const seller = await findUserById(product.userId);
   if (!seller) throw new Error("Product owner not found");
 
   const discount = await resolveDiscount(
     product.userId,
     input.discountCode,
-    product.price,
+    checkoutPrice,
     product.id,
     product.storeId,
     product.environment
@@ -59,7 +64,11 @@ export async function completeFreePurchase(
     product.storeId,
     product.environment
   );
-  const pricing = calculateCheckoutPricing(product, discount?.amount);
+  const pricing = calculateCheckoutPricing(
+    product,
+    discount?.amount,
+    checkoutPrice,
+  );
   if (pricing.total > 0) {
     throw new Error("This purchase requires payment");
   }
@@ -89,7 +98,7 @@ export async function completeFreePurchase(
     productId: product.id,
     productName: product.name,
     productDescription: product.description,
-    productPrice: product.price,
+    productPrice: checkoutPrice,
     deliveryContent: product.deliveryContent,
     productFiles: product.productFiles,
     githubRepoOwner: product.githubRepoOwner,

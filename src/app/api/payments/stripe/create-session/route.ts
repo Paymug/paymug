@@ -24,9 +24,14 @@ import { createStripeCheckoutSession } from "@/lib/stripe";
 import { jsonError, uid } from "@/lib/utils";
 import { getStoreById } from "@/lib/stores";
 import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
+import {
+  formatCustomCheckoutAmount,
+  resolveProductCheckoutPrice,
+} from "@/lib/custom-product-amount";
 
 const schema = z.object({
   productId: z.string().min(1),
+  customAmount: z.number().int().min(1).max(1_000_000_000).optional(),
   customerEmail: z.string().email(),
   customerName: z.string().max(120).optional(),
   discountCode: z.string().max(60).optional(),
@@ -44,6 +49,10 @@ export async function POST(request: Request) {
     if (!product || product.status !== "published") {
       return jsonError("Product not available", 404);
     }
+    const checkoutPrice = resolveProductCheckoutPrice(
+      product,
+      parsed.data.customAmount,
+    );
     const store = await getStoreById(product.storeId, product.userId);
     if (store?.paymentGateway !== "stripe") {
       return jsonError("Stripe is not enabled for this store", 409);
@@ -59,7 +68,7 @@ export async function POST(request: Request) {
     const discount = await resolveDiscount(
       product.userId,
       parsed.data.discountCode,
-      product.price,
+      checkoutPrice,
       product.id,
       product.storeId,
       product.environment
@@ -80,8 +89,12 @@ export async function POST(request: Request) {
       product.storeId,
       product.environment
     );
-    const pricing = calculateCheckoutPricing(product, discount?.amount);
-    const fullPricing = calculateCheckoutPricing(product);
+    const pricing = calculateCheckoutPricing(
+      product,
+      discount?.amount,
+      checkoutPrice,
+    );
+    const fullPricing = calculateCheckoutPricing(product, 0, checkoutPrice);
     const subscription = isSubscriptionProduct(product);
     const cadence = getProductBillingCadence(product);
     if (subscription && !cadence) {
@@ -140,7 +153,7 @@ export async function POST(request: Request) {
       productId: product.id,
       productName: product.name,
       productDescription: product.description,
-      productPrice: product.price,
+      productPrice: checkoutPrice,
       deliveryContent: product.deliveryContent,
       productFiles: product.productFiles,
       githubRepoOwner: product.githubRepoOwner,
@@ -167,8 +180,15 @@ export async function POST(request: Request) {
       `/api/payments/stripe/complete?orderId=${encodeURIComponent(order.id)}&session_id={CHECKOUT_SESSION_ID}`,
       request.url
     );
+    const cancelParams = new URLSearchParams({ cancelled: "1" });
+    if (parsed.data.customAmount !== undefined) {
+      cancelParams.set(
+        "amount",
+        formatCustomCheckoutAmount(parsed.data.customAmount),
+      );
+    }
     const cancelUrl = await getRuntimeAbsoluteUrl(
-      `${getProductPublicPath(product)}?cancelled=1`,
+      `${getProductPublicPath(product)}?${cancelParams.toString()}`,
       request.url
     );
     const recurringAmountCents = limitedSubscriptionDiscount

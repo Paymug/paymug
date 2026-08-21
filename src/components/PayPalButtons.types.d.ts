@@ -35,6 +35,7 @@ export interface PayPalNamespace {
 
 export interface PayPalCheckoutDetails {
   productId: string;
+  customAmount?: number;
   customerEmail: string;
   customerName?: string;
   githubUsername?: string;
@@ -50,6 +51,7 @@ export interface PayPalCreatedOrder {
 
 export interface PayPalButtonsProps {
   productId: string;
+  customAmount?: number;
   customerEmail: string;
   customerName?: string;
   githubUsername?: string;

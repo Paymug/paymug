@@ -148,6 +148,9 @@ export const products = sqliteTable(
   })
     .notNull()
     .default("one_time"),
+  customAmountEnabled: integer("custom_amount_enabled", { mode: "boolean" })
+    .notNull()
+    .default(false),
   intervalUnit: text("interval_unit", {
     enum: ["week", "month", "year"],
   }),

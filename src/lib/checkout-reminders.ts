@@ -21,6 +21,13 @@ export async function scheduleCheckoutReminder(
   if (!store?.abandonedCheckoutRemindersEnabled || !proEnabled) return;
   const db = await getDb();
   const now = new Date();
+  const checkoutPath = getProductPublicPath({
+    id: input.productId,
+    slug: input.productSlug,
+  });
+  const checkoutUrl = input.customAmount
+    ? `${checkoutPath}?amount=${encodeURIComponent(input.customAmount)}`
+    : checkoutPath;
   const values = {
     id: uid(),
     userId: input.userId,
@@ -31,7 +38,7 @@ export async function scheduleCheckoutReminder(
     customerName: input.customerName?.trim() || null,
     productName: input.productName,
     checkoutUrl: await getRuntimeAbsoluteUrl(
-      getProductPublicPath({ id: input.productId, slug: input.productSlug }),
+      checkoutUrl,
       input.requestUrl,
     ),
     dueAt: new Date(now.getTime() + reminderDelayMs).toISOString(),

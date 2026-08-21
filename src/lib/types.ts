@@ -128,6 +128,8 @@ export interface Product {
   licenseUpdatePeriodCount: number;
   /** One-time purchase or recurring subscription. */
   billingType: ProductBillingType;
+  /** Allows one-time checkout links to override the default price. */
+  customAmountEnabled: boolean;
   /** Billing period unit when billingType is subscription. */
   intervalUnit?: ProductIntervalUnit | null;
   /** Number of interval units per billing period (e.g. 2 weeks). */

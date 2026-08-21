@@ -5,5 +5,6 @@ export interface BuyPageProps {
     discount?: string;
     preview?: string;
     ref?: string;
+    amount?: string;
   }>;
 }

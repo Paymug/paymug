@@ -29,6 +29,13 @@
       "when": 1787205600000,
       "tag": "0003_inactive_stores",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1787292000000,
+      "tag": "0004_custom_product_amount",
+      "breakpoints": true
     }
   ]
 }

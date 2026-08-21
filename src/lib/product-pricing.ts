@@ -16,13 +16,14 @@ export function calculateTransactionFee(
 
 export function calculateCheckoutPricing(
   product: TransactionFeeProduct,
-  discountAmount = 0
+  discountAmount = 0,
+  price = product.price,
 ): CheckoutPricing {
   const normalizedDiscount = Math.min(
     Math.max(0, discountAmount),
-    Math.max(0, product.price)
+    Math.max(0, price)
   );
-  const subtotal = product.price - normalizedDiscount;
+  const subtotal = price - normalizedDiscount;
   const transactionFeeAmount = calculateTransactionFee(
     subtotal,
     product.transactionFeeType,
@@ -30,7 +31,7 @@ export function calculateCheckoutPricing(
   );
 
   return {
-    subtotal: product.price,
+    subtotal: price,
     discountAmount: normalizedDiscount,
     transactionFeeAmount,
     total: subtotal + transactionFeeAmount,

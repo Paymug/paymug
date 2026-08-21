@@ -18,6 +18,7 @@ export interface ProductFormSavePayload {
   licenseUpdatePeriodUnit?: "day" | "week" | "month" | "year" | null;
   licenseUpdatePeriodCount: number;
   billingType: "one_time" | "subscription";
+  customAmountEnabled: boolean;
   intervalUnit?: "week" | "month" | "year" | null;
   intervalCount: number;
   trialDays: number;

@@ -118,6 +118,7 @@ function rowToProduct(row: typeof productsTable.$inferSelect): Product {
         : null,
     licenseUpdatePeriodCount: Math.max(1, row.licenseUpdatePeriodCount || 1),
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
+    customAmountEnabled: row.customAmountEnabled,
     intervalUnit:
       row.intervalUnit === "week" ||
       row.intervalUnit === "month" ||
@@ -433,6 +434,8 @@ export async function createProduct(product: Product): Promise<Product> {
         : null,
     licenseUpdatePeriodCount: Math.max(1, product.licenseUpdatePeriodCount || 1),
     billingType: product.billingType || "one_time",
+    customAmountEnabled:
+      product.billingType === "one_time" && product.customAmountEnabled,
     intervalUnit:
       product.billingType === "subscription"
         ? product.intervalUnit || "month"
@@ -494,6 +497,9 @@ export async function updateProduct(
         : {}),
       ...(patch.billingType !== undefined
         ? { billingType: patch.billingType }
+        : {}),
+      ...(patch.customAmountEnabled !== undefined
+        ? { customAmountEnabled: patch.customAmountEnabled }
         : {}),
       ...(patch.intervalUnit !== undefined
         ? { intervalUnit: patch.intervalUnit ?? null }

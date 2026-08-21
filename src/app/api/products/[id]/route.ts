@@ -79,6 +79,7 @@ const updateSchema = z.object({
   licenseUpdatePeriodUnit: z.enum(["day", "week", "month", "year"]).nullable().optional(),
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).optional(),
   billingType: z.enum(["one_time", "subscription"]).optional(),
+  customAmountEnabled: z.boolean().optional(),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
   intervalCount: z.number().int().min(1).max(52).optional(),
   trialDays: z.number().int().min(0).max(365).optional(),
@@ -202,6 +203,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
       licenseUpdatePeriodUnit: licenseUpdatePeriod.unit,
       licenseUpdatePeriodCount: licenseUpdatePeriod.count,
       billingType: nextBillingType,
+      customAmountEnabled:
+        nextBillingType === "one_time"
+          ? parsed.data.customAmountEnabled ?? existing.customAmountEnabled
+          : false,
       intervalUnit,
       intervalCount,
       trialDays,

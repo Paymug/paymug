@@ -26,6 +26,7 @@ export function CheckoutClient({
   productId,
   productName,
   productPrice,
+  customAmount,
   affiliateRef,
   initialDiscountCode,
   initialTransactionFeeAmount,
@@ -95,7 +96,11 @@ export function CheckoutClient({
       setDiscountStatus("checking");
       setDiscountError(null);
       try {
-        const preview = await fetchDiscountPreview(productId, code);
+        const preview = await fetchDiscountPreview(
+          productId,
+          code,
+          customAmount,
+        );
         if (requestId !== discountRequestRef.current) return;
         setDiscountCode(preview.code || code);
         setPricing(preview);
@@ -116,7 +121,7 @@ export function CheckoutClient({
         });
       }
     },
-    [initialTransactionFeeAmount, productId, productPrice],
+    [customAmount, initialTransactionFeeAmount, productId, productPrice],
   );
 
   useEffect(() => {
@@ -144,6 +149,7 @@ export function CheckoutClient({
     try {
       const { order } = await completeFreePurchase({
         productId,
+        customAmount,
         customerEmail: email.trim(),
         customerName: name.trim() || undefined,
         discountCode:
@@ -404,6 +410,7 @@ export function CheckoutClient({
             {stripeEnabled && (
               <StripeCheckoutButton
                 productId={productId}
+                customAmount={customAmount}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={
@@ -425,6 +432,7 @@ export function CheckoutClient({
             {paypalClientId && (
               <PayPalButtons
                 productId={productId}
+                customAmount={customAmount}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={

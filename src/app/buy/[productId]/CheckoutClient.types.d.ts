@@ -2,6 +2,7 @@ export interface CheckoutClientProps {
   productId: string;
   productName: string;
   productPrice: number;
+  customAmount?: number;
   affiliateRef?: string;
   initialDiscountCode?: string;
   initialTransactionFeeAmount: number;
@@ -30,6 +31,7 @@ export interface DiscountPreviewResponse extends CheckoutPricingPreview {
 
 export interface CompleteFreePurchaseInput {
   productId: string;
+  customAmount?: number;
   customerEmail: string;
   customerName?: string;
   discountCode?: string;

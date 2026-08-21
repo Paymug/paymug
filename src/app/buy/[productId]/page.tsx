@@ -32,13 +32,17 @@ import Powered from "@/components/PoweredBy";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { scheduleCheckoutReminder } from "@/lib/checkout-reminders";
 import { getRequestOrigin } from "@/lib/request-origin.utils";
+import {
+  parseCustomCheckoutAmount,
+  resolveProductCheckoutPrice,
+} from "@/lib/custom-product-amount";
 
 export const generateMetadata = generateProductMetadata;
 
 export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const { productId } = await params;
   const resolvedSearchParams = await searchParams;
-  const { cancelled, discount, preview, ref } = resolvedSearchParams;
+  const { amount, cancelled, discount, preview, ref } = resolvedSearchParams;
 
   const product = await findProductByPublicIdentifier(productId);
   if (!product) notFound();
@@ -58,6 +62,15 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   ]);
   if (!seller || !store) notFound();
 
+  let customAmount: number | undefined;
+  let checkoutPrice = product.price;
+  try {
+    customAmount = parseCustomCheckoutAmount(amount);
+    checkoutPrice = resolveProductCheckoutPrice(product, customAmount);
+  } catch {
+    notFound();
+  }
+
   const customer = await getCustomerSession();
   if (customer && product.status === "published") {
     await scheduleCheckoutReminder({
@@ -69,6 +82,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       customerEmail: customer.email,
       customerName: customer.name,
       productName: product.name,
+      customAmount: amount,
       requestUrl:
         getRequestOrigin(await headers()) || "http://localhost",
     }).catch((error) => {
@@ -92,7 +106,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
           product.storeId,
         )
       : undefined;
-  const initialPricing = calculateCheckoutPricing(product);
+  const initialPricing = calculateCheckoutPricing(product, 0, checkoutPrice);
   const isSandbox = product.environment === "sandbox";
   const perpetualLicense = isPerpetualLicenseProduct(product);
   const priceSuffix = perpetualLicense ? "" : formatProductPriceSuffix(product);
@@ -141,7 +155,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               </h1>
               <div className="shrink-0 text-right">
                 <p className="text-2xl font-bold sm:text-3xl">
-                  {formatProductPageMoney(product.price, product.currency)}
+                  {formatProductPageMoney(checkoutPrice, product.currency)}
                   {priceSuffix}
                 </p>
                 {perpetualUpdateSummary ? (
@@ -189,7 +203,8 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
             <CheckoutClient
               productId={product.id}
               productName={product.name}
-              productPrice={product.price}
+              productPrice={checkoutPrice}
+              customAmount={customAmount}
               affiliateRef={ref?.trim() || undefined}
               initialDiscountCode={discount?.trim() || undefined}
               initialTransactionFeeAmount={initialPricing.transactionFeeAmount}
