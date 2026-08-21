@@ -12,8 +12,10 @@ export async function processScheduledEmailCampaigns(
     "SELECT id FROM feature_records WHERE feature = 'campaigns' AND status = 'scheduled' AND json_extract(data, '$.scheduledAt') <= ? ORDER BY json_extract(data, '$.scheduledAt') ASC LIMIT 50",
   ).bind(now.toISOString()).all<ScheduledCampaignRow>();
   const worker = env.WORKER_SELF_REFERENCE;
-  if (!worker) {
-    console.error("Scheduled campaigns require WORKER_SELF_REFERENCE");
+  const secret = env.AUTH_SECRET;
+
+  if (!worker || !secret) {
+    console.error("Scheduled campaigns require WORKER_SELF_REFERENCE AND AUTH_SECRET");
     return { sent: 0, failed: campaigns.results.length };
   }
   for (const campaign of campaigns.results) {
@@ -22,7 +24,7 @@ export async function processScheduledEmailCampaigns(
         `https://paymug.internal/api/features/campaigns/${campaign.id}/send`,
         {
           method: "POST",
-          headers: { "x-paymug-scheduler": env.AUTH_SECRET },
+          headers: { "x-paymug-scheduler": secret },
         },
       );
       if (!response.ok) throw new Error(await response.text());
