@@ -17,6 +17,8 @@ const dashboardTitles: Record<string, string> = {
   "/dashboard/setup": "Setup",
   "/dashboard/settings": "General settings",
   "/dashboard/settings/api-keys": "API keys",
+  "/dashboard/settings/webhooks": "Webhooks",
+  "/dashboard/settings/webhooks/new": "Create webhook",
   "/dashboard/settings/about": "About Paymug",
   "/dashboard/settings/store": "Store",
   "/dashboard/pages": "Pages"
@@ -25,5 +27,11 @@ const dashboardTitles: Record<string, string> = {
 export function getDashboardTopbarTitle(pathname: string): string {
   if (pathname === "/dashboard/products/new") return "New product";
   if (pathname.startsWith("/dashboard/products/")) return "Edit product";
+  if (
+    pathname.startsWith("/dashboard/settings/webhooks/") &&
+    pathname !== "/dashboard/settings/webhooks/new"
+  ) {
+    return "Edit webhook";
+  }
   return dashboardTitles[pathname] ?? "Dashboard";
 }

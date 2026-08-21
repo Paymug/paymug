@@ -2,7 +2,6 @@
 
 import {
   PencilSimple,
-  PaperPlaneTilt,
   Plus,
   Trash,
 } from "@phosphor-icons/react";
@@ -234,31 +233,6 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
     );
   }
 
-  async function sendCampaign(record: FeatureRecord) {
-    if (!confirm(`Send “${record.title}” to all active subscribers?`)) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `/api/features/campaigns/${record.id}/send`,
-        { method: "POST" }
-      );
-      const data = (await response.json()) as FeatureRecordsResponse;
-      if (!response.ok) {
-        throw new Error(data.error || "Could not send campaign");
-      }
-      await load();
-    } catch (sendError) {
-      setError(
-        sendError instanceof Error
-          ? sendError.message
-          : "Could not send campaign"
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
     <div className="mt-6">
       <div className="flex items-start justify-end gap-2">
@@ -430,25 +404,33 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
                         setSelectedAffiliate(record);
                       } else if (feature.key === "discounts") {
                         startEdit(record);
+                      } else if (feature.key === "campaigns") {
+                        window.location.href = `/campaign-editor/${record.id}`;
                       }
                     }}
                     onKeyDown={(event) => {
                       if (
                         (feature.key === "affiliates" ||
-                          feature.key === "discounts") &&
+                          feature.key === "discounts" ||
+                          feature.key === "campaigns") &&
                         (event.key === "Enter" || event.key === " ")
                       ) {
                         event.preventDefault();
                         if (feature.key === "affiliates") {
                           setSelectedAffiliate(record);
                         } else {
-                          startEdit(record);
+                          if (feature.key === "campaigns") {
+                            window.location.href = `/campaign-editor/${record.id}`;
+                          } else {
+                            startEdit(record);
+                          }
                         }
                       }
                     }}
                     tabIndex={
                       feature.key === "affiliates" ||
-                      feature.key === "discounts"
+                      feature.key === "discounts" ||
+                      feature.key === "campaigns"
                         ? 0
                         : undefined
                     }
@@ -509,23 +491,17 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="flex justify-end gap-1">
-                        {feature.key === "campaigns" &&
-                          record.status !== "sent" && (
-                            <button
-                              type="button"
-                              className={`${dashboardIconButtonClass} !h-8 !w-8`}
-                              onClick={() => void sendCampaign(record)}
-                              aria-label={`Send ${record.title}`}
-                              disabled={saving}
-                            >
-                              <PaperPlaneTilt size={15} aria-hidden />
-                            </button>
-                          )}
                         {feature.key !== "affiliate-clicks" && (
                           <button
                             type="button"
                             className={`${dashboardIconButtonClass} !h-8 !w-8`}
-                            onClick={() => startEdit(record)}
+                            onClick={() => {
+                              if (feature.key === "campaigns") {
+                                window.location.href = `/campaign-editor/${record.id}`;
+                              } else {
+                                startEdit(record);
+                              }
+                            }}
                             aria-label={`Edit ${record.title}`}
                           >
                             <PencilSimple size={15} aria-hidden />

@@ -1,3 +1,3 @@
 export interface CustomerLoginPageProps {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }

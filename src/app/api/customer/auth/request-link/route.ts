@@ -12,6 +12,7 @@ import { jsonError } from "@/lib/utils";
 
 const requestLinkSchema = z.object({
   email: z.string().trim().email(),
+  next: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -35,11 +36,12 @@ export async function POST(request: Request) {
       await getRuntimeAbsoluteUrl("/api/customer/auth/verify", request.url)
     );
     loginUrl.searchParams.set("token", token);
+    if (parsed.data.next) loginUrl.searchParams.set("next", parsed.data.next);
     await sendCustomerPortalLoginEmail(email, loginUrl.toString());
   }
   return Response.json({
     ok: true,
     message:
-      "If purchases are associated with that email, a sign-in link is on its way.",
+      "If a customer account or email subscription is associated with that address, a sign-in link is on its way.",
   });
 }

@@ -29,7 +29,7 @@ export default async function CustomerAccountLayout({
           Account settings
         </h2> */}
         <p className="mt-3 max-w-2xl text-sm leading-6 text-[#85859d]">
-          Manage your customer profile, image, password, and portal access.
+          Manage your profile, password, email preferences, and portal access.
         </p>
         <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)]">
           <div className="min-w-0">{children}</div>

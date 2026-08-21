@@ -4,6 +4,7 @@
 import handler from "./.open-next/worker.js";
 import { generateBiweeklyAffiliatePayoutReports } from "./src/worker/affiliate-payout-reports";
 import { processCheckoutReminders } from "./src/worker/checkout-reminders";
+import { processScheduledEmailCampaigns } from "./src/worker/email-campaigns";
 
 export default {
   fetch: handler.fetch,
@@ -15,6 +16,9 @@ export default {
         }),
         processCheckoutReminders(env).then((result) => {
           console.info("Abandoned checkout reminders processed", result);
+        }),
+        processScheduledEmailCampaigns(env).then((result) => {
+          console.info("Scheduled email campaigns processed", result);
         }),
       ]),
     );

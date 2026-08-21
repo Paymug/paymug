@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
 import type { CustomerAuthResponse } from "./CustomerLoginForm.types";
+import type { CustomerLoginFormProps } from "./CustomerLoginForm.types";
 
-export function CustomerLoginForm() {
+export function CustomerLoginForm({ nextPath }: CustomerLoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +29,7 @@ export function CustomerLoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          next: nextPath,
           ...(usePassword ? { password } : {}),
         }),
       },
@@ -44,7 +46,7 @@ export function CustomerLoginForm() {
       return;
     }
     if (usePassword) {
-      router.push("/customer");
+      router.push(nextPath || "/customer");
       router.refresh();
       return;
     }
@@ -67,7 +69,7 @@ export function CustomerLoginForm() {
 
       <div className="mt-5 space-y-4">
         <Input
-          label="Purchase email"
+          label="Email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}

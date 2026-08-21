@@ -3,3 +3,7 @@ export interface CustomerAuthResponse {
   message?: string;
   error?: string;
 }
+
+export interface CustomerLoginFormProps {
+  nextPath?: string;
+}

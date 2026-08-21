@@ -14,6 +14,10 @@ import type {
   FeatureRecordInput,
 } from "./feature-records.types";
 import { uid } from "./utils";
+import {
+  emitCreatedFeatureWebhook,
+  emitUpdatedFeatureWebhook,
+} from "./outbound-webhook-commerce.utils";
 
 function parseFeatureData(
   value: string
@@ -183,7 +187,9 @@ export async function createFeatureRecord(
     createdAt,
     updatedAt: now,
   });
-  return (await findFeatureRecord(id, userId))!;
+  const record = (await findFeatureRecord(id, userId))!;
+  await emitCreatedFeatureWebhook(record);
+  return record;
 }
 
 export async function updateFeatureRecord(
@@ -192,6 +198,7 @@ export async function updateFeatureRecord(
   input: Partial<FeatureRecordInput>
 ): Promise<FeatureRecord | undefined> {
   const db = await getDb();
+  const previous = await findFeatureRecord(id, userId);
   await db
     .update(featureRecordsTable)
     .set({
@@ -211,7 +218,9 @@ export async function updateFeatureRecord(
         eq(featureRecordsTable.userId, userId)
       )
     );
-  return findFeatureRecord(id, userId);
+  const updated = await findFeatureRecord(id, userId);
+  await emitUpdatedFeatureWebhook(previous, updated);
+  return updated;
 }
 
 export async function deleteFeatureRecord(

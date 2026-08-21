@@ -66,6 +66,7 @@ export const dashboardNavGroups: DashboardNavGroupConfig[] = [
       { href: "/dashboard/settings/payments", label: "Payments" },
       { href: "/dashboard/settings/github", label: "GitHub" },
       { href: "/dashboard/settings/api-keys", label: "API Keys" },
+      { href: "/dashboard/settings/webhooks", label: "Webhooks" },
       { href: "/dashboard/settings/license", label: "License" },
       { href: "/dashboard/settings/about", label: "About" },
     ],

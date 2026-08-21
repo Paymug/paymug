@@ -36,6 +36,34 @@
       "when": 1787292000000,
       "tag": "0004_custom_product_amount",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787378400000,
+      "tag": "0005_campaign_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1787464800000,
+      "tag": "0006_customer_email_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1787551200000,
+      "tag": "0007_outbound_webhooks",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1787637600000,
+      "tag": "0008_webhook_auth",
+      "breakpoints": true
     }
   ]
 }

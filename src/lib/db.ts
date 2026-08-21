@@ -26,6 +26,10 @@ import {
   serializeProductFiles,
 } from "./product-files.utils";
 import { getStoreCredentialSource } from "./stores";
+import {
+  emitCreatedOrderWebhook,
+  emitUpdatedOrderWebhook,
+} from "./outbound-webhook-commerce.utils";
 
 function errorText(err: unknown): string {
   const parts: string[] = [];
@@ -626,6 +630,7 @@ export async function createOrder(order: Order): Promise<Order> {
     githubAccessGrantedAt: order.githubAccessGrantedAt ?? null,
     githubAccessRevokedAt: order.githubAccessRevokedAt ?? null,
   });
+  await emitCreatedOrderWebhook(order);
   return order;
 }
 
@@ -634,6 +639,7 @@ export async function updateOrder(
   patch: Partial<Omit<Order, "id" | "userId" | "productId" | "createdAt">>
 ): Promise<Order | undefined> {
   const db = await getDb();
+  const previous = await findOrderById(id);
   await db
     .update(ordersTable)
     .set({
@@ -695,7 +701,9 @@ export async function updateOrder(
         : {}),
     })
     .where(eq(ordersTable.id, id));
-  return findOrderById(id);
+  const updated = await findOrderById(id);
+  await emitUpdatedOrderWebhook(previous, updated);
+  return updated;
 }
 
 // ── GitHub connections ────────────────────────────────────────────────────

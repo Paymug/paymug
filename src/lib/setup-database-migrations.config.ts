@@ -73,5 +73,36 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `custom_amount_enabled` integer DEFAULT 0 NOT NULL;"
     ]
+  },
+  {
+    "name": "0005_campaign_tracking.sql",
+    "statements": [
+      "CREATE TABLE `campaign_deliveries` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`campaign_id` text NOT NULL,\n\t`subscriber_id` text,\n\t`email` text NOT NULL,\n\t`opened_at` text,\n\t`clicked_at` text,\n\t`created_at` text NOT NULL,\n\tFOREIGN KEY (`campaign_id`) REFERENCES `feature_records`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `campaign_deliveries_campaign_idx` ON `campaign_deliveries` (`campaign_id`);",
+      "CREATE INDEX `campaign_deliveries_email_idx` ON `campaign_deliveries` (`email`);"
+    ]
+  },
+  {
+    "name": "0006_customer_email_preferences.sql",
+    "statements": [
+      "CREATE TABLE `customer_email_preferences` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`store_id` text NOT NULL,\n\t`email` text NOT NULL,\n\t`marketing_enabled` integer DEFAULT 1 NOT NULL,\n\t`product_updates_enabled` integer DEFAULT 1 NOT NULL,\n\t`affiliate_updates_enabled` integer DEFAULT 1 NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE UNIQUE INDEX `customer_email_preferences_store_email_unique` ON `customer_email_preferences` (`store_id`,`email`);",
+      "CREATE INDEX `customer_email_preferences_email_idx` ON `customer_email_preferences` (lower(`email`));"
+    ]
+  },
+  {
+    "name": "0007_outbound_webhooks.sql",
+    "statements": [
+      "CREATE TABLE `webhooks` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`user_id` text NOT NULL,\n\t`store_id` text NOT NULL,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`name` text NOT NULL,\n\t`url` text NOT NULL,\n\t`secret_encrypted` text NOT NULL,\n\t`events` text DEFAULT '[]' NOT NULL,\n\t`status` text DEFAULT 'active' NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `webhooks_user_store_environment_idx` ON `webhooks` (`user_id`,`store_id`,`environment`);",
+      "CREATE TABLE `webhook_deliveries` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`webhook_id` text NOT NULL,\n\t`event_name` text NOT NULL,\n\t`status` text DEFAULT 'pending' NOT NULL,\n\t`request_body` text NOT NULL,\n\t`response_status` integer,\n\t`response_body` text,\n\t`error` text,\n\t`duration_ms` integer,\n\t`created_at` text NOT NULL,\n\t`completed_at` text,\n\tFOREIGN KEY (`webhook_id`) REFERENCES `webhooks`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `webhook_deliveries_webhook_created_idx` ON `webhook_deliveries` (`webhook_id`,`created_at`);"
+    ]
+  },
+  {
+    "name": "0008_webhook_auth.sql",
+    "statements": [
+      "ALTER TABLE `webhooks` ADD `auth_encrypted` text;"
+    ]
   }
 ];

@@ -4,12 +4,14 @@ import { Alert } from "@/components/ui";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { CustomerLoginForm } from "./CustomerLoginForm";
 import type { CustomerLoginPageProps } from "./page.types";
+import { getCustomerAuthRedirectPath } from "@/lib/customer-auth-redirect";
 
 export default async function CustomerLoginPage({
   searchParams,
 }: CustomerLoginPageProps) {
-  if (await getCustomerSession()) redirect("/customer");
   const query = await searchParams;
+  const nextPath = getCustomerAuthRedirectPath(query.next);
+  if (await getCustomerSession()) redirect(nextPath);
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 mx-auto max-w-lg">
@@ -17,7 +19,7 @@ export default async function CustomerLoginPage({
         <Logo label="Customer Portal" />
 
         <p className="mt-2 text-sm text-muted">
-          Access your purchases, licenses, repository access, and subscriptions.
+          Access your purchases, subscriptions, and email preferences.
         </p>
         {query.error && (
           <div className="mt-6">
@@ -27,7 +29,7 @@ export default async function CustomerLoginPage({
           </div>
         )}
         <div className="mt-7">
-          <CustomerLoginForm />
+          <CustomerLoginForm nextPath={nextPath} />
         </div>
       </div>
     </main>

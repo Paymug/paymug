@@ -3,10 +3,14 @@ import {
 } from "@/lib/customer-accounts";
 import { setCustomerSession } from "@/lib/customer-auth";
 import { getRuntimeAbsoluteUrl } from "@/lib/runtime-env";
+import { getCustomerAuthRedirectPath } from "@/lib/customer-auth-redirect";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const token = requestUrl.searchParams.get("token");
+  const nextPath = getCustomerAuthRedirectPath(
+    requestUrl.searchParams.get("next") || undefined,
+  );
   if (!token) {
     return Response.redirect(
       await getRuntimeAbsoluteUrl(
@@ -28,7 +32,7 @@ export async function GET(request: Request) {
   }
   await setCustomerSession(customer.id);
   return Response.redirect(
-    await getRuntimeAbsoluteUrl("/customer", request.url),
+    await getRuntimeAbsoluteUrl(nextPath, request.url),
     302
   );
 }

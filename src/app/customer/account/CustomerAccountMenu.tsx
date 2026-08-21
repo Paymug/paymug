@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, SignOut, UserCircle } from "@phosphor-icons/react";
+import { EnvelopeSimple, Lock, SignOut, UserCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,6 +8,11 @@ import { useState } from "react";
 const menuItems = [
   { href: "/customer/account", label: "Profile details", icon: UserCircle },
   { href: "/customer/account/password", label: "Passwords", icon: Lock },
+  {
+    href: "/customer/account/email-preferences",
+    label: "Email preferences",
+    icon: EnvelopeSimple,
+  },
 ];
 
 export function CustomerAccountMenu() {
