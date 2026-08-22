@@ -52,3 +52,4 @@ next-env.d.ts
 
 .vscode
 wrangler.local.jsonc
+src/app/CustomHeader.tsx
