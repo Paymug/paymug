@@ -51,3 +51,4 @@ next-env.d.ts
 .gito
 
 .vscode
+wrangler.local.jsonc

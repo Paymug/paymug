@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerCleanup } from "@/components/ServiceWorkerCleanup";
 import "./globals.css";
+import CustomHeader from "./CustomHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,15 +75,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <script
-          defer
-          src="https://gumanalytics.com/js/analytics.js?v=be9add48f624"
-          data-domain="paymug.co"
-          data-session-replay="true"
-          data-replay-sample-rate="100"
-          data-heatmap="true"
-          data-heatmap-sample-rate="100"
-        ></script>
+        <CustomHeader />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
