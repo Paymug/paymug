@@ -5,6 +5,7 @@ export function DashboardSmallGraphs({
   metricGroups,
   currency,
   slots,
+  showAccumulatedValues,
   onMetricChange,
   onRemove,
 }: DashboardSmallGraphsProps) {
@@ -23,6 +24,7 @@ export function DashboardSmallGraphs({
                 group={group}
                 metricKey={slot.metricKey}
                 currency={currency}
+                showAccumulatedValues={showAccumulatedValues}
                 onMetricChange={(metricKey) =>
                   onMetricChange(slot.id, metricKey)
                 }

@@ -1,3 +1,5 @@
+import type { CheckoutCustomData } from "@/lib/checkout-custom-data.types";
+
 export interface PayPalButtonsInstance {
   render: (element: HTMLElement) => Promise<void>;
   close: () => Promise<void>;
@@ -36,6 +38,7 @@ export interface PayPalNamespace {
 export interface PayPalCheckoutDetails {
   productId: string;
   customAmount?: number;
+  custom?: CheckoutCustomData;
   customerEmail: string;
   customerName?: string;
   githubUsername?: string;
@@ -52,6 +55,7 @@ export interface PayPalCreatedOrder {
 export interface PayPalButtonsProps {
   productId: string;
   customAmount?: number;
+  custom?: CheckoutCustomData;
   customerEmail: string;
   customerName?: string;
   githubUsername?: string;

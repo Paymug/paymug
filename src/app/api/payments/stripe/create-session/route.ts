@@ -28,6 +28,10 @@ import {
   formatCustomCheckoutAmount,
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
+import {
+  appendCheckoutCustomData,
+  checkoutCustomDataSchema,
+} from "@/lib/checkout-custom-data";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -37,6 +41,7 @@ const schema = z.object({
   discountCode: z.string().max(60).optional(),
   affiliateCode: z.string().max(80).optional(),
   marketingOptIn: z.boolean().optional(),
+  custom: checkoutCustomDataSchema.optional(),
 });
 
 export async function POST(request: Request) {
@@ -163,6 +168,7 @@ export async function POST(request: Request) {
       status: "pending",
       customerEmail: parsed.data.customerEmail,
       customerName: parsed.data.customerName,
+      custom: parsed.data.custom || {},
       discountCode: discount?.code,
       discountAmount: pricing.discountAmount,
       transactionFeeAmount: pricing.transactionFeeAmount,
@@ -187,6 +193,7 @@ export async function POST(request: Request) {
         formatCustomCheckoutAmount(parsed.data.customAmount),
       );
     }
+    appendCheckoutCustomData(cancelParams, parsed.data.custom);
     const cancelUrl = await getRuntimeAbsoluteUrl(
       `${getProductPublicPath(product)}?${cancelParams.toString()}`,
       request.url

@@ -1,5 +1,6 @@
 import type { FeatureRecord } from "./feature-records.types";
 import type { PayPalMode, Product } from "./types";
+import type { CheckoutCustomData } from "./checkout-custom-data.types";
 
 export interface CreatePendingSubscriptionOrderInput {
   orderId: string;
@@ -7,6 +8,7 @@ export interface CreatePendingSubscriptionOrderInput {
   amount: number;
   customerEmail: string;
   customerName?: string;
+  custom?: CheckoutCustomData;
   discountCode?: string;
   discountAmount: number;
   transactionFeeAmount: number;

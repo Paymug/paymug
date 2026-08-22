@@ -17,6 +17,7 @@ import type {
   CreatePendingSubscriptionOrderInput,
   RecordSubscriptionPaymentOrderInput,
 } from "./subscription-orders.types";
+import { normalizeCheckoutCustomData } from "./checkout-custom-data";
 
 export async function createPendingSubscriptionOrder(
   input: CreatePendingSubscriptionOrderInput
@@ -41,6 +42,7 @@ export async function createPendingSubscriptionOrder(
     status: "pending",
     customerEmail: input.customerEmail,
     customerName: input.customerName,
+    custom: input.custom || {},
     discountCode: input.discountCode,
     discountAmount: input.discountAmount,
     transactionFeeAmount: input.transactionFeeAmount,
@@ -99,6 +101,7 @@ export async function ensurePendingSubscriptionOrder(
       typeof subscription.data.customerName === "string"
         ? subscription.data.customerName
         : undefined,
+    custom: normalizeCheckoutCustomData(subscription.data.custom),
     discountCode:
       typeof subscription.data.discountCode === "string"
         ? subscription.data.discountCode
@@ -182,6 +185,7 @@ function createPaidSubscriptionOrder(
     customerEmail: input.subscription.subtitle || "",
     customerName:
       typeof data.customerName === "string" ? data.customerName : undefined,
+    custom: normalizeCheckoutCustomData(data.custom),
     discountCode:
       typeof data.discountCode === "string" ? data.discountCode : undefined,
     discountAmount: discountApplies ? Number(data.discountAmount || 0) : 0,

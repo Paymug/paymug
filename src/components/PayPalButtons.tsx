@@ -20,6 +20,7 @@ import type {
 export function PayPalButtons({
   productId,
   customAmount,
+  custom,
   customerEmail,
   customerName,
   githubUsername,
@@ -48,6 +49,7 @@ export function PayPalButtons({
   const checkoutDetailsRef = useRef({
     productId,
     customAmount,
+    custom,
     customerEmail,
     customerName,
     githubUsername,
@@ -61,6 +63,7 @@ export function PayPalButtons({
   checkoutDetailsRef.current = {
     productId,
     customAmount,
+    custom,
     customerEmail,
     customerName,
     githubUsername,

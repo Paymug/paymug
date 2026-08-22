@@ -1,5 +1,6 @@
 import { getProductPublicPath } from "@/lib/product-paths";
 import type { Product } from "@/lib/types";
+import type { CheckoutSearchParams } from "@/lib/checkout-custom-data.types";
 
 export function formatProductPageMoney(
   cents: number,
@@ -16,11 +17,15 @@ export function formatProductPageMoney(
 
 export function buildProductSlugRedirectPath(
   product: Pick<Product, "id" | "slug">,
-  searchParams: Record<string, string | undefined>,
+  searchParams: CheckoutSearchParams,
 ): string {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(searchParams)) {
-    if (value !== undefined) query.set(key, value);
+    if (Array.isArray(value)) {
+      value.forEach((entry) => query.append(key, entry));
+    } else if (value !== undefined) {
+      query.set(key, value);
+    }
   }
   const productPath = getProductPublicPath(product);
   const queryString = query.toString();

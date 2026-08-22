@@ -201,6 +201,7 @@ export const orders = sqliteTable(
     .default("pending"),
   customerEmail: text("customer_email").notNull(),
   customerName: text("customer_name"),
+  custom: text("custom").notNull().default("{}"),
   discountCode: text("discount_code"),
   discountAmount: integer("discount_amount").notNull().default(0),
   transactionFeeAmount: integer("transaction_fee_amount").notNull().default(0),

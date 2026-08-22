@@ -30,6 +30,7 @@ export function DashboardOverview(props: DashboardOverviewProps) {
         metricGroups={props.metricGroups}
         currency={props.currency}
         slots={graphs.slots}
+        showAccumulatedValues={graphs.showAccumulatedValues}
         onMetricChange={graphs.updateGraphMetric}
         onRemove={graphs.removeGraph}
       />

@@ -3,6 +3,7 @@ import type {
   CompleteFreePurchaseResponse,
   DiscountPreviewResponse,
 } from "./CheckoutClient.types";
+import type { CheckoutCustomData } from "@/lib/checkout-custom-data.types";
 
 export function isValidCheckoutEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -61,6 +62,7 @@ export async function completeFreePurchase(
 
 export async function startPayPalSubscriptionCheckout(input: {
   productId: string;
+  custom?: CheckoutCustomData;
   customerEmail: string;
   customerName?: string;
   discountCode?: string;

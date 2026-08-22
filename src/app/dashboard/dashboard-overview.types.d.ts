@@ -100,6 +100,7 @@ export interface DashboardMetricChartProps {
   group: DashboardMetricGroup;
   metricKey: string;
   currency: string;
+  showAccumulatedValues: boolean;
   onMetricChange(metricKey: string): void;
   onRemove(): void;
 }
@@ -114,6 +115,7 @@ export interface DashboardSmallGraphsProps {
   metricGroups: DashboardMetricGroup[];
   currency: string;
   slots: DashboardSmallGraphSlot[];
+  showAccumulatedValues: boolean;
   onMetricChange(slotId: string, metricKey: string): void;
   onRemove(slotId: string): void;
 }

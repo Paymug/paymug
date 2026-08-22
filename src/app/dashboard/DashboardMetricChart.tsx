@@ -6,6 +6,7 @@ import { AreaChart } from "@/components/dashboard/charts";
 import { CustomSelect } from "@/components/CustomSelect";
 import { DeltaLine } from "./DashboardOverviewControls";
 import { DashboardGraphShareButton } from "./DashboardGraphShareButton";
+import { accumulateDashboardChartPoints } from "./dashboard-accumulated-values.utils";
 import { formatDashboardMetricValue } from "./dashboard-metric-chart.utils";
 import type { DashboardMetricChartProps } from "./dashboard-overview.types";
 
@@ -13,6 +14,7 @@ export function DashboardMetricChart({
   group,
   metricKey,
   currency,
+  showAccumulatedValues,
   onMetricChange,
   onRemove,
 }: DashboardMetricChartProps) {
@@ -22,10 +24,18 @@ export function DashboardMetricChart({
 
   if (!metric) return null;
 
+  const data = showAccumulatedValues
+    ? accumulateDashboardChartPoints(metric.data)
+    : metric.data;
+  const comparisonData = showAccumulatedValues
+    ? accumulateDashboardChartPoints(metric.comparisonData)
+    : metric.comparisonData;
+  const displayedMetric = { ...metric, data, comparisonData };
+
   return (
     <article className="group relative flex min-h-72 flex-col border-b border-[#e8e8ee] p-6 lg:border-r lg:nth-[3n]:border-r-0 text-sm">
       <DashboardGraphShareButton
-        metric={metric}
+        metric={displayedMetric}
         currency={currency}
         className="right-5 top-5"
       />
@@ -70,8 +80,8 @@ export function DashboardMetricChart({
       </p>
       <div className="mt-5 flex-1">
         <AreaChart
-          data={metric.data}
-          comparisonData={metric.comparisonData}
+          data={data}
+          comparisonData={comparisonData}
           height={130}
           color="#f5c518"
           comparisonColor="#a3a3ad"

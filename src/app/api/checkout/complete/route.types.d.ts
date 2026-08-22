@@ -1,3 +1,5 @@
+import type { CheckoutCustomData } from "@/lib/checkout-custom-data.types";
+
 export interface CompleteFreePurchaseInput {
   productId: string;
   customAmount?: number;
@@ -6,6 +8,7 @@ export interface CompleteFreePurchaseInput {
   discountCode?: string;
   affiliateCode?: string;
   marketingOptIn?: boolean;
+  custom?: CheckoutCustomData;
 }
 
 export interface CompleteFreePurchaseResponse {

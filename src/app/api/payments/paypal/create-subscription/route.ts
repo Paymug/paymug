@@ -23,6 +23,7 @@ import { createPendingSubscriptionOrder } from "@/lib/subscription-orders";
 import { getStoreById } from "@/lib/stores";
 import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
 import { jsonError, uid } from "@/lib/utils";
+import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -31,6 +32,7 @@ const schema = z.object({
   discountCode: z.string().max(60).optional(),
   affiliateCode: z.string().max(80).optional(),
   marketingOptIn: z.boolean().optional(),
+  custom: checkoutCustomDataSchema.optional(),
 });
 
 export async function POST(req: Request) {
@@ -146,6 +148,7 @@ export async function POST(req: Request) {
         affiliateId: affiliate?.id || null,
         githubUsername: null,
         customerName: parsed.data.customerName || null,
+        custom: parsed.data.custom || {},
         environment: conn.mode,
         source: "product_checkout",
         orderId,
@@ -184,6 +187,7 @@ export async function POST(req: Request) {
         amount: pricing.total,
         customerEmail: parsed.data.customerEmail,
         customerName: parsed.data.customerName,
+        custom: parsed.data.custom,
         discountCode: discount?.code,
         discountAmount: pricing.discountAmount,
         transactionFeeAmount: pricing.transactionFeeAmount,

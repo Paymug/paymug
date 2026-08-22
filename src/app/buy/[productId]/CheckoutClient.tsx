@@ -27,6 +27,7 @@ export function CheckoutClient({
   productName,
   productPrice,
   customAmount,
+  custom,
   affiliateRef,
   initialDiscountCode,
   initialTransactionFeeAmount,
@@ -150,6 +151,7 @@ export function CheckoutClient({
       const { order } = await completeFreePurchase({
         productId,
         customAmount,
+        custom,
         customerEmail: email.trim(),
         customerName: name.trim() || undefined,
         discountCode:
@@ -174,6 +176,7 @@ export function CheckoutClient({
     try {
       const approvalUrl = await startPayPalSubscriptionCheckout({
         productId,
+        custom,
         customerEmail: email.trim(),
         customerName: name.trim() || undefined,
         discountCode:
@@ -364,6 +367,7 @@ export function CheckoutClient({
             {stripeEnabled && (
               <StripeCheckoutButton
                 productId={productId}
+                custom={custom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={
@@ -411,6 +415,7 @@ export function CheckoutClient({
               <StripeCheckoutButton
                 productId={productId}
                 customAmount={customAmount}
+                custom={custom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={
@@ -433,6 +438,7 @@ export function CheckoutClient({
               <PayPalButtons
                 productId={productId}
                 customAmount={customAmount}
+                custom={custom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={

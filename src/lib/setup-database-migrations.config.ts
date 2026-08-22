@@ -43,7 +43,8 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
   {
     "name": "0001_primary_store.sql",
     "statements": [
-      "ALTER TABLE `users` ADD `primary_store_id` text;\nUPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
+      "ALTER TABLE `users` ADD `primary_store_id` text;",
+      "UPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
     ]
   },
   {
@@ -102,6 +103,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "name": "0008_webhook_auth.sql",
     "statements": [
       "ALTER TABLE `webhooks` ADD `auth_encrypted` text;"
+    ]
+  },
+  {
+    "name": "0009_order_custom_data.sql",
+    "statements": [
+      "ALTER TABLE `orders` ADD `custom` text DEFAULT '{}' NOT NULL;"
     ]
   }
 ];

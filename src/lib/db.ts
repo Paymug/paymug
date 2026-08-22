@@ -26,6 +26,7 @@ import {
   serializeProductFiles,
 } from "./product-files.utils";
 import { getStoreCredentialSource } from "./stores";
+import { parseStoredCheckoutCustomData } from "./checkout-custom-data";
 import {
   emitCreatedOrderWebhook,
   emitUpdatedOrderWebhook,
@@ -156,6 +157,7 @@ function rowToOrder(row: typeof ordersTable.$inferSelect): Order {
     status: row.status,
     customerEmail: row.customerEmail,
     customerName: row.customerName ?? undefined,
+    custom: parseStoredCheckoutCustomData(row.custom),
     discountCode: row.discountCode ?? undefined,
     discountAmount: row.discountAmount,
     transactionFeeAmount: row.transactionFeeAmount,
@@ -610,6 +612,7 @@ export async function createOrder(order: Order): Promise<Order> {
     status: order.status,
     customerEmail: order.customerEmail,
     customerName: order.customerName ?? null,
+    custom: JSON.stringify(order.custom),
     discountCode: order.discountCode ?? null,
     discountAmount: order.discountAmount,
     transactionFeeAmount: order.transactionFeeAmount,
@@ -649,6 +652,9 @@ export async function updateOrder(
       ...(patch.status !== undefined ? { status: patch.status } : {}),
       ...(patch.customerEmail !== undefined ? { customerEmail: patch.customerEmail } : {}),
       ...(patch.customerName !== undefined ? { customerName: patch.customerName ?? null } : {}),
+      ...(patch.custom !== undefined
+        ? { custom: JSON.stringify(patch.custom) }
+        : {}),
       ...(patch.discountCode !== undefined
         ? { discountCode: patch.discountCode ?? null }
         : {}),

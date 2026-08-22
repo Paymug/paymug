@@ -1,8 +1,11 @@
+import type { CheckoutCustomData } from "@/lib/checkout-custom-data.types";
+
 export interface CheckoutClientProps {
   productId: string;
   productName: string;
   productPrice: number;
   customAmount?: number;
+  custom: CheckoutCustomData;
   affiliateRef?: string;
   initialDiscountCode?: string;
   initialTransactionFeeAmount: number;
@@ -32,6 +35,7 @@ export interface DiscountPreviewResponse extends CheckoutPricingPreview {
 export interface CompleteFreePurchaseInput {
   productId: string;
   customAmount?: number;
+  custom?: CheckoutCustomData;
   customerEmail: string;
   customerName?: string;
   discountCode?: string;

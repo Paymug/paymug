@@ -1,4 +1,5 @@
 import type { ProductFile } from "./product-files.types";
+import type { CheckoutCustomData } from "./checkout-custom-data.types";
 
 export type PayPalMode = "sandbox" | "live";
 export type PaymentGateway = "paypal" | "stripe";
@@ -159,6 +160,7 @@ export interface Order {
   status: OrderStatus;
   customerEmail: string;
   customerName?: string;
+  custom: CheckoutCustomData;
   discountCode?: string;
   discountAmount: number;
   transactionFeeAmount: number;

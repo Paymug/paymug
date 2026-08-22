@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { jsonError } from "@/lib/utils";
+import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
 import { completeFreePurchase } from "./complete.utils";
 
 const schema = z.object({
@@ -10,6 +11,7 @@ const schema = z.object({
   discountCode: z.string().max(60).optional(),
   affiliateCode: z.string().max(80).optional(),
   marketingOptIn: z.boolean().optional(),
+  custom: checkoutCustomDataSchema.optional(),
 });
 
 export async function POST(req: Request) {

@@ -36,6 +36,7 @@ import {
   parseCustomCheckoutAmount,
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
+import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
 
 export const generateMetadata = generateProductMetadata;
 
@@ -43,6 +44,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const { productId } = await params;
   const resolvedSearchParams = await searchParams;
   const { amount, cancelled, discount, preview, ref } = resolvedSearchParams;
+  const custom = parseCheckoutCustomData(resolvedSearchParams);
 
   const product = await findProductByPublicIdentifier(productId);
   if (!product) notFound();
@@ -205,6 +207,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               productName={product.name}
               productPrice={checkoutPrice}
               customAmount={customAmount}
+              custom={custom}
               affiliateRef={ref?.trim() || undefined}
               initialDiscountCode={discount?.trim() || undefined}
               initialTransactionFeeAmount={initialPricing.transactionFeeAmount}
