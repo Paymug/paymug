@@ -17,6 +17,7 @@ import {
 } from "./notification-events";
 import type { PayPalWebhookRouteInput } from "./paypal-webhooks.types";
 import { parsePaymentAmountCents } from "./payment-amount.utils";
+import { formatPaymentFailureDetails } from "./payment-failure.utils";
 import { sendStoreOrderPaymentEmail } from "./store-notification-emails";
 import { sendPurchaseConfirmationEmail } from "./transactional-emails";
 
@@ -76,6 +77,7 @@ async function processCaptureCompleted(
     amount: paidAmount ?? order.amount,
     paypalCaptureId: captureId,
     paidAt,
+    paymentFailureDetails: null,
   });
   const product = await findProductById(order.productId);
   await completeCommerceFeatures(updated || order, product);
@@ -112,7 +114,18 @@ async function processInvalidCapture(
     if (order.status === "paid" || order.status === "refunded") {
       return true;
     }
-    const updated = await updateOrder(order.id, { status: "failed" });
+    const failureMessage =
+      input.event.resource?.status_details?.reason ||
+      input.event.resource?.status ||
+      "PayPal denied the payment";
+    const updated = await updateOrder(order.id, {
+      status: "failed",
+      paymentFailureDetails: formatPaymentFailureDetails(
+        "PayPal",
+        failureMessage,
+        input.event,
+      ),
+    });
     await notifyPaymentFailed({
       order: updated || order,
       paypalStatus: "denied",

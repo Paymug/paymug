@@ -157,5 +157,6 @@ export async function capturePayPalOrder(
     currency: captured?.amount?.currency_code,
     payerEmail: data.payer?.email_address,
     payerName,
+    payload: data,
   };
 }

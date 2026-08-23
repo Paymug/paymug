@@ -6,4 +6,5 @@ export interface PayPalCapturedOrder {
   payerName?: string;
   amount?: number;
   currency?: string;
+  payload?: unknown;
 }

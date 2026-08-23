@@ -85,6 +85,13 @@
       "when": 1787896800000,
       "tag": "0011_product_redirect_url",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1787983200000,
+      "tag": "0012_order_payment_failure_details",
+      "breakpoints": true
     }
   ]
 }

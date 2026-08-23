@@ -70,6 +70,7 @@ export async function completeStripeOrder(
     stripePaymentIntentId: session.payment_intent || undefined,
     customerName: session.customer_details?.name || order.customerName,
     paidAt: new Date().toISOString(),
+    paymentFailureDetails: null,
   });
   if (!updated) throw new Error("Could not update order");
   const product = await findProductById(order.productId);

@@ -217,6 +217,7 @@ export const orders = sqliteTable(
   gateway: text("gateway", { enum: ["paypal", "stripe", "free"] }).notNull().default("paypal"),
   createdAt: text("created_at").notNull(),
   paidAt: text("paid_at"),
+  paymentFailureDetails: text("payment_failure_details"),
   githubUsername: text("github_username"),
   githubAccessStatus: text("github_access_status", {
     enum: ["not_required", "pending", "invited", "existing", "revoked", "error"],

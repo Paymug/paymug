@@ -12,6 +12,7 @@ import {
 } from "@/lib/db";
 import { getPayPalCredentials } from "@/lib/payment-credentials";
 import { notifyInvoiceCreated } from "@/lib/notification-events";
+import { formatPaymentFailureDetails } from "@/lib/payment-failure.utils";
 import { createPayPalOrder } from "@/lib/paypal";
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
 import { getProductPublicPath } from "@/lib/product-paths";
@@ -167,17 +168,28 @@ export async function POST(req: Request) {
       `${getProductPublicPath(product)}?${cancelParams.toString()}`,
       req.url
     );
-    const paypalOrder = await createPayPalOrder({
-      clientId: conn.clientId,
-      clientSecret: conn.clientSecret,
-      mode: conn.mode,
-      amountCents: pricing.total,
-      currency: product.currency,
-      productName: product.name,
-      customId: order.id,
-      returnUrl,
-      cancelUrl,
-    });
+    let paypalOrder: Awaited<ReturnType<typeof createPayPalOrder>>;
+    try {
+      paypalOrder = await createPayPalOrder({
+        clientId: conn.clientId,
+        clientSecret: conn.clientSecret,
+        mode: conn.mode,
+        amountCents: pricing.total,
+        currency: product.currency,
+        productName: product.name,
+        customId: order.id,
+        returnUrl,
+        cancelUrl,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "PayPal could not create the order";
+      await updateOrder(order.id, {
+        status: "failed",
+        paymentFailureDetails: formatPaymentFailureDetails("PayPal", message),
+      });
+      throw error;
+    }
 
     await updateOrder(order.id, { paypalOrderId: paypalOrder.id });
     await notifyInvoiceCreated({

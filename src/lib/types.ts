@@ -175,6 +175,7 @@ export interface Order {
   gateway: OrderGateway;
   createdAt: string;
   paidAt?: string;
+  paymentFailureDetails?: string | null;
   githubUsername?: string;
   githubAccessStatus:
     | "not_required"

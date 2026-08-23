@@ -171,6 +171,7 @@ function rowToOrder(row: typeof ordersTable.$inferSelect): Order {
     gateway: row.gateway,
     createdAt: row.createdAt,
     paidAt: row.paidAt ?? undefined,
+    paymentFailureDetails: row.paymentFailureDetails ?? undefined,
     githubUsername: row.githubUsername ?? undefined,
     githubAccessStatus: row.githubAccessStatus,
     githubAccessManaged: row.githubAccessManaged,
@@ -630,6 +631,7 @@ export async function createOrder(order: Order): Promise<Order> {
     gateway: order.gateway,
     createdAt: order.createdAt,
     paidAt: order.paidAt ?? null,
+    paymentFailureDetails: order.paymentFailureDetails ?? null,
     githubUsername: order.githubUsername ?? null,
     githubAccessStatus: order.githubAccessStatus,
     githubAccessManaged: order.githubAccessManaged,
@@ -689,6 +691,9 @@ export async function updateOrder(
         : {}),
       ...(patch.gateway !== undefined ? { gateway: patch.gateway } : {}),
       ...(patch.paidAt !== undefined ? { paidAt: patch.paidAt ?? null } : {}),
+      ...(patch.paymentFailureDetails !== undefined
+        ? { paymentFailureDetails: patch.paymentFailureDetails ?? null }
+        : {}),
       ...(patch.githubUsername !== undefined
         ? { githubUsername: patch.githubUsername ?? null }
         : {}),

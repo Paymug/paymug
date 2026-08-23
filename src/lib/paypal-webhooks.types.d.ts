@@ -39,6 +39,9 @@ export interface PayPalWebhookEvent {
     id?: string;
     status?: string;
     state?: string;
+    status_details?: {
+      reason?: string;
+    };
     billing_agreement_id?: string;
     supplementary_data?: {
       related_ids?: {

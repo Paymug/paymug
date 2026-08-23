@@ -21,6 +21,7 @@ import {
 import { jsonError } from "@/lib/utils";
 import { grantGitHubOrderAccess } from "@/lib/github-access";
 import { sendStoreOrderPaymentEmail } from "@/lib/store-notification-emails";
+import { formatPaymentFailureDetails } from "@/lib/payment-failure.utils";
 
 const schema = z.object({
   orderId: z.string().min(1),
@@ -81,7 +82,15 @@ export async function POST(req: Request) {
         parsed.data.paypalOrderId
       );
     } catch (error) {
-      await updateOrder(order.id, { status: "failed" });
+      const failureMessage =
+        error instanceof Error ? error.message : "PayPal rejected the payment";
+      await updateOrder(order.id, {
+        status: "failed",
+        paymentFailureDetails: formatPaymentFailureDetails(
+          "PayPal",
+          failureMessage,
+        ),
+      });
       await notifyPaymentFailed({
         order,
         paypalStatus: "PayPal rejected the payment",
@@ -91,7 +100,14 @@ export async function POST(req: Request) {
     }
 
     if (capture.status !== "COMPLETED") {
-      await updateOrder(order.id, { status: "failed" });
+      await updateOrder(order.id, {
+        status: "failed",
+        paymentFailureDetails: formatPaymentFailureDetails(
+          "PayPal",
+          `Payment not completed (status: ${capture.status})`,
+          capture.payload,
+        ),
+      });
       await notifyPaymentFailed({
         order,
         paypalStatus: capture.status,
@@ -113,6 +129,7 @@ export async function POST(req: Request) {
       paypalOrderId: parsed.data.paypalOrderId,
       paypalCaptureId: capture.captureId,
       paidAt,
+      paymentFailureDetails: null,
       customerEmail: order.customerEmail,
       customerName: capture.payerName || order.customerName,
     });

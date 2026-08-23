@@ -12,6 +12,7 @@ import {
 } from "@/lib/db";
 import { getStripeCredentials } from "@/lib/payment-credentials";
 import { notifyInvoiceCreated } from "@/lib/notification-events";
+import { formatPaymentFailureDetails } from "@/lib/payment-failure.utils";
 import {
   getProductBillingCadence,
   isSubscriptionProduct,
@@ -206,33 +207,46 @@ export async function POST(request: Request) {
     if (recurringAmountCents <= 0) {
       return jsonError("Subscription price must be greater than zero", 400);
     }
-    const session = await createStripeCheckoutSession({
-      secretKey: connection.secretKey,
-      mode: connection.mode,
-      orderId: order.id,
-      productName: product.name,
-      amountCents: recurringAmountCents,
-      currency: product.currency,
-      customerEmail: parsed.data.customerEmail,
-      successUrl,
-      cancelUrl,
-      subscription:
-        subscription && cadence
-          ? {
-              interval: toStripeIntervalUnit(cadence.unit),
-              intervalCount: cadence.count,
-              trialDays: product.trialDays,
-              discount: limitedSubscriptionDiscount,
-            }
-          : undefined,
-      metadata: {
-        productId: product.id,
-        billingType: product.billingType,
-        ...(discountPeriods
-          ? { discountPeriods: String(discountPeriods) }
-          : {}),
-      },
-    });
+    let session: Awaited<ReturnType<typeof createStripeCheckoutSession>>;
+    try {
+      session = await createStripeCheckoutSession({
+        secretKey: connection.secretKey,
+        mode: connection.mode,
+        orderId: order.id,
+        productName: product.name,
+        amountCents: recurringAmountCents,
+        currency: product.currency,
+        customerEmail: parsed.data.customerEmail,
+        successUrl,
+        cancelUrl,
+        subscription:
+          subscription && cadence
+            ? {
+                interval: toStripeIntervalUnit(cadence.unit),
+                intervalCount: cadence.count,
+                trialDays: product.trialDays,
+                discount: limitedSubscriptionDiscount,
+              }
+            : undefined,
+        metadata: {
+          productId: product.id,
+          billingType: product.billingType,
+          ...(discountPeriods
+            ? { discountPeriods: String(discountPeriods) }
+            : {}),
+        },
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Stripe could not create the Checkout Session";
+      await updateOrder(order.id, {
+        status: "failed",
+        paymentFailureDetails: formatPaymentFailureDetails("Stripe", message),
+      });
+      throw error;
+    }
     if (!session.url) throw new Error("Stripe did not return a Checkout URL");
     await updateOrder(order.id, { stripeCheckoutSessionId: session.id });
     await notifyInvoiceCreated({

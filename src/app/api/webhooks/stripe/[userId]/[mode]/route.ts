@@ -1,5 +1,6 @@
 import { getStripeCredentials } from "@/lib/payment-credentials";
 import { completeStripeOrder } from "@/lib/stripe-order";
+import { failStripeOrder } from "@/lib/stripe-order-failure";
 import { parseVerifiedStripeWebhook } from "@/lib/stripe-webhooks";
 import type { PayPalMode } from "@/lib/types";
 import type { StripeWebhookRouteContext } from "./route.types";
@@ -44,6 +45,12 @@ export async function POST(
       if (session.payment_status !== "unpaid") {
         await completeStripeOrder(orderId, session.id, request.url);
       }
+    } else if (event.type === "checkout.session.async_payment_failed") {
+      const session = event.data.object;
+      const orderId =
+        session.metadata.orderId || session.client_reference_id;
+      if (!orderId) throw new Error("Stripe event has no order reference");
+      await failStripeOrder(orderId, userId, rawMode, event);
     }
     return Response.json({ received: true });
   } catch (error) {

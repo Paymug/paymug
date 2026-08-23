@@ -122,5 +122,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `redirect_url` text;"
     ]
+  },
+  {
+    "name": "0012_order_payment_failure_details.sql",
+    "statements": [
+      "ALTER TABLE `orders` ADD `payment_failure_details` text;"
+    ]
   }
 ];
