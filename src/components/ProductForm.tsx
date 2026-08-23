@@ -76,6 +76,7 @@ export function ProductForm({
   const [deliveryContent, setDeliveryContent] = useState(
     product?.deliveryContent || "",
   );
+  const [redirectUrl, setRedirectUrl] = useState(product?.redirectUrl || "");
   const [productFiles, setProductFiles] = useState(product?.productFiles || []);
   const [generateLicense, setGenerateLicense] = useState(
     product?.generateLicense || false,
@@ -180,6 +181,7 @@ export function ProductForm({
     currency,
     status,
     deliveryContent: deliveryContent || undefined,
+    redirectUrl: redirectUrl.trim() || null,
     productFiles,
     generateLicense,
     licenseType: perpetualLicenseEnabled ? "perpetual" : "standard",
@@ -214,6 +216,7 @@ export function ProductForm({
     imageUrl ||
     price.trim() ||
     deliveryContent.trim() ||
+    redirectUrl.trim() ||
     productFiles.length ||
     generateLicense ||
     githubDelivery ||
@@ -627,6 +630,21 @@ export function ProductForm({
               }}
             />
           </div>
+        </div>
+
+        <div>
+          <Input
+            label="Redirect URL after purchase (optional)"
+            name="redirectUrl"
+            value={redirectUrl}
+            onChange={(event) => setRedirectUrl(event.target.value)}
+            placeholder="https://example.com/welcome?id=[order_id]"
+          />
+          <p className="mt-2 text-xs leading-5 text-muted">
+            Shows a Continue button after payment. Available placeholders: {" "}
+            <code>[order_id]</code>, <code>[email]</code>, and {" "}
+            <code>[product_id]</code>.
+          </p>
         </div>
 
         <ProductFileUploader

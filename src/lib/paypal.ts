@@ -1,4 +1,6 @@
 import type { PayPalMode } from "./types";
+import { parsePaymentAmountCents } from "./payment-amount.utils";
+import type { PayPalCapturedOrder } from "./paypal.types";
 
 export function paypalBaseUrl(mode: PayPalMode): string {
   return mode === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
@@ -103,13 +105,7 @@ export async function capturePayPalOrder(
   clientSecret: string,
   mode: PayPalMode,
   paypalOrderId: string
-): Promise<{
-  id: string;
-  status: string;
-  captureId?: string;
-  payerEmail?: string;
-  payerName?: string;
-}> {
+): Promise<PayPalCapturedOrder> {
   const token = await getPayPalAccessToken(clientId, clientSecret, mode);
 
   const res = await fetch(
@@ -138,12 +134,17 @@ export async function capturePayPalOrder(
     };
     purchase_units?: Array<{
       payments?: {
-        captures?: Array<{ id: string; status: string }>;
+        captures?: Array<{
+          id: string;
+          status: string;
+          amount?: { currency_code?: string; value?: string };
+        }>;
       };
     }>;
   };
 
-  const captureId = data.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+  const captured = data.purchase_units?.[0]?.payments?.captures?.[0];
+  const captureId = captured?.id;
   const given = data.payer?.name?.given_name ?? "";
   const surname = data.payer?.name?.surname ?? "";
   const payerName = [given, surname].filter(Boolean).join(" ") || undefined;
@@ -152,6 +153,8 @@ export async function capturePayPalOrder(
     id: data.id,
     status: data.status,
     captureId,
+    amount: parsePaymentAmountCents(captured?.amount?.value),
+    currency: captured?.amount?.currency_code,
     payerEmail: data.payer?.email_address,
     payerName,
   };

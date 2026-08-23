@@ -43,8 +43,7 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
   {
     "name": "0001_primary_store.sql",
     "statements": [
-      "ALTER TABLE `users` ADD `primary_store_id` text;",
-      "UPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
+      "ALTER TABLE `users` ADD `primary_store_id` text;\nUPDATE `users`\nSET `primary_store_id` = `active_store_id`\nWHERE `primary_store_id` IS NULL;"
     ]
   },
   {
@@ -109,6 +108,19 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "name": "0009_order_custom_data.sql",
     "statements": [
       "ALTER TABLE `orders` ADD `custom` text DEFAULT '{}' NOT NULL;"
+    ]
+  },
+  {
+    "name": "0010_webhook_product.sql",
+    "statements": [
+      "ALTER TABLE `webhooks` ADD `product_id` text REFERENCES `products`(`id`) ON DELETE cascade;",
+      "ALTER TABLE `webhooks` DROP COLUMN `secret_encrypted`;"
+    ]
+  },
+  {
+    "name": "0011_product_redirect_url.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `redirect_url` text;"
     ]
   }
 ];

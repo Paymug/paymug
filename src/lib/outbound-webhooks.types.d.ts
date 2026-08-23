@@ -28,6 +28,7 @@ export interface OutboundWebhookRecord {
   environment: PayPalMode;
   name: string;
   url: string;
+  productId?: string;
   authConfigured: boolean;
   events: OutboundWebhookEventName[];
   status: "active" | "paused";
@@ -55,6 +56,7 @@ export interface CreateOutboundWebhookInput {
   environment: PayPalMode;
   name: string;
   url: string;
+  productId: string;
   auth?: string;
   events: OutboundWebhookEventName[];
 }
@@ -62,20 +64,17 @@ export interface CreateOutboundWebhookInput {
 export interface UpdateOutboundWebhookInput {
   name?: string;
   url?: string;
+  productId?: string;
   auth?: string | null;
   events?: OutboundWebhookEventName[];
   status?: "active" | "paused";
-}
-
-export interface CreatedOutboundWebhook {
-  webhook: OutboundWebhookRecord;
-  secret: string;
 }
 
 export interface DispatchOutboundWebhookInput {
   userId: string;
   storeId: string;
   environment: PayPalMode;
+  productId: string;
   eventName: OutboundWebhookEventName;
   data: Order | FeatureRecord | Record<string, unknown>;
 }

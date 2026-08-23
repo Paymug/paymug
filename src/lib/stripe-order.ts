@@ -54,11 +54,8 @@ export async function completeStripeOrder(
   ) {
     throw new Error("Stripe order reference mismatch");
   }
-  if (
-    session.amount_total !== order.amount ||
-    session.currency?.toUpperCase() !== order.currency.toUpperCase()
-  ) {
-    throw new Error("Stripe payment amount mismatch");
+  if (session.currency?.toUpperCase() !== order.currency.toUpperCase()) {
+    throw new Error("Stripe payment currency mismatch");
   }
   if (
     session.payment_status !== "paid" &&
@@ -68,6 +65,7 @@ export async function completeStripeOrder(
   }
   const updated = await updateOrder(order.id, {
     status: "paid",
+    amount: session.amount_total ?? order.amount,
     stripeCheckoutSessionId: session.id,
     stripePaymentIntentId: session.payment_intent || undefined,
     customerName: session.customer_details?.name || order.customerName,

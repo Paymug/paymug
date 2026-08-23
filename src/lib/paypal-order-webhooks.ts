@@ -16,6 +16,7 @@ import {
   notifyPaymentReceived,
 } from "./notification-events";
 import type { PayPalWebhookRouteInput } from "./paypal-webhooks.types";
+import { parsePaymentAmountCents } from "./payment-amount.utils";
 import { sendStoreOrderPaymentEmail } from "./store-notification-emails";
 import { sendPurchaseConfirmationEmail } from "./transactional-emails";
 
@@ -60,8 +61,19 @@ async function processCaptureCompleted(
 
   const captureId = input.event.resource?.id || order.paypalCaptureId;
   const paidAt = input.event.create_time || new Date().toISOString();
+  const paidCurrency =
+    input.event.resource?.amount?.currency_code ||
+    input.event.resource?.amount?.currency;
+  const paidAmount =
+    !paidCurrency || paidCurrency.toUpperCase() === order.currency.toUpperCase()
+      ? parsePaymentAmountCents(
+          input.event.resource?.amount?.value ||
+            input.event.resource?.amount?.total,
+        )
+      : undefined;
   const updated = await updateOrder(order.id, {
     status: "paid",
+    amount: paidAmount ?? order.amount,
     paypalCaptureId: captureId,
     paidAt,
   });

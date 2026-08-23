@@ -19,3 +19,13 @@ export function getWebhookDeliveryResponse(
 ): string {
   return delivery.responseBody || delivery.error || "No response body";
 }
+
+export function getWebhookRequestBody(
+  delivery: OutboundWebhookDeliveryRecord,
+): string {
+  try {
+    return JSON.stringify(JSON.parse(delivery.requestBody), null, 2);
+  } catch {
+    return delivery.requestBody;
+  }
+}

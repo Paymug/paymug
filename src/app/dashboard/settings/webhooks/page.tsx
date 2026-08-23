@@ -9,8 +9,8 @@ export default function WebhooksPage() {
     <div className={dashboardPageClass}>
       <h1 className="sr-only">Webhooks</h1>
       <p className={dashboardPageCopyClass}>
-        Send signed event notifications to your application and inspect each
-        delivery response.
+        Send product-specific event notifications to your application and
+        inspect each delivery response.
       </p>
       <WebhooksWorkspace />
     </div>

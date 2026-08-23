@@ -128,6 +128,7 @@ export const products = sqliteTable(
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   imageUrl: text("image_url"),
   deliveryContent: text("delivery_content"),
+  redirectUrl: text("redirect_url"),
   productFiles: text("product_files").notNull().default("[]"),
   generateLicense: integer("generate_license", { mode: "boolean" })
     .notNull()
@@ -470,8 +471,10 @@ export const webhooks = sqliteTable(
       .default("sandbox"),
     name: text("name").notNull(),
     url: text("url").notNull(),
+    productId: text("product_id").references(() => products.id, {
+      onDelete: "cascade",
+    }),
     authEncrypted: text("auth_encrypted"),
-    secretEncrypted: text("secret_encrypted").notNull(),
     events: text("events").notNull().default("[]"),
     status: text("status", { enum: ["active", "paused"] })
       .notNull()

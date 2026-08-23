@@ -16,6 +16,7 @@ import {
 import { PendingCaptureClient } from "./PendingCaptureClient";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
 import { getProductPublicPath } from "@/lib/product-paths";
+import { resolveProductRedirectUrl } from "@/lib/product-redirect-url";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
@@ -116,6 +117,13 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const deliveryContent = currentUpdatesIncluded
     ? product?.deliveryContent || order.deliveryContent
     : order.deliveryContent || product?.deliveryContent;
+  const redirectUrl = product?.redirectUrl
+    ? resolveProductRedirectUrl(product.redirectUrl, {
+        orderId: order.id,
+        email: order.customerEmail,
+        productId: order.productId,
+      })
+    : undefined;
 
   return (
     <Shell>
@@ -185,12 +193,22 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </div>
       )}
 
-      <Link
-        href="/customer/login"
-        className={`${buttonBaseClass} ${buttonVariantClasses.outline} mt-6`}
-      >
-        Open customer portal
-      </Link>
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
+        {redirectUrl && (
+          <a
+            href={redirectUrl}
+            className={`${buttonBaseClass} ${buttonVariantClasses.primary}`}
+          >
+            Continue
+          </a>
+        )}
+        <Link
+          href="/customer/login"
+          className={`${buttonBaseClass} ${buttonVariantClasses.outline}`}
+        >
+          Open customer portal
+        </Link>
+      </div>
 
       {product?.githubRepoOwner &&
         product.githubRepoName &&

@@ -18,6 +18,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     .filter((p) => p.status === "published")
     .map(({
       deliveryContent: _,
+      redirectUrl: ________,
       generateLicense: __,
       licenseType: _____,
       licenseUpdatePeriodUnit: ______,

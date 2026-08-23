@@ -71,6 +71,20 @@
       "when": 1787724000000,
       "tag": "0009_order_custom_data",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1787810400000,
+      "tag": "0010_webhook_product",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1787896800000,
+      "tag": "0011_product_redirect_url",
+      "breakpoints": true
     }
   ]
 }

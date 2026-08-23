@@ -41,9 +41,7 @@ export function buildStoreOrderPaymentEmail(
   });
   return {
     to: recipient,
-    subject: free
-      ? `${storeName}: New free order completed`
-      : `${storeName}: New order payment received`,
+    subject: `${storeName} made a sale!`,
     ...layout,
   };
 }

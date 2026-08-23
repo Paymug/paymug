@@ -1,4 +1,8 @@
 import type { FeatureRecord } from "./feature-records.types";
+import {
+  createFeatureWebhookData,
+  createOrderWebhookData,
+} from "./outbound-webhook-payload.utils";
 import { dispatchOutboundWebhookEvent } from "./outbound-webhooks";
 import type { OutboundWebhookEventName } from "./outbound-webhooks.types";
 import type { Order } from "./types";
@@ -12,8 +16,9 @@ async function emitOrderPaidEvents(order: Order): Promise<void> {
         userId: order.userId,
         storeId: order.storeId,
         environment: order.environment,
+        productId: order.productId,
         eventName,
-        data: order,
+        data: createOrderWebhookData(order),
       }),
     ),
   );
@@ -43,8 +48,9 @@ export async function emitUpdatedOrderWebhook(
     userId: order.userId,
     storeId: order.storeId,
     environment: order.environment,
+    productId: order.productId,
     eventName,
-    data: order,
+    data: createOrderWebhookData(order),
   });
 }
 
@@ -54,18 +60,26 @@ function getFeatureStoreId(record: FeatureRecord): string | undefined {
     : undefined;
 }
 
+function getFeatureProductId(record: FeatureRecord): string | undefined {
+  return typeof record.data.productId === "string"
+    ? record.data.productId
+    : undefined;
+}
+
 async function emitFeatureEvent(
   record: FeatureRecord,
   eventName: OutboundWebhookEventName,
 ): Promise<void> {
   const storeId = getFeatureStoreId(record);
-  if (!storeId) return;
+  const productId = getFeatureProductId(record);
+  if (!storeId || !productId) return;
   await dispatchOutboundWebhookEvent({
     userId: record.userId,
     storeId,
     environment: record.environment,
+    productId,
     eventName,
-    data: record,
+    data: createFeatureWebhookData(record),
   });
 }
 

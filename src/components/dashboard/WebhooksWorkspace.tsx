@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowClockwise,
   Flask,
   Pause,
   Play,
@@ -26,6 +27,7 @@ import type { WebhooksResponse } from "./WebhooksWorkspace.types";
 import {
   getWebhookDeliveryResponse,
   getWebhookEventLabel,
+  getWebhookRequestBody,
 } from "./webhooks-workspace.utils";
 
 export function WebhooksWorkspace() {
@@ -35,6 +37,9 @@ export function WebhooksWorkspace() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
+  const [resendingDeliveryId, setResendingDeliveryId] = useState<string | null>(
+    null,
+  );
   const [testMessage, setTestMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,6 +119,37 @@ export function WebhooksWorkspace() {
   async function removeWebhook(webhook: OutboundWebhookRecord) {
     if (!confirm("Delete “" + webhook.name + "” and its delivery history?")) return;
     await requestWebhook(webhook, "delete");
+  }
+
+  async function resendDelivery(
+    delivery: NonNullable<WebhooksResponse["deliveries"]>[number],
+  ) {
+    setResendingDeliveryId(delivery.id);
+    setTestMessage(null);
+    setError(null);
+    try {
+      const response = await fetch(
+        "/api/webhooks/deliveries/" + delivery.id + "/resend",
+        { method: "POST" },
+      );
+      const data = (await response.json()) as WebhooksResponse;
+      if (!response.ok) {
+        throw new Error(data.error || "Could not resend webhook event");
+      }
+      await load();
+      setTestMessage(
+        getWebhookEventLabel(delivery.eventName) +
+          " resent. The new delivery appears below.",
+      );
+    } catch (resendError) {
+      setError(
+        resendError instanceof Error
+          ? resendError.message
+          : "Could not resend webhook event",
+      );
+    } finally {
+      setResendingDeliveryId(null);
+    }
   }
 
   return (
@@ -247,7 +283,7 @@ export function WebhooksWorkspace() {
       <div className="mb-2 mt-8">
         <h2 className="text-base font-semibold">Recent deliveries</h2>
         <p className="mt-1 text-sm text-muted">
-          HTTP status and response from each endpoint.
+          Request payload, HTTP status, and response from each endpoint.
         </p>
       </div>
       <div className={dashboardCardClass + " overflow-hidden"}>
@@ -257,14 +293,16 @@ export function WebhooksWorkspace() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[960px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-muted">
                   <th className="px-4 py-3 font-medium">Event</th>
                   <th className="px-4 py-3 font-medium">Endpoint</th>
+                  <th className="px-4 py-3 font-medium">Request</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Response</th>
                   <th className="px-4 py-3 font-medium">Delivered</th>
+                  <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -288,6 +326,21 @@ export function WebhooksWorkspace() {
                       </td>
                       <td className="px-4 py-3 text-muted">
                         {webhook?.name || "Deleted endpoint"}
+                      </td>
+                      <td className="max-w-xs px-4 py-3">
+                        <span
+                          className={badgeBaseClass + " " + badgeVariantClasses.muted}
+                        >
+                          POST
+                        </span>
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-muted">
+                            View body
+                          </summary>
+                          <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-stone-50 p-2 text-xs">
+                            {getWebhookRequestBody(delivery)}
+                          </pre>
+                        </details>
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -317,6 +370,25 @@ export function WebhooksWorkspace() {
                             {delivery.durationMs} ms
                           </span>
                         )}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="!px-3 !py-2"
+                          disabled={
+                            !webhook || resendingDeliveryId === delivery.id
+                          }
+                          onClick={() => void resendDelivery(delivery)}
+                          aria-label={
+                            "Resend " + getWebhookEventLabel(delivery.eventName)
+                          }
+                        >
+                          <ArrowClockwise size={15} aria-hidden />
+                          {resendingDeliveryId === delivery.id
+                            ? "Resending…"
+                            : "Resend"}
+                        </Button>
                       </td>
                     </tr>
                   );

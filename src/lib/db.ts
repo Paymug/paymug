@@ -111,6 +111,7 @@ function rowToProduct(row: typeof productsTable.$inferSelect): Product {
     status: row.status,
     imageUrl: row.imageUrl ?? undefined,
     deliveryContent: row.deliveryContent ?? undefined,
+    redirectUrl: row.redirectUrl ?? undefined,
     productFiles: parseProductFiles(row.productFiles),
     generateLicense: row.generateLicense,
     licenseType: row.licenseType === "perpetual" ? "perpetual" : "standard",
@@ -431,6 +432,7 @@ export async function createProduct(product: Product): Promise<Product> {
     status: product.status,
     imageUrl: product.imageUrl ?? null,
     deliveryContent: product.deliveryContent ?? null,
+    redirectUrl: product.redirectUrl ?? null,
     productFiles: serializeProductFiles(product.productFiles),
     generateLicense: product.generateLicense,
     licenseType: product.licenseType || "standard",
@@ -485,6 +487,9 @@ export async function updateProduct(
       ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl ?? null } : {}),
       ...(patch.deliveryContent !== undefined
         ? { deliveryContent: patch.deliveryContent ?? null }
+        : {}),
+      ...(patch.redirectUrl !== undefined
+        ? { redirectUrl: patch.redirectUrl ?? null }
         : {}),
       ...(patch.productFiles !== undefined
         ? { productFiles: serializeProductFiles(patch.productFiles) }

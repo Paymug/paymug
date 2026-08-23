@@ -12,6 +12,7 @@ export interface ProductFormSavePayload {
   currency: string;
   status: "draft" | "published";
   deliveryContent?: string;
+  redirectUrl?: string | null;
   productFiles: ProductFile[];
   generateLicense: boolean;
   licenseType: "standard" | "perpetual";

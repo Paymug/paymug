@@ -391,6 +391,12 @@ async function issueLicense(order: Order, product: Product): Promise<void> {
       product: order.productName,
       productId: product.id,
       customerEmail: order.customerEmail,
+      custom: order.custom,
+      amount: order.amount,
+      currency: order.currency,
+      productPrice: order.productPrice ?? order.amount,
+      discountAmount: order.discountAmount,
+      transactionFeeAmount: order.transactionFeeAmount,
       issuedAt,
       licenseType: perpetual ? "perpetual" : "standard",
       ...(perpetual

@@ -50,6 +50,8 @@ export interface PayPalWebhookEvent {
     amount?: {
       total?: string;
       currency?: string;
+      value?: string;
+      currency_code?: string;
     };
   };
 }

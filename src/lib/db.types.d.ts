@@ -16,7 +16,11 @@ export type CreateUserInput = Omit<
 };
 
 export type UpdateProductInput = Partial<
-  Omit<Product, "id" | "userId" | "createdAt" | "imageUrl">
+  Omit<
+    Product,
+    "id" | "userId" | "createdAt" | "imageUrl" | "redirectUrl"
+  >
 > & {
   imageUrl?: string | null;
+  redirectUrl?: string | null;
 };

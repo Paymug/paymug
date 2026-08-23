@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHmac, randomBytes } from "crypto";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
@@ -10,7 +9,6 @@ import {
 import { decryptSecret, encryptSecret } from "./crypto";
 import { uid } from "./utils";
 import type {
-  CreatedOutboundWebhook,
   CreateOutboundWebhookInput,
   DispatchOutboundWebhookInput,
   OutboundWebhookDeliveryRecord,
@@ -39,6 +37,7 @@ function mapWebhook(
     environment: row.environment,
     name: row.name,
     url: row.url,
+    productId: row.productId ?? undefined,
     authConfigured: Boolean(row.authEncrypted),
     events: parseEvents(row.events),
     status: row.status,
@@ -116,10 +115,9 @@ export async function listOutboundWebhookDeliveries(
 
 export async function createOutboundWebhook(
   input: CreateOutboundWebhookInput,
-): Promise<CreatedOutboundWebhook> {
+): Promise<OutboundWebhookRecord> {
   const db = await getDb();
   const id = uid();
-  const secret = `whsec_${randomBytes(24).toString("base64url")}`;
   const now = new Date().toISOString();
   await db.insert(webhooksTable).values({
     id,
@@ -128,8 +126,8 @@ export async function createOutboundWebhook(
     environment: input.environment,
     name: input.name,
     url: input.url,
+    productId: input.productId,
     authEncrypted: input.auth ? await encryptSecret(input.auth) : null,
-    secretEncrypted: await encryptSecret(secret),
     events: JSON.stringify(input.events),
     status: "active",
     createdAt: now,
@@ -138,7 +136,7 @@ export async function createOutboundWebhook(
   const row = await db.query.webhooks.findFirst({
     where: eq(webhooksTable.id, id),
   });
-  return { webhook: mapWebhook(row!), secret };
+  return mapWebhook(row!);
 }
 
 export async function updateOutboundWebhook(
@@ -160,6 +158,7 @@ export async function updateOutboundWebhook(
     .set({
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.url !== undefined ? { url: input.url } : {}),
+      ...(input.productId !== undefined ? { productId: input.productId } : {}),
       ...(authEncrypted !== undefined ? { authEncrypted } : {}),
       ...(input.events !== undefined
         ? { events: JSON.stringify(input.events) }
@@ -205,22 +204,25 @@ export async function deleteOutboundWebhook(
   return deleted.length > 0;
 }
 
-async function deliverWebhook(
+export async function deliverWebhook(
   webhookRow: typeof webhooksTable.$inferSelect,
   eventName: OutboundWebhookEventName,
   data: DispatchOutboundWebhookInput["data"],
+  requestBody?: string,
 ): Promise<void> {
   const db = await getDb();
   const deliveryId = uid();
   const createdAt = new Date().toISOString();
-  const body = JSON.stringify({
-    meta: {
-      event_name: eventName,
-      test_mode: webhookRow.environment === "sandbox",
-      webhook_id: webhookRow.id,
-    },
-    data,
-  });
+  const body =
+    requestBody ??
+    JSON.stringify({
+      meta: {
+        event_name: eventName,
+        test_mode: webhookRow.environment === "sandbox",
+        webhook_id: webhookRow.id,
+      },
+      data,
+    });
   await db.insert(deliveriesTable).values({
     id: deliveryId,
     webhookId: webhookRow.id,
@@ -232,18 +234,15 @@ async function deliverWebhook(
 
   const startedAt = Date.now();
   try {
-    const secret = await decryptSecret(webhookRow.secretEncrypted);
     const auth = webhookRow.authEncrypted
       ? await decryptSecret(webhookRow.authEncrypted)
       : undefined;
-    const signature = createHmac("sha256", secret).update(body).digest("hex");
     const response = await fetch(webhookRow.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "Paymug-Webhooks/1.0",
         "X-Event-Name": eventName,
-        "X-Signature": signature,
         ...(auth ? { Authorization: auth } : {}),
       },
       body,
@@ -284,6 +283,7 @@ export async function dispatchOutboundWebhookEvent(
         eq(webhooksTable.storeId, input.storeId),
         eq(webhooksTable.environment, input.environment),
         eq(webhooksTable.status, "active"),
+        eq(webhooksTable.productId, input.productId),
       ),
     });
     const subscribed = rows.filter((row) =>

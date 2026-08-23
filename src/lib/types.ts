@@ -121,6 +121,8 @@ export interface Product {
   imageUrl?: string;
   /** Optional delivery content (download link, license key text, etc.) */
   deliveryContent?: string;
+  /** Optional destination shown after a completed purchase. */
+  redirectUrl?: string;
   productFiles: ProductFile[];
   generateLicense: boolean;
   /** A perpetual license keeps usage active while updates expire separately. */

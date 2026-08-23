@@ -99,10 +99,17 @@ export async function POST(req: Request) {
       await sendOrderPaymentFailedEmail({ order, requestUrl: req.url });
       return jsonError(`Payment not completed (status: ${capture.status})`, 400);
     }
+    if (
+      capture.currency &&
+      capture.currency.toUpperCase() !== order.currency.toUpperCase()
+    ) {
+      return jsonError("PayPal payment currency mismatch", 400);
+    }
 
     const paidAt = new Date().toISOString();
     const updated = await updateOrder(order.id, {
       status: "paid",
+      amount: capture.amount ?? order.amount,
       paypalOrderId: parsed.data.paypalOrderId,
       paypalCaptureId: capture.captureId,
       paidAt,

@@ -19,6 +19,7 @@ import {
 } from "@/lib/product-billing";
 import { productFileInputSchema } from "@/lib/product-files.schema";
 import { productImageUrlSchema } from "@/lib/product-image.schema";
+import { productRedirectUrlSchema } from "@/lib/product-redirect-url";
 import { validateProductFileOwnership } from "@/lib/product-files.utils";
 import {
   parseLicenseUpdatePeriod,
@@ -48,6 +49,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   if (product.userId !== user?.id) {
     const {
       deliveryContent: _,
+      redirectUrl: _________,
       productFiles: _____,
       generateLicense: __,
       licenseType: ______,
@@ -73,6 +75,7 @@ const updateSchema = z.object({
   currency: z.string().length(3).optional(),
   status: z.enum(["draft", "published"]).optional(),
   deliveryContent: z.string().max(100000).optional(),
+  redirectUrl: productRedirectUrlSchema.nullable().optional(),
   productFiles: z.array(productFileInputSchema).max(20).optional(),
   generateLicense: z.boolean().optional(),
   licenseType: z.enum(["standard", "perpetual"]).optional(),

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
+import { findProductById } from "@/lib/db";
 import { outboundWebhookEventNames } from "@/lib/outbound-webhook-events.config";
 import { isAllowedWebhookUrl } from "@/lib/outbound-webhook-url.utils";
 import {
@@ -13,8 +14,9 @@ import { jsonError } from "@/lib/utils";
 const createSchema = z.object({
   name: z.string().trim().min(1).max(80),
   url: z.string().trim().url().max(2_000),
+  productId: z.string().trim().min(1),
   auth: z.string().trim().max(2_000).optional(),
-  events: z.array(z.string()).min(1).max(20),
+  events: z.array(z.string()).length(1),
 });
 
 export async function GET() {
@@ -41,6 +43,15 @@ export async function POST(request: Request) {
   if (!isAllowedWebhookUrl(parsed.data.url)) {
     return jsonError("Use a valid HTTPS endpoint URL", 400);
   }
+  const product = await findProductById(parsed.data.productId);
+  if (
+    !product ||
+    product.userId !== user.id ||
+    product.storeId !== user.activeStoreId ||
+    product.environment !== user.environment
+  ) {
+    return jsonError("Product not found", 404);
+  }
   if (
     parsed.data.events.some(
       (event) =>
@@ -55,8 +66,9 @@ export async function POST(request: Request) {
     environment: user.environment,
     name: parsed.data.name,
     url: parsed.data.url,
+    productId: parsed.data.productId,
     auth: parsed.data.auth || undefined,
     events: [...new Set(parsed.data.events)] as OutboundWebhookEventName[],
   });
-  return Response.json(created, { status: 201 });
+  return Response.json({ webhook: created }, { status: 201 });
 }

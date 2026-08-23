@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { CustomSelect } from "@/components/CustomSelect";
 import { Alert, Button, Input } from "@/components/ui";
 import {
   buttonBaseClass,
@@ -16,12 +17,16 @@ import type {
   WebhooksResponse,
 } from "./WebhooksWorkspace.types";
 
-export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
+export function EditWebhookForm({
+  webhook,
+  productOptions,
+}: EditWebhookFormProps) {
   const [values, setValues] = useState<WebhookFormValues>({
     name: webhook.name,
     url: webhook.url,
     auth: "",
-    events: webhook.events,
+    productId: webhook.productId || "",
+    event: webhook.events.find((event) => event !== "webhook_test") || "",
   });
   const [authConfigured, setAuthConfigured] = useState(
     webhook.authConfigured,
@@ -30,15 +35,6 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  function toggleEvent(eventName: OutboundWebhookEventName) {
-    setValues((current) => ({
-      ...current,
-      events: current.events.includes(eventName)
-        ? current.events.filter((event) => event !== eventName)
-        : [...current.events, eventName],
-    }));
-  }
 
   async function updateWebhook(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +48,8 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
         body: JSON.stringify({
           name: values.name,
           url: values.url,
-          events: values.events,
+          productId: values.productId,
+          events: [values.event],
           ...(values.auth
             ? { auth: values.auth }
             : removeAuth
@@ -140,32 +137,43 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
             Remove the current Auth value
           </label>
         )}
+        <CustomSelect
+          label="Product"
+          name="productId"
+          value={values.productId}
+          options={[
+            { value: "", label: "Select a product", disabled: true },
+            ...productOptions,
+          ]}
+          onValueChange={(productId) =>
+            setValues((current) => ({ ...current, productId }))
+          }
+          searchable
+          required
+        />
+        <CustomSelect
+          label="Event"
+          name="event"
+          value={values.event}
+          options={[
+            { value: "", label: "Select an event", disabled: true },
+            ...outboundWebhookEventOptions.map((eventOption) => ({
+              value: eventOption.name,
+              label: eventOption.label,
+            })),
+          ]}
+          onValueChange={(eventName) =>
+            setValues((current) => ({
+              ...current,
+              event: eventName as Exclude<
+                OutboundWebhookEventName,
+                "webhook_test"
+              >,
+            }))
+          }
+          required
+        />
       </div>
-
-      <fieldset className="mt-5">
-        <legend className="text-sm font-semibold">Events</legend>
-        <div className="mt-2 grid gap-2">
-          {outboundWebhookEventOptions.map((event) => (
-            <label
-              key={event.name}
-              className="flex cursor-pointer gap-3 rounded-xl border border-border p-3 transition hover:bg-stone-50"
-            >
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 accent-[#f5b942]"
-                checked={values.events.includes(event.name)}
-                onChange={() => toggleEvent(event.name)}
-              />
-              <span>
-                <span className="block text-sm font-medium">{event.label}</span>
-                <span className="mt-0.5 block text-xs leading-4 text-muted">
-                  {event.description}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
 
       {error && (
         <div className="mt-4">
@@ -179,7 +187,10 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
       )}
 
       <div className="mt-5 flex gap-2">
-        <Button type="submit" disabled={saving || values.events.length === 0}>
+        <Button
+          type="submit"
+          disabled={saving || !values.productId || !values.event}
+        >
           {saving ? "Saving…" : "Save changes"}
         </Button>
         <Link
