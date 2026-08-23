@@ -29,6 +29,7 @@ export interface DashboardOrderItem {
   environment: "sandbox" | "live";
   createdAt: string;
   paidAt?: string;
+  paymentFailureDetails?: string;
   deliveryContent?: string;
   productFiles: ProductFile[];
   license?: DashboardOrderLicense;

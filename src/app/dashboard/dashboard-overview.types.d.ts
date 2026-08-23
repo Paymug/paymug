@@ -18,6 +18,7 @@ export interface DashboardFilterState {
   endDate: string;
   interval: DashboardInterval;
   productId: string;
+  rangeMode?: "relative" | "fixed";
 }
 
 export type DashboardFilterPreference = DashboardFilterState;

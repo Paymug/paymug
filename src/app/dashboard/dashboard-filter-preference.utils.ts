@@ -26,12 +26,10 @@ export function readDashboardFilterPreference(
     const stored = window.localStorage.getItem(dashboardFilterPreferenceKey);
     if (!stored) return undefined;
     const value = JSON.parse(stored) as Partial<DashboardFilterPreference>;
-    const parsed = parseDashboardFilterState({
-      start: value.startDate,
-      end: value.endDate,
-      interval: value.interval,
-      product: value.productId,
-    });
+    const parsed = parseDashboardFilterState(
+      {},
+      value as DashboardFilterPreference,
+    );
     return {
       ...parsed,
       productId:
@@ -72,6 +70,7 @@ export function dashboardFilterStatesMatch(
     left.startDate === right.startDate &&
     left.endDate === right.endDate &&
     left.interval === right.interval &&
-    left.productId === right.productId
+    left.productId === right.productId &&
+    left.rangeMode === right.rangeMode
   );
 }

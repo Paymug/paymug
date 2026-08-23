@@ -89,6 +89,7 @@ export async function buildDashboardOrderItems(
       environment: order.environment,
       createdAt: order.createdAt,
       paidAt: order.paidAt,
+      paymentFailureDetails: order.paymentFailureDetails,
       deliveryContent:
         order.status === "paid" ? order.deliveryContent : undefined,
       productFiles: order.status === "paid" ? order.productFiles : [],

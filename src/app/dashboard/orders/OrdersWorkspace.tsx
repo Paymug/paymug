@@ -74,6 +74,17 @@ function OrderDetailDrawer({
           </span>
         </div>
 
+        {order.status === "failed" && order.paymentFailureDetails && (
+          <section className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <h3 className="text-sm font-semibold text-red-800">
+              Payment failure
+            </h3>
+            <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words font-sans text-xs leading-5 text-red-700">
+              {order.paymentFailureDetails}
+            </pre>
+          </section>
+        )}
+
         <section>
           <div className="mb-3 flex items-center gap-2">
             <Package size={16} className="text-[#9a9aaf]" weight="bold" />

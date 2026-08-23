@@ -104,6 +104,7 @@ export default async function DashboardPage({
         endDate={filter.endDate}
         interval={filter.interval}
         productId={selectedProductId}
+        rangeMode={filter.rangeMode}
         products={products.map((product) => ({
           id: product.id,
           name: product.name,

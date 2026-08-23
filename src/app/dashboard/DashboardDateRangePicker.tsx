@@ -53,6 +53,7 @@ export function DashboardDateRangePicker({
       endDate: nextEnd,
       interval: getDashboardInterval(nextStart, nextEnd),
       productId,
+      rangeMode: custom ? ("fixed" as const) : ("relative" as const),
     };
     saveDashboardFilterPreference(nextState);
     setDraftStart(nextStart);

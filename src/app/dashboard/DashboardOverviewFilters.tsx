@@ -32,6 +32,7 @@ export function DashboardOverviewFilters(props: DashboardOverviewFiltersProps) {
       endDate: props.endDate,
       interval: props.interval,
       productId: props.productId,
+      rangeMode: props.rangeMode,
     };
     const storedState = readDashboardFilterPreference(
       props.products.map((product) => product.id)
@@ -51,6 +52,7 @@ export function DashboardOverviewFilters(props: DashboardOverviewFiltersProps) {
     props.interval,
     props.productId,
     props.products,
+    props.rangeMode,
     props.startDate,
     router,
   ]);
@@ -61,6 +63,7 @@ export function DashboardOverviewFilters(props: DashboardOverviewFiltersProps) {
       endDate: props.endDate,
       interval: props.interval,
       productId,
+      rangeMode: props.rangeMode,
     };
     saveDashboardFilterPreference(nextState);
     router.refresh();

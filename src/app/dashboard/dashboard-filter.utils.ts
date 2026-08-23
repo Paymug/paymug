@@ -139,22 +139,62 @@ export function getPresetRange(
   };
 }
 
+function refreshSavedRelativeRange(
+  saved: DashboardFilterState,
+): DashboardFilterState {
+  const today = toDateKey(new Date());
+  if (
+    !isDateKey(saved.startDate) ||
+    !isDateKey(saved.endDate) ||
+    saved.rangeMode === "fixed" ||
+    saved.endDate >= today
+  ) {
+    return saved;
+  }
+
+  const days =
+    Math.abs(
+      Math.round(
+        (fromDateKey(saved.endDate).getTime() -
+          fromDateKey(saved.startDate).getTime()) /
+          86_400_000,
+      ),
+    ) + 1;
+  const preset = [1, 7, 14, 30, 90, 365].includes(days)
+    ? days === 1
+      ? "today"
+      : String(days)
+    : undefined;
+  if (!preset) return saved;
+
+  const range = getPresetRange(
+    preset as "today" | "7" | "14" | "30" | "90" | "365",
+  );
+  return {
+    ...saved,
+    ...range,
+    interval: getDashboardInterval(range.startDate, range.endDate),
+    rangeMode: "relative",
+  };
+}
+
 export function parseDashboardFilterState(
   params: DashboardOverviewSearchParams,
   saved?: DashboardFilterState
 ): DashboardFilterState {
+  const currentSaved = saved ? refreshSavedRelativeRange(saved) : undefined;
   const fallbackDays =
     params.range === "7" ? 7 : params.range === "90" ? 90 : 30;
   const fallback = getPresetRange(String(fallbackDays) as "7" | "30" | "90");
   const startDate = isDateKey(params.start)
     ? params.start
-    : saved && isDateKey(saved.startDate)
-      ? saved.startDate
+    : currentSaved && isDateKey(currentSaved.startDate)
+      ? currentSaved.startDate
       : fallback.startDate;
   const endDate = isDateKey(params.end)
     ? params.end
-    : saved && isDateKey(saved.endDate)
-      ? saved.endDate
+    : currentSaved && isDateKey(currentSaved.endDate)
+      ? currentSaved.endDate
       : fallback.endDate;
   const ordered =
     startDate <= endDate
@@ -168,7 +208,11 @@ export function parseDashboardFilterState(
   return {
     ...ordered,
     interval,
-    productId: params.product || saved?.productId || "all",
+    productId: params.product || currentSaved?.productId || "all",
+    rangeMode:
+      params.start || params.end
+        ? "fixed"
+        : currentSaved?.rangeMode || "relative",
   };
 }
 
