@@ -7,16 +7,16 @@ export function getCustomerStatusClass(status: string): string {
       normalized
     )
   ) {
-    return "bg-emerald-50 text-emerald-700";
+    return "bg-emerald-50/35 text-emerald-700/80";
   }
   if (
     ["failed", "refunded", "revoked", "cancelled", "expired"].includes(
       normalized
     )
   ) {
-    return "bg-red-50 text-red-700";
+    return "bg-red-50/35 text-red-700/80";
   }
-  return "bg-amber-50 text-amber-700";
+  return "bg-amber-50/35 text-amber-700/80";
 }
 
 export function formatCustomerPortalDateTime(value: string): string {

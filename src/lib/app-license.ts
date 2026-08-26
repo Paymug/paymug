@@ -70,11 +70,18 @@ async function requestLicenseAuthority(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        licenseKey,
-        productId: appLicenseProductId,
-        instanceId,
-        instanceUrl,
-        appVersion: packageJson.version,
+        ...(action === "deactivate"
+          ? {
+              productId: appLicenseProductId,
+              instanceId,
+            }
+          : {
+              licenseKey,
+              productId: appLicenseProductId,
+              instanceId,
+              instanceUrl,
+              appVersion: packageJson.version,
+            }),
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(10_000),

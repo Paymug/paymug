@@ -15,9 +15,13 @@ Use these endpoints to manage a Paymug Pro installation:
 | `POST` | `/api/v1/licenses/validate` | Check an existing activation |
 | `POST` | `/api/v1/licenses/deactivate` | Remove an installation activation |
 
-Send JSON with `licenseKey`, `productId` (the product that issued the license),
-`instanceId` (UUID), `instanceUrl`, and `appVersion`. The `productId` must match
-the license record's product ID.
+Activation and validation require `licenseKey`, `productId` (the product that
+issued the license), `instanceId` (UUID), `instanceUrl`, and `appVersion`. The
+`productId` must match the license record's product ID. Successful responses
+include the `instanceId`; retain it as the activation ID.
+
+Deactivation requires only `productId` and that returned `instanceId`. Do not
+send the license key when deactivating.
 The response includes `valid`, `state`, `plan`, `features`, and `manageUrl`.
 
 A license can have a fixed device seat limit or unlimited seats. Activating a new

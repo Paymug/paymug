@@ -52,7 +52,7 @@ available. When all limited seats are used, activation returns
 
 ## Validate
 
-Send the same body to:
+Send the same activation body to:
 
 ```text
 POST /api/v1/licenses/validate
@@ -63,10 +63,18 @@ activate repeatedly just to check state.
 
 ## Deactivate
 
-Send the same body to:
+Keep the `instanceId` returned by activation. To deactivate, send only the
+product ID and that activation ID:
 
 ```text
 POST /api/v1/licenses/deactivate
+```
+
+```json
+{
+  "productId": "00000000-0000-4000-8000-000000000001",
+  "instanceId": "00000000-0000-4000-8000-000000000000"
+}
 ```
 
 Deactivate a test installation before moving a license to another installation.

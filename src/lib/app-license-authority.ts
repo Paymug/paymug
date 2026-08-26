@@ -11,6 +11,7 @@ import {
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
 import type {
   LicenseAuthorityActivation,
+  LicenseAuthorityDeactivationRequest,
   LicenseAuthorityRequest,
   LicenseAuthorityResponse,
 } from "./app-license.types";
@@ -60,6 +61,7 @@ async function createAuthorityResponse(
   state: "active" | "invalid" | "expired" | "deactivated",
   expiresAt?: string,
   error?: string,
+  instanceId?: string,
 ): Promise<LicenseAuthorityResponse> {
   return {
     valid: state === "active",
@@ -67,6 +69,7 @@ async function createAuthorityResponse(
     plan: "pro",
     features: state === "active" ? proFeatures : [],
     manageUrl: await getRuntimeAbsoluteUrl("/customer", requestUrl),
+    instanceId,
     expiresAt,
     error,
   };
@@ -149,7 +152,13 @@ export async function activateAuthorityLicense(
       updatedAt: now,
     })
     .where(eq(featureRecords.id, license.id));
-  return createAuthorityResponse(requestUrl, "active", expiresAt);
+  return createAuthorityResponse(
+    requestUrl,
+    "active",
+    expiresAt,
+    undefined,
+    input.instanceId,
+  );
 }
 
 export async function validateAuthorityLicense(
@@ -200,18 +209,32 @@ export async function validateAuthorityLicense(
 }
 
 export async function deactivateAuthorityLicense(
-  input: LicenseAuthorityRequest,
+  input: LicenseAuthorityDeactivationRequest,
   requestUrl: string,
 ): Promise<LicenseAuthorityResponse> {
   const db = await getDb();
-  const license = await getAuthorityLicense(input.licenseKey);
+  const licenses = await db.query.featureRecords.findMany({
+    where: sql`${featureRecords.feature} = 'licenses' AND ${featureRecords.environment} = 'live'`,
+  });
+  const license = licenses.find((record) => {
+    const data = parseLicenseData(record.data);
+    return (
+      String(data.productId || "") === input.productId &&
+      parseLicenseActivations(data.appActivations).some(
+        (activation) => activation.instanceId === input.instanceId,
+      )
+    );
+  });
   if (!license) {
-    return createAuthorityResponse(requestUrl, "deactivated");
+    return createAuthorityResponse(
+      requestUrl,
+      "deactivated",
+      undefined,
+      undefined,
+      input.instanceId,
+    );
   }
   const data = parseLicenseData(license.data);
-  if (await getAuthorityLicenseError(license, data, input.productId)) {
-    return createAuthorityResponse(requestUrl, "deactivated");
-  }
   const activations = parseLicenseActivations(data.appActivations).filter(
     (activation) => activation.instanceId !== input.instanceId,
   );
@@ -222,5 +245,11 @@ export async function deactivateAuthorityLicense(
       updatedAt: new Date().toISOString(),
     })
     .where(eq(featureRecords.id, license.id));
-  return createAuthorityResponse(requestUrl, "deactivated");
+  return createAuthorityResponse(
+    requestUrl,
+    "deactivated",
+    undefined,
+    undefined,
+    input.instanceId,
+  );
 }

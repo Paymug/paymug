@@ -34,12 +34,18 @@ export interface LicenseAuthorityRequest {
   appVersion: string;
 }
 
+export interface LicenseAuthorityDeactivationRequest {
+  productId: string;
+  instanceId: string;
+}
+
 export interface LicenseAuthorityResponse {
   valid: boolean;
   state: Exclude<AppLicenseState, "free">;
   plan: "pro";
   features: ProFeature[];
   manageUrl: string;
+  instanceId?: string;
   expiresAt?: string;
   error?: string;
 }
