@@ -1,0 +1,85 @@
+audience: coding-ai-and-support
+render: plain
+public-root: /
+
+# Activate a Pro license
+
+This runbook is for a coding agent that needs to enable Paymug Pro features on an
+installation.
+
+## Required values
+
+- `BASE_URL`: the Paymug installation URL;
+- `LICENSE_KEY`: the license key, kept secret;
+- `INSTANCE_ID`: a stable UUID for this installation;
+- `INSTANCE_URL`: the installation URL;
+- `APP_VERSION`: the installed Paymug version.
+
+Use fake values in examples:
+
+```text
+BASE_URL=https://paymug.example.test
+LICENSE_KEY=example-license-key
+INSTANCE_ID=00000000-0000-4000-8000-000000000000
+INSTANCE_URL=https://paymug.example.test
+APP_VERSION=0.1.0
+```
+
+## Activate
+
+```bash
+curl -X POST "$BASE_URL/api/v1/licenses/activate" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "licenseKey": "example-license-key",
+    "instanceId": "00000000-0000-4000-8000-000000000000",
+    "instanceUrl": "https://paymug.example.test",
+    "appVersion": "0.1.0"
+  }'
+```
+
+The request needs a license key, UUID instance ID, valid instance URL, and app
+version. A successful response has `valid: true`, `state: "active"`, a Pro plan,
+and a feature list.
+
+## Validate
+
+Send the same body to:
+
+```text
+POST /api/v1/licenses/validate
+```
+
+Use validation when the agent needs to confirm an existing activation. Do not
+activate repeatedly just to check state.
+
+## Deactivate
+
+Send the same body to:
+
+```text
+POST /api/v1/licenses/deactivate
+```
+
+Deactivate a test installation before moving a license to another installation.
+Confirm the returned state is `deactivated`.
+
+## States and actions
+
+| State | Meaning | Agent action |
+| --- | --- | --- |
+| `active` | License is valid and enabled | Use the listed features |
+| `invalid` | Key, product, mode, or activation is not valid | Check the key and installation values |
+| `expired` | License expiry has passed | Ask the owner to renew |
+| `deactivated` | This installation is no longer active | Activate again only when intended |
+
+If another installation is active, do not retry in a loop. Ask the owner to
+deactivate the old installation or provide the correct license.
+
+## Verify
+
+1. Confirm `valid` is `true`.
+2. Confirm `state` is `active`.
+3. Confirm the required feature is in `features`.
+4. Use the feature in test mode.
+5. Never print the full license key in the result.

@@ -196,6 +196,12 @@ Keep runtime application secrets such as `AUTH_SECRET`, `ENCRYPTION_SECRET`, and
 payment credentials in Cloudflare. Automated deployments preserve variables and
 secrets already configured on the Worker.
 
+## Documentation
+
+See [`docs/README.md`](docs/README.md) for developer, API, and AI-agent guides.
+The documentation plan and completeness tracker are in
+[`docs/DOCS.md`](docs/DOCS.md).
+
 ## Roadmap ideas
 
 - Stripe and Paddle as additional gateways

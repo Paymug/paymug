@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: Paymug Public API
+  version: 0.1.0
+  description: API-key resource endpoints for products, orders, and customers.
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: example.invalid
+paths:
+  /api/v1/products:
+    get:
+      operationId: listProducts
+      summary: List products
+      security:
+        - bearerApiKey: []
+        - apiKeyHeader: []
+      responses:
+        '200':
+          description: Products owned by the API-key owner.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [products]
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      security:
+        - bearerApiKey: []
+        - apiKeyHeader: []
+      responses:
+        '200':
+          description: Orders owned by the API-key owner.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [orders]
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/customers:
+    get:
+      operationId: listCustomers
+      summary: List customers
+      security:
+        - bearerApiKey: []
+        - apiKeyHeader: []
+      responses:
+        '200':
+          description: Customers owned by the API-key owner.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [customers]
+                properties:
+                  customers:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      description: Send the key as Authorization: Bearer <key>.
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Send the key in the x-api-key header.
+  responses:
+    Unauthorized:
+      description: Missing, invalid, or expired API key.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: string
