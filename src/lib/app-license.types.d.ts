@@ -44,6 +44,7 @@ export interface LicenseAuthorityResponse {
 }
 
 export interface LicenseAuthorityActivation {
+  [key: string]: string;
   instanceId: string;
   instanceUrl: string;
   appVersion: string;
