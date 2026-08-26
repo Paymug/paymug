@@ -158,6 +158,7 @@ export function CustomerPurchaseModal({
             {[
               { id: "payments" as const, label: "Payments" },
               { id: "product" as const, label: "Product details" },
+              { id: "benefits" as const, label: "Benefits" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -274,7 +275,7 @@ export function CustomerPurchaseModal({
                 </dl>
               </section>
             </div>
-          ) : (
+          ) : activeTab === "product" ? (
             <div role="tabpanel" className="space-y-6">
               {purchase.productImageUrl && (
                 <img
@@ -302,9 +303,10 @@ export function CustomerPurchaseModal({
                 )}
               </section>
             </div>
-          )}
+          ) : null}
 
-          <section className="mt-8 border-t border-[#e8e8ee] pt-7">
+          {activeTab === "benefits" && (
+            <section role="tabpanel" className="pt-1">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
                 <Receipt size={18} />
@@ -415,7 +417,8 @@ export function CustomerPurchaseModal({
                 </div>
               )}
             </div>
-          </section>
+            </section>
+          )}
         </div>
       </section>
     </div>,
