@@ -27,6 +27,7 @@ import {
   getCustomerStatusClass,
 } from "./customer-portal.utils";
 import { CustomerGitHubAccessCard } from "./CustomerGitHubAccessCard";
+import { CustomerLicenseActivations } from "./CustomerLicenseActivations";
 
 export function CustomerPurchaseModal({
   purchase,
@@ -385,6 +386,11 @@ export function CustomerPurchaseModal({
                       License expires {formatCustomerPortalDateTime(purchase.license.expiresAt)}
                     </p>
                   ) : null}
+                  <CustomerLicenseActivations
+                    orderId={purchase.id}
+                    seatLimit={purchase.license.seatLimit}
+                    initialActivations={purchase.license.activations}
+                  />
                 </div>
               )}
 

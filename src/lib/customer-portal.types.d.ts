@@ -1,5 +1,6 @@
 import type { ProductFile } from "./product-files.types";
 import type { Order } from "./types";
+import type { LicenseAuthorityActivation } from "./app-license.types";
 
 export interface CustomerPortalLicense {
   key: string;
@@ -9,6 +10,8 @@ export interface CustomerPortalLicense {
   perpetual: boolean;
   updatesExpireAt?: string;
   updatesActive: boolean;
+  seatLimit: number | null;
+  activations: LicenseAuthorityActivation[];
 }
 
 export interface CustomerPortalBranding {

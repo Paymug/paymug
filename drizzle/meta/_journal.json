@@ -92,6 +92,13 @@
       "when": 1787983200000,
       "tag": "0012_order_payment_failure_details",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1788069600000,
+      "tag": "0013_product_license_seats",
+      "breakpoints": true
     }
   ]
 }

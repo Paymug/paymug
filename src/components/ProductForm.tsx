@@ -97,6 +97,12 @@ export function ProductForm({
         : product?.licenseUpdatePeriodCount || 1,
     ),
   );
+  const [licenseSeatsUnlimited, setLicenseSeatsUnlimited] = useState(
+    product?.licenseSeatLimit === null,
+  );
+  const [licenseSeatLimit, setLicenseSeatLimit] = useState(
+    String(product?.licenseSeatLimit ?? 1),
+  );
   const [billingType, setBillingType] = useState<ProductBillingType>(
     product?.billingType || "one_time",
   );
@@ -158,6 +164,10 @@ export function ProductForm({
     1,
     Number.parseInt(licenseUpdatePeriodCount || "1", 10) || 1,
   );
+  const parsedLicenseSeatLimit = Math.min(
+    1000,
+    Math.max(1, Number.parseInt(licenseSeatLimit || "1", 10) || 1),
+  );
   const perpetualLicenseEnabled =
     generateLicense && licenseType === "perpetual";
   const priceSuffix =
@@ -194,6 +204,11 @@ export function ProductForm({
       ? billingType === "subscription"
         ? parsedIntervalCount
         : parsedLicenseUpdatePeriodCount
+      : 1,
+    licenseSeatLimit: generateLicense
+      ? licenseSeatsUnlimited
+        ? null
+        : parsedLicenseSeatLimit
       : 1,
     billingType,
     customAmountEnabled:
@@ -699,6 +714,38 @@ export function ProductForm({
                 { value: "perpetual", label: "Perpetual license" },
               ]}
             />
+
+            <Select
+              label="Device seats"
+              name="licenseSeatPolicy"
+              value={licenseSeatsUnlimited ? "unlimited" : "limited"}
+              onValueChange={(value) => {
+                setLicenseSeatsUnlimited(value === "unlimited");
+                requestAutosave(1);
+              }}
+              options={[
+                { value: "limited", label: "Limited" },
+                { value: "unlimited", label: "Unlimited" },
+              ]}
+            />
+
+            {!licenseSeatsUnlimited && (
+              <Input
+                label="Seat limit"
+                name="licenseSeatLimit"
+                type="number"
+                min="1"
+                max="1000"
+                step="1"
+                value={licenseSeatLimit}
+                onChange={(event) => setLicenseSeatLimit(event.target.value)}
+              />
+            )}
+
+            <p className="text-xs leading-5 text-muted">
+              Each seat allows one active device. Customers can remove devices
+              from their purchase details.
+            </p>
 
             {licenseType === "perpetual" && billingType === "subscription" && (
               <p className="text-xs leading-5 text-muted">

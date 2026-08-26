@@ -5,6 +5,10 @@ import { getDb } from "@/db";
 import { featureRecords, orders } from "@/db/schema";
 import { parseProductFiles } from "./product-files.utils";
 import { getLicenseEntitlementSummary } from "./license-entitlements";
+import {
+  parseLicenseActivations,
+  parseLicenseSeatLimit,
+} from "./license-activations.utils";
 import type { FeatureRecordValue } from "./feature-records.types";
 import type {
   CustomerPortalData,
@@ -140,6 +144,10 @@ export async function getCustomerPortalData(
               perpetual: licenseEntitlement?.perpetual || false,
               updatesExpireAt: licenseEntitlement?.updatesExpireAt,
               updatesActive: licenseEntitlement?.updatesActive ?? false,
+              seatLimit: parseLicenseSeatLimit(license.data.seatLimit),
+              activations: parseLicenseActivations(
+                license.data.appActivations,
+              ),
             }
           : undefined,
         githubRepository: githubUnlocked &&

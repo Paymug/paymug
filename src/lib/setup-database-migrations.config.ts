@@ -128,5 +128,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `orders` ADD `payment_failure_details` text;"
     ]
+  },
+  {
+    "name": "0013_product_license_seats.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `license_seat_limit` integer DEFAULT 1;"
+    ]
   }
 ];

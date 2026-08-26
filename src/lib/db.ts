@@ -123,6 +123,10 @@ function rowToProduct(row: typeof productsTable.$inferSelect): Product {
         ? row.licenseUpdatePeriodUnit
         : null,
     licenseUpdatePeriodCount: Math.max(1, row.licenseUpdatePeriodCount || 1),
+    licenseSeatLimit:
+      row.licenseSeatLimit === null
+        ? null
+        : Math.max(1, row.licenseSeatLimit || 1),
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
     customAmountEnabled: row.customAmountEnabled,
     intervalUnit:
@@ -442,6 +446,10 @@ export async function createProduct(product: Product): Promise<Product> {
         ? product.licenseUpdatePeriodUnit || "year"
         : null,
     licenseUpdatePeriodCount: Math.max(1, product.licenseUpdatePeriodCount || 1),
+    licenseSeatLimit:
+      product.licenseSeatLimit === null
+        ? null
+        : Math.max(1, product.licenseSeatLimit || 1),
     billingType: product.billingType || "one_time",
     customAmountEnabled:
       product.billingType === "one_time" && product.customAmountEnabled,
@@ -506,6 +514,14 @@ export async function updateProduct(
         : {}),
       ...(patch.licenseUpdatePeriodCount !== undefined
         ? { licenseUpdatePeriodCount: Math.max(1, patch.licenseUpdatePeriodCount) }
+        : {}),
+      ...(patch.licenseSeatLimit !== undefined
+        ? {
+            licenseSeatLimit:
+              patch.licenseSeatLimit === null
+                ? null
+                : Math.max(1, patch.licenseSeatLimit),
+          }
         : {}),
       ...(patch.billingType !== undefined
         ? { billingType: patch.billingType }

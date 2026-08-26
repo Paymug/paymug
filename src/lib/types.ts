@@ -129,6 +129,8 @@ export interface Product {
   licenseType: ProductLicenseType;
   licenseUpdatePeriodUnit?: ProductLicenseUpdatePeriodUnit | null;
   licenseUpdatePeriodCount: number;
+  /** Maximum active devices, or null for unlimited devices. */
+  licenseSeatLimit: number | null;
   /** One-time purchase or recurring subscription. */
   billingType: ProductBillingType;
   /** Allows one-time checkout links to override the default price. */

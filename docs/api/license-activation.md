@@ -18,5 +18,12 @@ Use these endpoints to manage a Paymug Pro installation:
 Send JSON with `licenseKey`, `instanceId` (UUID), `instanceUrl`, and `appVersion`.
 The response includes `valid`, `state`, `plan`, `features`, and `manageUrl`.
 
+A license can have a fixed device seat limit or unlimited seats. Activating a new
+device uses one seat. When a fixed limit is full, activation fails with a seat
+limit error. Refreshing an existing device does not use another seat.
+
+Customers can open the licensed purchase at `/customer` to view active devices
+and remove one. A removed device fails its next validation.
+
 Keep the license key secret. Do not retry an activation conflict in a loop. See
 the [AI license runbook](/docs/license-activation.md) for a complete example.

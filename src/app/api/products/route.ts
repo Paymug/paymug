@@ -52,6 +52,7 @@ const createSchema = z.object({
   licenseType: z.enum(["standard", "perpetual"]).default("standard"),
   licenseUpdatePeriodUnit: z.enum(["day", "week", "month", "year"]).nullable().optional(),
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).default(1),
+  licenseSeatLimit: z.number().int().min(1).max(1000).nullable().default(1),
   billingType: z.enum(["one_time", "subscription"]).default("one_time"),
   customAmountEnabled: z.boolean().default(false),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
@@ -177,6 +178,9 @@ export async function POST(req: Request) {
       licenseType,
       licenseUpdatePeriodUnit: licenseUpdatePeriod.unit,
       licenseUpdatePeriodCount: licenseUpdatePeriod.count,
+      licenseSeatLimit: parsed.data.generateLicense
+        ? parsed.data.licenseSeatLimit
+        : 1,
       billingType,
       customAmountEnabled:
         billingType === "one_time" && parsed.data.customAmountEnabled,

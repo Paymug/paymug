@@ -144,6 +144,7 @@ export const products = sqliteTable(
   licenseUpdatePeriodCount: integer("license_update_period_count")
     .notNull()
     .default(1),
+  licenseSeatLimit: integer("license_seat_limit").default(1),
   billingType: text("billing_type", {
     enum: ["one_time", "subscription"],
   })

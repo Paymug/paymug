@@ -362,6 +362,7 @@ async function issueLicense(order: Order, product: Product): Promise<void> {
           latestOrderId: order.id,
           updatesStatus: "active",
           updatesExpiredAt: null,
+          seatLimit: product.licenseSeatLimit,
           foreverFreeSubscription:
             existing.data.foreverFreeSubscription === true ||
             foreverFreeSubscription,
@@ -399,6 +400,7 @@ async function issueLicense(order: Order, product: Product): Promise<void> {
       transactionFeeAmount: order.transactionFeeAmount,
       issuedAt,
       licenseType: perpetual ? "perpetual" : "standard",
+      seatLimit: product.licenseSeatLimit,
       ...(perpetual
         ? {
             perpetual: true,

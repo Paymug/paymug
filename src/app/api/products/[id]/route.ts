@@ -27,6 +27,7 @@ import {
 } from "@/lib/license-entitlements";
 import { jsonError } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
+import { omitProductPurchaseDetails } from "./route.utils";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -47,18 +48,7 @@ export async function GET(_req: Request, ctx: Ctx) {
 
   // Hide purchase-only delivery details from non-owners on public GET.
   if (product.userId !== user?.id) {
-    const {
-      deliveryContent: _,
-      redirectUrl: _________,
-      productFiles: _____,
-      generateLicense: __,
-      licenseType: ______,
-      licenseUpdatePeriodUnit: _______,
-      licenseUpdatePeriodCount: ________,
-      githubRepoOwner: ___,
-      githubRepoName: ____,
-      ...publicProduct
-    } = product;
+    const publicProduct = omitProductPurchaseDetails(product);
     return Response.json({ product: publicProduct });
   }
 
@@ -81,6 +71,7 @@ const updateSchema = z.object({
   licenseType: z.enum(["standard", "perpetual"]).optional(),
   licenseUpdatePeriodUnit: z.enum(["day", "week", "month", "year"]).nullable().optional(),
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).optional(),
+  licenseSeatLimit: z.number().int().min(1).max(1000).nullable().optional(),
   billingType: z.enum(["one_time", "subscription"]).optional(),
   customAmountEnabled: z.boolean().optional(),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
@@ -179,6 +170,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
       generateLicense
         ? parseProductLicenseType(parsed.data.licenseType ?? existing.licenseType)
         : "standard";
+    const licenseSeatLimit = generateLicense
+      ? parsed.data.licenseSeatLimit !== undefined
+        ? parsed.data.licenseSeatLimit
+        : existing.licenseSeatLimit
+      : 1;
     let licenseUpdatePeriod = { unit: null as null | "day" | "week" | "month" | "year", count: 1 };
     try {
       if (licenseType === "perpetual") {
@@ -205,6 +201,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       licenseType,
       licenseUpdatePeriodUnit: licenseUpdatePeriod.unit,
       licenseUpdatePeriodCount: licenseUpdatePeriod.count,
+      licenseSeatLimit,
       billingType: nextBillingType,
       customAmountEnabled:
         nextBillingType === "one_time"

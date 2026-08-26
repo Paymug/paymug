@@ -19,6 +19,16 @@ the seller's dashboard credentials.
 Access belongs to the store that received the purchase. If the order is missing,
 confirm the email address, store URL, payment status, and test/live mode.
 
+## Manage licensed devices
+
+1. Open a purchase that includes a license key.
+2. Find Active devices under the key.
+3. Check the number of used seats and the seat limit.
+4. Remove a device that is no longer used.
+
+The removed device fails its next license validation. Do not remove the current
+device unless the customer wants to deactivate it.
+
 ## Change preferences
 
 Use the customer account or email-preferences page to change password, profile,

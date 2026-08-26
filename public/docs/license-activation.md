@@ -42,6 +42,11 @@ The request needs a license key, UUID instance ID, valid instance URL, and app
 version. A successful response has `valid: true`, `state: "active"`, a Pro plan,
 and a feature list.
 
+Each license has a device seat policy. A product can allow a fixed number of
+active devices or unlimited devices. A new device can activate while a seat is
+available. When all limited seats are used, activation returns
+`License seat limit reached`.
+
 ## Validate
 
 Send the same body to:
@@ -73,8 +78,20 @@ Confirm the returned state is `deactivated`.
 | `expired` | License expiry has passed | Ask the owner to renew |
 | `deactivated` | This installation is no longer active | Activate again only when intended |
 
-If another installation is active, do not retry in a loop. Ask the owner to
-deactivate the old installation or provide the correct license.
+If the seat limit is reached, do not retry in a loop. Ask the customer to open
+the purchase in `/customer`, review Active devices, and remove a device that is
+no longer used.
+
+## Remove an active device
+
+1. Sign in at `/customer` with the purchase email.
+2. Open the purchase that contains the license key.
+3. Find Active devices under the license key.
+4. Remove the old device.
+5. Confirm the device is no longer listed.
+
+The removed device fails its next validation. It can activate again only when a
+seat is available and activation is intended.
 
 ## Verify
 

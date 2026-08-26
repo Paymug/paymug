@@ -4,6 +4,10 @@ import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { featureRecords } from "@/db/schema";
 import { proFeatures } from "./app-license.config";
+import {
+  parseLicenseActivations,
+  parseLicenseSeatLimit,
+} from "./license-activations.utils";
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
 import type {
   LicenseAuthorityActivation,
@@ -17,21 +21,6 @@ function parseLicenseData(value: string): Record<string, unknown> {
   } catch {
     return {};
   }
-}
-
-function parseActivations(value: unknown): LicenseAuthorityActivation[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((activation) => {
-    if (!activation || typeof activation !== "object") return [];
-    const item = activation as Partial<LicenseAuthorityActivation>;
-    return typeof item.instanceId === "string" &&
-      typeof item.instanceUrl === "string" &&
-      typeof item.appVersion === "string" &&
-      typeof item.activatedAt === "string" &&
-      typeof item.lastSeenAt === "string"
-      ? [item as LicenseAuthorityActivation]
-      : [];
-  });
 }
 
 async function getAuthorityLicense(licenseKey: string) {
@@ -119,16 +108,17 @@ export async function activateAuthorityLicense(
       state === "expired" ? "License has expired" : "License is not active",
     );
   }
-  const activations = parseActivations(data.appActivations);
+  const activations = parseLicenseActivations(data.appActivations);
+  const seatLimit = parseLicenseSeatLimit(data.seatLimit);
   const existing = activations.find(
     (activation) => activation.instanceId === input.instanceId,
   );
-  if (!existing && activations.length > 0) {
+  if (!existing && seatLimit !== null && activations.length >= seatLimit) {
     return createAuthorityResponse(
       requestUrl,
       "invalid",
       expiresAt,
-      "License is already active on another installation",
+      `License seat limit reached (${seatLimit})`,
     );
   }
   const now = new Date().toISOString();
@@ -139,12 +129,19 @@ export async function activateAuthorityLicense(
     activatedAt: existing?.activatedAt || now,
     lastSeenAt: now,
   };
+  const nextActivations = existing
+    ? activations.map((activation) =>
+        activation.instanceId === input.instanceId
+          ? nextActivation
+          : activation,
+      )
+    : [...activations, nextActivation];
   await db
     .update(featureRecords)
     .set({
       data: JSON.stringify({
         ...data,
-        appActivations: [nextActivation],
+        appActivations: nextActivations,
       }),
       updatedAt: now,
     })
@@ -181,7 +178,7 @@ export async function validateAuthorityLicense(
   if (state !== "active") {
     return createAuthorityResponse(requestUrl, state, expiresAt);
   }
-  const activation = parseActivations(data.appActivations).find(
+  const activation = parseLicenseActivations(data.appActivations).find(
     (item) => item.instanceId === input.instanceId,
   );
   if (!activation) {
@@ -208,7 +205,7 @@ export async function deactivateAuthorityLicense(
   if (await getAuthorityLicenseError(license, data)) {
     return createAuthorityResponse(requestUrl, "deactivated");
   }
-  const activations = parseActivations(data.appActivations).filter(
+  const activations = parseLicenseActivations(data.appActivations).filter(
     (activation) => activation.instanceId !== input.instanceId,
   );
   await db
