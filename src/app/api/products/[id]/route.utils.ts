@@ -11,7 +11,7 @@ const purchaseOnlyProductFields = [
   "githubRepoName",
 ] as const;
 
-export function omitProductPurchaseDetails<T extends Record<string, unknown>>(
+export function omitProductPurchaseDetails<T extends object>(
   product: T,
 ) {
   const publicProduct = { ...product };
