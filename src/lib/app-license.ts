@@ -7,7 +7,7 @@ import { getDb } from "@/db";
 import { appLicenses } from "@/db/schema";
 import { decryptSecret, encryptSecret } from "./crypto";
 import { getRuntimeEnvValue } from "./runtime-env";
-import { proFeatures } from "./app-license.config";
+import { appLicenseProductId, proFeatures } from "./app-license.config";
 import type {
   AppLicenseStatus,
   LicenseAuthorityResponse,
@@ -71,6 +71,7 @@ async function requestLicenseAuthority(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         licenseKey,
+        productId: appLicenseProductId,
         instanceId,
         instanceUrl,
         appVersion: packageJson.version,

@@ -2,6 +2,8 @@ import type { ProFeature } from "./app-license.types";
 
 export const proPurchaseUrl = "https://app.paymug.co/buy/pro";
 
+export const appLicenseProductId = "52119aae-9737-4015-806d-51bc3aadeb22";
+
 export const proFeatures: ProFeature[] = [
   "email_campaigns",
   "automations",

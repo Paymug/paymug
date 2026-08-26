@@ -28,6 +28,7 @@ export interface AppLicenseStatus {
 
 export interface LicenseAuthorityRequest {
   licenseKey: string;
+  productId: string;
   instanceId: string;
   instanceUrl: string;
   appVersion: string;

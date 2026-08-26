@@ -4,6 +4,7 @@ import type { LicenseAuthorityRequest } from "@/lib/app-license.types";
 
 const authorityRequestSchema = z.object({
   licenseKey: z.string().trim().min(8).max(240),
+  productId: z.string().uuid(),
   instanceId: z.string().uuid(),
   instanceUrl: z.string().url(),
   appVersion: z.string().trim().min(1).max(40),

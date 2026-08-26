@@ -33,15 +33,14 @@ async function getAuthorityLicense(licenseKey: string) {
 async function getAuthorityLicenseError(
   license: typeof featureRecords.$inferSelect,
   data: Record<string, unknown>,
+  productId: string,
 ): Promise<string | undefined> {
   if (license.environment !== "live") {
     return "This license was issued in test mode and cannot activate Paymug Pro";
   }
-  const appProductId = `52119aae-9737-4015-806d-51bc3aadeb22`;
-
-  return String(data.productId || "") === appProductId
+  return String(data.productId || "") === productId
     ? undefined
-    : "This license is not for the Paymug application";
+    : "This license is not for this application";
 }
 
 function getLicenseState(
@@ -88,7 +87,11 @@ export async function activateAuthorityLicense(
     );
   }
   const data = parseLicenseData(license.data);
-  const authorityError = await getAuthorityLicenseError(license, data);
+  const authorityError = await getAuthorityLicenseError(
+    license,
+    data,
+    input.productId,
+  );
   if (authorityError) {
     return createAuthorityResponse(
       requestUrl,
@@ -163,7 +166,11 @@ export async function validateAuthorityLicense(
     );
   }
   const data = parseLicenseData(license.data);
-  const authorityError = await getAuthorityLicenseError(license, data);
+  const authorityError = await getAuthorityLicenseError(
+    license,
+    data,
+    input.productId,
+  );
   if (authorityError) {
     return createAuthorityResponse(
       requestUrl,
@@ -202,7 +209,7 @@ export async function deactivateAuthorityLicense(
     return createAuthorityResponse(requestUrl, "deactivated");
   }
   const data = parseLicenseData(license.data);
-  if (await getAuthorityLicenseError(license, data)) {
+  if (await getAuthorityLicenseError(license, data, input.productId)) {
     return createAuthorityResponse(requestUrl, "deactivated");
   }
   const activations = parseLicenseActivations(data.appActivations).filter(
