@@ -20,6 +20,13 @@ export function getVisibleDashboardNavGroups(
               (item) => !item.href.startsWith(`/dashboard/email`)
             ),
           }
+        : group.id === "store" && !visibility.analyticsEnabled
+          ? {
+              ...group,
+              items: group.items.filter(
+                (item) => item.href !== "/dashboard/analytics"
+              ),
+            }
         : group
     )
     .filter((group) => group.items.length > 0);

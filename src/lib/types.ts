@@ -72,6 +72,7 @@ export interface Store {
   affiliateAttributionModel: AffiliateAttributionModel;
   emailCampaignsEnabled: boolean;
   abandonedCheckoutRemindersEnabled: boolean;
+  analyticsEnabled: boolean;
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;

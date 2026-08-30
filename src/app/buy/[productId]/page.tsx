@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ProductDescription } from "@/components/ProductDescription";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
+import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { cardClass } from "@/components/ui.styles";
 import { getSessionUser } from "@/lib/auth";
 import { findProductByPublicIdentifier, findUserById } from "@/lib/db";
@@ -122,6 +123,10 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <VisitorAnalyticsTracker
+        storeId={store.id}
+        enabled={store.analyticsEnabled && !isSandbox && !isPreview}
+      />
       {isPreview && (
         <div className="bg-amber-100 px-6 py-2 text-center text-sm text-amber-900">
           Preview — this is a draft product

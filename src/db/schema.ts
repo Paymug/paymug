@@ -82,6 +82,9 @@ export const stores = sqliteTable(
     )
       .notNull()
       .default(false),
+    analyticsEnabled: integer("analytics_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -611,4 +614,32 @@ export const customerAccessTokens = sqliteTable(
     index("customer_access_tokens_customer_idx").on(table.customerId),
     index("customer_access_tokens_expiry_idx").on(table.expiresAt),
   ]
+);
+
+export const visitorEvents = sqliteTable(
+  "visitor_events",
+  {
+    id: text("id").primaryKey(),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    visitorId: text("visitor_id").notNull(),
+    path: text("path").notNull(),
+    source: text("source").notNull(),
+    device: text("device").notNull(),
+    os: text("os").notNull(),
+    city: text("city").notNull(),
+    country: text("country").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("visitor_events_store_created_idx").on(
+      table.storeId,
+      table.createdAt,
+    ),
+    index("visitor_events_store_visitor_idx").on(
+      table.storeId,
+      table.visitorId,
+    ),
+  ],
 );

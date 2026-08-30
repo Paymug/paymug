@@ -14,11 +14,13 @@ export interface DashboardNavProps {
   setupProgress: number;
   affiliatesEnabled: boolean;
   emailCampaignsEnabled: boolean;
+  analyticsEnabled: boolean;
 }
 
 export interface DashboardFeatureVisibility {
   affiliatesEnabled: boolean;
   emailCampaignsEnabled: boolean;
+  analyticsEnabled: boolean;
 }
 
 export type DashboardNavGroupId =

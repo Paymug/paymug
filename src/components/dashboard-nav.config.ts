@@ -27,6 +27,7 @@ export const dashboardNavGroups: DashboardNavGroupConfig[] = [
       { href: "/dashboard/customers", label: "Customers" },
       { href: "/dashboard/discounts", label: "Discounts" },
       { href: "/dashboard/licenses", label: "Licenses" },
+      { href: "/dashboard/analytics", label: "Analytics", exact: true },
     ],
   },
   {

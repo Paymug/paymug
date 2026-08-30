@@ -134,5 +134,14 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `license_seat_limit` integer DEFAULT 1;"
     ]
+  },
+  {
+    "name": "0014_visitor_analytics.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `analytics_enabled` integer DEFAULT false NOT NULL;",
+      "CREATE TABLE `visitor_events` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`store_id` text NOT NULL,\n\t`visitor_id` text NOT NULL,\n\t`path` text NOT NULL,\n\t`source` text NOT NULL,\n\t`device` text NOT NULL,\n\t`os` text NOT NULL,\n\t`city` text NOT NULL,\n\t`country` text NOT NULL,\n\t`created_at` text NOT NULL,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `visitor_events_store_created_idx` ON `visitor_events` (`store_id`,`created_at`);",
+      "CREATE INDEX `visitor_events_store_visitor_idx` ON `visitor_events` (`store_id`,`visitor_id`);"
+    ]
   }
 ];

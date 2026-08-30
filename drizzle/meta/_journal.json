@@ -99,6 +99,13 @@
       "when": 1788069600000,
       "tag": "0013_product_license_seats",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1788156000000,
+      "tag": "0014_visitor_analytics",
+      "breakpoints": true
     }
   ]
 }

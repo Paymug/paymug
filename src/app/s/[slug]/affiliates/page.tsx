@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AppIcon } from "@/components/dashboard/Icon";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
+import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { findUserById, listProductsByUser } from "@/lib/db";
 import { listStorePages } from "@/lib/store-pages";
 import { getPrimaryStore, getStoreBySlug } from "@/lib/stores";
@@ -70,6 +71,10 @@ export default async function AffiliateProgramPage({
 
   return (
     <div className="landing-page min-h-screen">
+      <VisitorAnalyticsTracker
+        storeId={store.id}
+        enabled={store.analyticsEnabled && environment !== "sandbox"}
+      />
       {environment === "sandbox" && <StoreTestModeRibbon />}
       <main>
         <header className="mx-auto flex w-full max-w-[73.75rem] flex-col justify-between gap-8 px-6 py-10 sm:flex-row sm:items-start sm:px-8">

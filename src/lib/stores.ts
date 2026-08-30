@@ -50,6 +50,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     emailCampaignsEnabled: row.emailCampaignsEnabled,
     abandonedCheckoutRemindersEnabled:
       row.abandonedCheckoutRemindersEnabled,
+    analyticsEnabled: row.analyticsEnabled,
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
@@ -161,6 +162,7 @@ export async function createStore(
     affiliateAttributionModel: "last_click",
     emailCampaignsEnabled: true,
     abandonedCheckoutRemindersEnabled: false,
+    analyticsEnabled: false,
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
@@ -339,6 +341,9 @@ export async function updateStore(
             abandonedCheckoutRemindersEnabled:
               input.abandonedCheckoutRemindersEnabled,
           }
+        : {}),
+      ...(input.analyticsEnabled !== undefined
+        ? { analyticsEnabled: input.analyticsEnabled }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.transactionFeeType !== undefined

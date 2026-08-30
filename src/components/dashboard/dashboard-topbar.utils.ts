@@ -12,6 +12,7 @@ const dashboardTitles: Record<string, string> = {
   "/dashboard/affiliates/clicks": "Affiliate clicks",
   "/dashboard/affiliates/referrals": "Affiliate referrals",
   "/dashboard/affiliates/payouts": "Affiliate payouts",
+  "/dashboard/analytics": "Analytics",
   "/dashboard/settings/payments": "Payments",
   "/dashboard/settings/github": "GitHub",
   "/dashboard/setup": "Setup",

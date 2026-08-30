@@ -64,6 +64,7 @@ export default async function DashboardLayout({
         setupProgress={setupChecklist.progress}
         affiliatesEnabled={store.affiliatesEnabled}
         emailCampaignsEnabled={store.emailCampaignsEnabled}
+        analyticsEnabled={store.analyticsEnabled}
       />
       <DashboardTopbar
         initialNotifications={notifications}

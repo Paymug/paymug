@@ -22,6 +22,7 @@ export interface UpdateStoreInput {
   affiliateAttributionModel?: "first_click" | "last_click";
   emailCampaignsEnabled?: boolean;
   abandonedCheckoutRemindersEnabled?: boolean;
+  analyticsEnabled?: boolean;
   currency?: string;
   transactionFeeType?: "fixed" | "percentage";
   transactionFeeValue?: number;

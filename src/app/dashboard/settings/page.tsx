@@ -39,6 +39,7 @@ export default async function SettingsPage() {
         initialAffiliateCommissionDuration={store.affiliateCommissionDuration}
         initialAffiliateAttributionModel={store.affiliateAttributionModel}
         initialEmailCampaignsEnabled={store.emailCampaignsEnabled}
+        initialAnalyticsEnabled={store.analyticsEnabled}
       />
       <StoreStatusSettings storeId={store.id} storeName={store.name} />
     </div>

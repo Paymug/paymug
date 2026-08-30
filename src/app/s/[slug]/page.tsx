@@ -5,6 +5,7 @@ import { StoreSubscribeForm } from "@/components/StoreSubscribeForm";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StorefrontNavigation } from "@/components/StorefrontNavigation";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
+import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { cardClass } from "@/components/ui.styles";
 import { getSessionUser } from "@/lib/auth";
 import { findUserByStoreSlug, listProductsByUser } from "@/lib/db";
@@ -66,6 +67,10 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <VisitorAnalyticsTracker
+        storeId={store.id}
+        enabled={store.analyticsEnabled && !isTestMode}
+      />
       {isTestMode && <StoreTestModeRibbon />}
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-12">
         <StorefrontNavigation

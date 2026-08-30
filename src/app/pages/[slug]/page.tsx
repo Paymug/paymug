@@ -5,6 +5,7 @@ import { AppIcon } from "@/components/dashboard/Icon";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StorefrontNavigation } from "@/components/StorefrontNavigation";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
+import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { getSessionUser } from "@/lib/auth";
 import { findUserById } from "@/lib/db";
 import { findStorePageBySlug, listStorePages } from "@/lib/store-pages";
@@ -51,6 +52,10 @@ export default async function PublicStorePage({
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
+      <VisitorAnalyticsTracker
+        storeId={store.id}
+        enabled={store.analyticsEnabled && environment !== "sandbox"}
+      />
       {environment === "sandbox" && <StoreTestModeRibbon />}
       <header className="mx-auto flex w-full max-w-5xl flex-col justify-between gap-6 px-4 py-8 sm:flex-row sm:items-center">
         <Link href="/" className="flex items-center gap-3">

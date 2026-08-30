@@ -42,6 +42,7 @@ export function DashboardNav({
   setupProgress,
   affiliatesEnabled,
   emailCampaignsEnabled,
+  analyticsEnabled,
 }: DashboardNavProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -55,6 +56,7 @@ export function DashboardNav({
   const visibleNavGroups = getVisibleDashboardNavGroups(dashboardNavGroups, {
     affiliatesEnabled,
     emailCampaignsEnabled,
+    analyticsEnabled,
   });
   const visibleMobileLinks = [
     dashboardHomeLink,
