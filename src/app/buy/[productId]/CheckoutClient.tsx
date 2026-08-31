@@ -44,6 +44,7 @@ export function CheckoutClient({
     () => initialDiscountCode?.trim().slice(0, 60).toUpperCase() || "",
     [initialDiscountCode],
   );
+  const configurationKey = JSON.stringify(custom);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [discountVisible, setDiscountVisible] = useState(
@@ -101,6 +102,7 @@ export function CheckoutClient({
           productId,
           code,
           customAmount,
+          custom,
         );
         if (requestId !== discountRequestRef.current) return;
         setDiscountCode(preview.code || code);
@@ -122,7 +124,7 @@ export function CheckoutClient({
         });
       }
     },
-    [customAmount, initialTransactionFeeAmount, productId, productPrice],
+    [custom, customAmount, initialTransactionFeeAmount, productId, productPrice],
   );
 
   useEffect(() => {
@@ -131,6 +133,23 @@ export function CheckoutClient({
     setDiscountCode(normalizedInitialDiscountCode);
     void applyDiscountCode(normalizedInitialDiscountCode);
   }, [applyDiscountCode, normalizedInitialDiscountCode]);
+
+  useEffect(() => {
+    if (discountCode.trim() && discountStatus === "valid") {
+      void applyDiscountCode(discountCode);
+      return;
+    }
+    setPricing({
+      subtotal: productPrice,
+      discountAmount: 0,
+      transactionFeeAmount: initialTransactionFeeAmount,
+      total: productPrice + initialTransactionFeeAmount,
+    });
+  }, [
+    configurationKey,
+    initialTransactionFeeAmount,
+    productPrice,
+  ]);
 
   useEffect(() => {
     if (!affiliateRef) return;

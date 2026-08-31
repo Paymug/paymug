@@ -28,6 +28,7 @@ import {
   appendCheckoutCustomData,
   checkoutCustomDataSchema,
 } from "@/lib/checkout-custom-data";
+import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -58,10 +59,16 @@ export async function POST(req: Request) {
         400
       );
     }
-    const checkoutPrice = resolveProductCheckoutPrice(
+    const basePrice = resolveProductCheckoutPrice(
       product,
       parsed.data.customAmount,
     );
+    const configuration = resolveProductConfiguration(
+      product,
+      parsed.data.custom,
+      basePrice,
+    );
+    const checkoutPrice = configuration.price;
     const store = await getStoreById(product.storeId, product.userId);
     if (store?.paymentGateway !== "paypal") {
       return jsonError("PayPal is not enabled for this store", 409);
@@ -137,7 +144,7 @@ export async function POST(req: Request) {
       status: "pending",
       customerEmail: parsed.data.customerEmail,
       customerName: parsed.data.customerName,
-      custom: parsed.data.custom || {},
+      custom: configuration.custom,
       discountCode: discount?.code,
       discountAmount: pricing.discountAmount,
       transactionFeeAmount: pricing.transactionFeeAmount,
@@ -163,7 +170,7 @@ export async function POST(req: Request) {
         formatCustomCheckoutAmount(parsed.data.customAmount),
       );
     }
-    appendCheckoutCustomData(cancelParams, parsed.data.custom);
+    appendCheckoutCustomData(cancelParams, configuration.custom);
     const cancelUrl = await getRuntimeAbsoluteUrl(
       `${getProductPublicPath(product)}?${cancelParams.toString()}`,
       req.url

@@ -1,11 +1,17 @@
 import type { Product } from "@/lib/types";
 import type { ProductFile } from "@/lib/product-files.types";
+import type {
+  ProductBundle,
+  ProductOption,
+} from "@/lib/product-configurations.types";
 
 export interface ProductFormSavePayload {
   name: string;
   slug: string;
   description: string;
   categoryIds: string[];
+  options: ProductOption[];
+  bundles: ProductBundle[];
   imageUrl: string;
   price: number;
   transactionFeeType: "fixed" | "percentage";

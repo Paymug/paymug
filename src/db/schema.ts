@@ -152,6 +152,8 @@ export const products = sqliteTable(
     onDelete: "set null",
   }),
   purchaseCount: integer("purchase_count").notNull().default(0),
+  options: text("options").notNull().default("[]"),
+  bundles: text("bundles").notNull().default("[]"),
   environment: text("environment", { enum: ["sandbox", "live"] })
     .notNull()
     .default("sandbox"),

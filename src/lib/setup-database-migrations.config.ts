@@ -171,5 +171,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "INSERT INTO `product_category_products` (`category_id`, `product_id`, `created_at`)\nSELECT `category_id`, `id`, `updated_at`\nFROM `products`\nWHERE `category_id` IS NOT NULL;",
       "CREATE INDEX `product_category_products_product_idx` ON `product_category_products` (`product_id`);"
     ]
+  },
+  {
+    "name": "0018_product_options_and_bundles.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `options` text DEFAULT '[]' NOT NULL;",
+      "ALTER TABLE `products` ADD `bundles` text DEFAULT '[]' NOT NULL;"
+    ]
   }
 ];

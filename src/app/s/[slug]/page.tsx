@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AppIcon } from "@/components/dashboard/Icon";
 import { StoreSubscribeForm } from "@/components/StoreSubscribeForm";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
@@ -22,7 +22,10 @@ import { listProductCategories } from "@/lib/product-categories";
 
 export const generateMetadata = generateStorefrontMetadata;
 
-export default async function StorefrontPage({ params }: StorefrontPageProps) {
+export default async function StorefrontPage({
+  params,
+  renderPrimaryStore = false,
+}: StorefrontPageProps) {
   const { slug } = await params;
   const seller = await findUserByStoreSlug(slug);
   if (!seller) notFound();
@@ -59,6 +62,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   );
   const isTestMode = environment === "sandbox";
   if (!store) notFound();
+  if (!renderPrimaryStore && store.id === primaryStore?.id) redirect("/");
   const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
   const categorizedProducts = categories
     .map((category) => ({

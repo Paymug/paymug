@@ -37,6 +37,7 @@ import type {
 } from "./ProductForm.types";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
+import { ProductConfigurationEditor } from "./ProductConfigurationEditor";
 
 export function ProductForm({
   product,
@@ -50,6 +51,8 @@ export function ProductForm({
   const [slug, setSlug] = useState(product?.slug || "");
   const [description, setDescription] = useState(product?.description || "");
   const [categoryIds, setCategoryIds] = useState(product?.categoryIds || []);
+  const [options, setOptions] = useState(product?.options || []);
+  const [bundles, setBundles] = useState(product?.bundles || []);
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
   const [price, setPrice] = useState(
     product ? (product.price / 100).toFixed(2) : "",
@@ -187,6 +190,8 @@ export function ProductForm({
     slug,
     description,
     categoryIds,
+    options,
+    bundles,
     imageUrl,
     price: autosavePriceCents,
     transactionFeeType:
@@ -233,6 +238,8 @@ export function ProductForm({
     slug.trim() ||
     description.trim() ||
     categoryIds.length ||
+    options.length ||
+    bundles.length ||
     imageUrl ||
     price.trim() ||
     deliveryContent.trim() ||
@@ -534,6 +541,21 @@ export function ProductForm({
             </span>
           </div>
         </div>
+
+        <ProductConfigurationEditor
+          currency={currency}
+          defaultPrice={autosavePriceCents}
+          options={options}
+          bundles={bundles}
+          onOptionsChange={(nextOptions) => {
+            setOptions(nextOptions);
+            requestAutosave(800);
+          }}
+          onBundlesChange={(nextBundles) => {
+            setBundles(nextBundles);
+            requestAutosave(800);
+          }}
+        />
 
         <Select
           label="Billing"

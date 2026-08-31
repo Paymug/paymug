@@ -4,11 +4,14 @@ import { findProductById } from "@/lib/db";
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
 import { jsonError } from "@/lib/utils";
 import { resolveProductCheckoutPrice } from "@/lib/custom-product-amount";
+import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
+import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 const schema = z.object({
   productId: z.string().min(1),
   customAmount: z.number().int().min(1).max(1_000_000_000).optional(),
   code: z.string().trim().min(1).max(60),
+  custom: checkoutCustomDataSchema.optional(),
 });
 
 export async function POST(req: Request) {
@@ -22,10 +25,15 @@ export async function POST(req: Request) {
     if (!product || product.status !== "published") {
       return jsonError("Product not available", 404);
     }
-    const checkoutPrice = resolveProductCheckoutPrice(
+    const basePrice = resolveProductCheckoutPrice(
       product,
       parsed.data.customAmount,
     );
+    const checkoutPrice = resolveProductConfiguration(
+      product,
+      parsed.data.custom,
+      basePrice,
+    ).price;
 
     const discount = await resolveDiscount(
       product.userId,

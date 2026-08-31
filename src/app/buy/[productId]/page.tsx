@@ -38,6 +38,8 @@ import {
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
 import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
+import { ProductConfigurationPicker } from "@/components/ProductConfigurationPicker";
+import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 export const generateMetadata = generateProductMetadata;
 
@@ -73,6 +75,12 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   } catch {
     notFound();
   }
+  const configuration = resolveProductConfiguration(
+    product,
+    custom,
+    checkoutPrice,
+  );
+  checkoutPrice = configuration.price;
 
   const customer = await getCustomerSession();
   if (customer && product.status === "published") {
@@ -86,6 +94,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       customerName: customer.name,
       productName: product.name,
       customAmount: amount,
+      custom: configuration.custom,
       requestUrl:
         getRequestOrigin(await headers()) || "http://localhost",
     }).catch((error) => {
@@ -184,6 +193,21 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               </div>
             </div>
 
+            <ProductConfigurationPicker
+              options={product.options}
+              bundles={product.bundles}
+              selectedOptionId={configuration.selectedOption?.id}
+              selectedBundleChoiceIds={Object.fromEntries(
+                product.bundles.map((bundle) => [
+                  bundle.id,
+                  configuration.selectedBundleChoices
+                    .filter((selection) => selection.bundle.id === bundle.id)
+                    .map((selection) => selection.choice.id),
+                ]),
+              )}
+              currency={product.currency}
+            />
+
             {product.imageUrl && (
               <img
                 src={product.imageUrl}
@@ -219,7 +243,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               productName={product.name}
               productPrice={checkoutPrice}
               customAmount={customAmount}
-              custom={custom}
+              custom={configuration.custom}
               affiliateRef={ref?.trim() || undefined}
               initialDiscountCode={discount?.trim() || undefined}
               initialTransactionFeeAmount={initialPricing.transactionFeeAmount}

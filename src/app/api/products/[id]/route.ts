@@ -29,6 +29,10 @@ import { jsonError } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { omitProductPurchaseDetails } from "./route.utils";
 import { validateProductCategoryIds } from "@/lib/product-categories";
+import {
+  productBundleSchema,
+  productOptionSchema,
+} from "@/lib/product-configurations.schema";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -62,6 +66,8 @@ const updateSchema = z.object({
   description: z.string().max(100000).optional(),
   categoryId: z.string().min(1).nullable().optional(),
   categoryIds: z.array(z.string().min(1)).max(100).optional(),
+  options: z.array(productOptionSchema).max(50).optional(),
+  bundles: z.array(productBundleSchema).max(25).optional(),
   price: z.number().int().nonnegative().optional(),
   transactionFeeType: z.enum(["fixed", "percentage"]).optional(),
   transactionFeeValue: z.number().int().min(0).max(1000000000).optional(),

@@ -24,6 +24,7 @@ import { getStoreById } from "@/lib/stores";
 import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
 import { jsonError, uid } from "@/lib/utils";
 import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
+import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -53,6 +54,11 @@ export async function POST(req: Request) {
     if (!cadence) {
       return jsonError("Subscription billing interval is not configured", 400);
     }
+    const configuration = resolveProductConfiguration(
+      product,
+      parsed.data.custom,
+    );
+    const checkoutPrice = configuration.price;
 
     const store = await getStoreById(product.storeId, product.userId);
     if (store?.paymentGateway !== "paypal") {
@@ -71,13 +77,17 @@ export async function POST(req: Request) {
     const discount = await resolveDiscount(
       product.userId,
       parsed.data.discountCode,
-      product.price,
+      checkoutPrice,
       product.id,
       product.storeId,
       product.environment
     );
-    const pricing = calculateCheckoutPricing(product, discount?.amount);
-    const fullPricing = calculateCheckoutPricing(product);
+    const pricing = calculateCheckoutPricing(
+      product,
+      discount?.amount,
+      checkoutPrice,
+    );
+    const fullPricing = calculateCheckoutPricing(product, 0, checkoutPrice);
     const discountPeriods = discount?.subscriptionPeriods;
     const recurringTotal = discountPeriods ? fullPricing.total : pricing.total;
     if (discountPeriods && pricing.total <= 0) {
@@ -133,6 +143,7 @@ export async function POST(req: Request) {
       data: {
         storeId: product.storeId,
         productId: product.id,
+        productPrice: checkoutPrice,
         amount: amountMajor,
         introductoryAmount: introductoryAmountMajor ?? null,
         discountPeriods: discountPeriods ?? null,
@@ -148,7 +159,7 @@ export async function POST(req: Request) {
         affiliateId: affiliate?.id || null,
         githubUsername: null,
         customerName: parsed.data.customerName || null,
-        custom: parsed.data.custom || {},
+        custom: configuration.custom,
         environment: conn.mode,
         source: "product_checkout",
         orderId,
@@ -184,10 +195,11 @@ export async function POST(req: Request) {
       await createPendingSubscriptionOrder({
         orderId,
         product,
+        productPrice: checkoutPrice,
         amount: pricing.total,
         customerEmail: parsed.data.customerEmail,
         customerName: parsed.data.customerName,
-        custom: parsed.data.custom,
+        custom: configuration.custom,
         discountCode: discount?.code,
         discountAmount: pricing.discountAmount,
         transactionFeeAmount: pricing.transactionFeeAmount,

@@ -32,7 +32,7 @@ export async function createPendingSubscriptionOrder(
     productId: input.product.id,
     productName: input.product.name,
     productDescription: input.product.description,
-    productPrice: input.product.price,
+    productPrice: input.productPrice ?? input.product.price,
     deliveryContent: input.product.deliveryContent,
     productFiles: input.product.productFiles,
     githubRepoOwner: input.product.githubRepoOwner,
@@ -92,6 +92,7 @@ export async function ensurePendingSubscriptionOrder(
   return createPendingSubscriptionOrder({
     orderId,
     product,
+    productPrice: Number(subscription.data.productPrice || product.price),
     amount: Math.max(
       0,
       Math.round(Number(subscription.data.amount || 0) * 100)
@@ -174,7 +175,7 @@ function createPaidSubscriptionOrder(
     productId: product.id,
     productName: product.name,
     productDescription: product.description,
-    productPrice: product.price,
+    productPrice: Number(data.productPrice || product.price),
     deliveryContent: product.deliveryContent,
     productFiles: product.productFiles,
     githubRepoOwner: product.githubRepoOwner,

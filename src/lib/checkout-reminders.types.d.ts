@@ -1,4 +1,5 @@
 import type { PayPalMode } from "./types";
+import type { CheckoutCustomData } from "./checkout-custom-data.types";
 
 export interface ScheduleCheckoutReminderInput {
   userId: string;
@@ -11,4 +12,5 @@ export interface ScheduleCheckoutReminderInput {
   productName: string;
   requestUrl: string;
   customAmount?: string;
+  custom?: CheckoutCustomData;
 }

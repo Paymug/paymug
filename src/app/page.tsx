@@ -12,5 +12,10 @@ export default async function HomePage() {
   const slug = await getHomepageStoreSlug();
   if (!slug) redirect("/setup");
 
-  return <StorefrontPage params={Promise.resolve({ slug })} />;
+  return (
+    <StorefrontPage
+      params={Promise.resolve({ slug })}
+      renderPrimaryStore
+    />
+  );
 }

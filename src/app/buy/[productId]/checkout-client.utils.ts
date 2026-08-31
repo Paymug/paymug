@@ -13,11 +13,12 @@ export async function fetchDiscountPreview(
   productId: string,
   code: string,
   customAmount?: number,
+  custom?: CheckoutCustomData,
 ): Promise<DiscountPreviewResponse> {
   const response = await fetch("/api/checkout/discount", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId, code, customAmount }),
+    body: JSON.stringify({ productId, code, customAmount, custom }),
   });
   const data = (await response.json()) as DiscountPreviewResponse & {
     error?: string;

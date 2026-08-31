@@ -8,6 +8,7 @@ import {
 import { formatProductPriceSuffix } from "@/lib/product-billing";
 import { getProductPublicPath } from "@/lib/product-paths";
 import type { StorefrontProductGridProps } from "./StorefrontProductGrid.types";
+import { getProductStartingPrice } from "@/lib/product-configurations";
 
 export function StorefrontProductGrid({
   products,
@@ -37,19 +38,26 @@ export function StorefrontProductGrid({
           <h3 className="mt-4 font-semibold group-hover:text-accent-dark">
             {product.name}
           </h3>
-          <p className="mt-1 line-clamp-2 flex-1 text-sm text-muted">
-            {getProductDescriptionPlainText(product.description) ||
-              "Digital product"}
-          </p>
-          <p className="mt-4 text-lg font-bold">
-            {formatMoney(product.price, product.currency)}
-            {formatProductPriceSuffix(product)}
-          </p>
-          {displayPurchases && (
-            <p className="mt-1 text-xs text-muted">
-              {product.purchaseCount.toLocaleString()} purchased
+          <p
+            className="mt-1 line-clamp-2 flex-1 text-sm text-muted"
+            dangerouslySetInnerHTML={{
+              __html:
+                getProductDescriptionPlainText(product.description) ||
+                "Digital product",
+            }}
+          />
+          <div className="mt-4 flex flex-row justify-between">
+            <p className="text-lg font-bold">
+              {!!product.options.length && "From "}
+              {formatMoney(getProductStartingPrice(product), product.currency)}
+              {formatProductPriceSuffix(product)}
             </p>
-          )}
+            {displayPurchases && product.purchaseCount && (
+              <p className="mt-1 text-xs text-muted">
+                {product.purchaseCount.toLocaleString()} purchased
+              </p>
+            )}
+          </div>
           {isPerpetualLicenseProduct(product) && (
             <p className="mt-1 text-xs text-muted">
               Lifetime use ·{" "}

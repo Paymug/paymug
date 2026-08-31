@@ -127,6 +127,13 @@
       "when": 1788415200000,
       "tag": "0017_category_order_and_memberships",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1788501600000,
+      "tag": "0018_product_options_and_bundles",
+      "breakpoints": true
     }
   ]
 }

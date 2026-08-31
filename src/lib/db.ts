@@ -31,6 +31,11 @@ import {
   getProductCategoryIds,
   replaceProductCategories,
 } from "./product-category-assignments";
+import {
+  parseProductBundles,
+  parseProductOptions,
+  serializeProductConfiguration,
+} from "./product-configurations";
 import { parseStoredCheckoutCustomData } from "./checkout-custom-data";
 import {
   emitCreatedOrderWebhook,
@@ -112,6 +117,8 @@ function rowToProduct(
     categoryId: row.categoryId ?? undefined,
     categoryIds: resolvedCategoryIds,
     purchaseCount: row.purchaseCount,
+    options: parseProductOptions(row.options),
+    bundles: parseProductBundles(row.bundles),
     environment: row.environment,
     name: row.name,
     slug: row.slug,
@@ -449,6 +456,8 @@ export async function createProduct(product: Product): Promise<Product> {
     storeId: product.storeId,
     categoryId: product.categoryIds[0] ?? product.categoryId ?? null,
     purchaseCount: product.purchaseCount,
+    options: serializeProductConfiguration(product.options),
+    bundles: serializeProductConfiguration(product.bundles),
     environment: product.environment,
     name: product.name,
     slug: product.slug,
@@ -515,6 +524,12 @@ export async function updateProduct(
         : {}),
       ...(patch.purchaseCount !== undefined
         ? { purchaseCount: Math.max(0, patch.purchaseCount) }
+        : {}),
+      ...(patch.options !== undefined
+        ? { options: serializeProductConfiguration(patch.options) }
+        : {}),
+      ...(patch.bundles !== undefined
+        ? { bundles: serializeProductConfiguration(patch.bundles) }
         : {}),
       ...(patch.description !== undefined ? { description: patch.description } : {}),
       ...(patch.price !== undefined ? { price: patch.price } : {}),

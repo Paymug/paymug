@@ -1,5 +1,9 @@
 import type { ProductFile } from "./product-files.types";
 import type { CheckoutCustomData } from "./checkout-custom-data.types";
+import type {
+  ProductBundle,
+  ProductOption,
+} from "./product-configurations.types";
 
 export type PayPalMode = "sandbox" | "live";
 export type PaymentGateway = "paypal" | "stripe";
@@ -113,6 +117,8 @@ export interface Product {
   categoryId?: string;
   categoryIds: string[];
   purchaseCount: number;
+  options: ProductOption[];
+  bundles: ProductBundle[];
   environment: PayPalMode;
   name: string;
   slug: string;

@@ -25,6 +25,7 @@ import type {
   CompleteFreePurchaseResponse,
 } from "./route.types";
 import { resolveProductCheckoutPrice } from "@/lib/custom-product-amount";
+import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 export async function completeFreePurchase(
   input: CompleteFreePurchaseInput,
@@ -34,10 +35,16 @@ export async function completeFreePurchase(
   if (!product || product.status !== "published") {
     throw new Error("Product not available");
   }
-  const checkoutPrice = resolveProductCheckoutPrice(
+  const basePrice = resolveProductCheckoutPrice(
     product,
     input.customAmount,
   );
+  const configuration = resolveProductConfiguration(
+    product,
+    input.custom,
+    basePrice,
+  );
+  const checkoutPrice = configuration.price;
   const seller = await findUserById(product.userId);
   if (!seller) throw new Error("Product owner not found");
 
@@ -108,7 +115,7 @@ export async function completeFreePurchase(
     status: "paid",
     customerEmail: input.customerEmail,
     customerName: input.customerName,
-    custom: input.custom || {},
+    custom: configuration.custom,
     discountCode: discount?.code,
     discountAmount: pricing.discountAmount,
     transactionFeeAmount: pricing.transactionFeeAmount,
@@ -133,6 +140,7 @@ export async function completeFreePurchase(
       data: {
         storeId: product.storeId,
         productId: product.id,
+        productPrice: checkoutPrice,
         amount: 0,
         currency: product.currency,
         interval: product.intervalUnit || "month",
@@ -143,7 +151,7 @@ export async function completeFreePurchase(
         discountAmount: pricing.discountAmount,
         discountPeriods: null,
         customerName: input.customerName || null,
-        custom: input.custom || {},
+        custom: configuration.custom,
         githubUsername: null,
         environment: product.environment,
         source: "free_product_checkout",

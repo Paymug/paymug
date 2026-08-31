@@ -5,6 +5,7 @@ import type { CheckoutCustomData } from "./checkout-custom-data.types";
 export interface CreatePendingSubscriptionOrderInput {
   orderId: string;
   product: Product;
+  productPrice?: number;
   amount: number;
   customerEmail: string;
   customerName?: string;

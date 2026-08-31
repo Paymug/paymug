@@ -25,6 +25,10 @@ import {
 import { jsonError, uid } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { validateProductCategoryIds } from "@/lib/product-categories";
+import {
+  productBundleSchema,
+  productOptionSchema,
+} from "@/lib/product-configurations.schema";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -43,6 +47,8 @@ const createSchema = z.object({
   description: z.string().max(100000).optional().default(""),
   categoryId: z.string().min(1).nullable().optional(),
   categoryIds: z.array(z.string().min(1)).max(100).optional(),
+  options: z.array(productOptionSchema).max(50).default([]),
+  bundles: z.array(productBundleSchema).max(25).default([]),
   price: z.number().int().nonnegative(),
   transactionFeeType: z.enum(["fixed", "percentage"]).default("fixed"),
   transactionFeeValue: z.number().int().min(0).max(1000000000).default(0),
@@ -179,6 +185,8 @@ export async function POST(req: Request) {
       categoryId: categoryIds[0],
       categoryIds,
       purchaseCount: 0,
+      options: parsed.data.options,
+      bundles: parsed.data.bundles,
       environment: user.environment,
       name: parsed.data.name,
       slug: productSlug,

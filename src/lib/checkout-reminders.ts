@@ -8,6 +8,7 @@ import { getStoreById } from "./stores";
 import { uid } from "./utils";
 import { getProductPublicPath } from "./product-paths";
 import type { ScheduleCheckoutReminderInput } from "./checkout-reminders.types";
+import { appendCheckoutCustomData } from "./checkout-custom-data";
 
 const reminderDelayMs = 60 * 60 * 1000;
 
@@ -25,8 +26,12 @@ export async function scheduleCheckoutReminder(
     id: input.productId,
     slug: input.productSlug,
   });
-  const checkoutUrl = input.customAmount
-    ? `${checkoutPath}?amount=${encodeURIComponent(input.customAmount)}`
+  const checkoutParams = new URLSearchParams();
+  if (input.customAmount) checkoutParams.set("amount", input.customAmount);
+  appendCheckoutCustomData(checkoutParams, input.custom);
+  const checkoutQuery = checkoutParams.toString();
+  const checkoutUrl = checkoutQuery
+    ? `${checkoutPath}?${checkoutQuery}`
     : checkoutPath;
   const values = {
     id: uid(),
