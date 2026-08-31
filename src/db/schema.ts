@@ -85,6 +85,11 @@ export const stores = sqliteTable(
     analyticsEnabled: integer("analytics_enabled", { mode: "boolean" })
       .notNull()
       .default(false),
+    displayPurchasesEnabled: integer("display_purchases_enabled", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(false),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -104,6 +109,34 @@ export const stores = sqliteTable(
   ]
 );
 
+export const productCategories = sqliteTable(
+  "product_categories",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description").notNull().default(""),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("product_categories_store_slug_idx").on(
+      table.storeId,
+      table.slug,
+    ),
+    index("product_categories_user_store_idx").on(
+      table.userId,
+      table.storeId,
+    ),
+  ],
+);
+
 export const products = sqliteTable(
   "products",
   {
@@ -114,6 +147,10 @@ export const products = sqliteTable(
   storeId: text("store_id").references(() => stores.id, {
     onDelete: "cascade",
   }),
+  categoryId: text("category_id").references(() => productCategories.id, {
+    onDelete: "set null",
+  }),
+  purchaseCount: integer("purchase_count").notNull().default(0),
   environment: text("environment", { enum: ["sandbox", "live"] })
     .notNull()
     .default("sandbox"),
@@ -168,6 +205,7 @@ export const products = sqliteTable(
   },
   (table) => [
     index("products_slug_idx").on(table.slug),
+    index("products_category_idx").on(table.categoryId),
     index("products_user_store_environment_created_idx").on(
       table.userId,
       table.storeId,

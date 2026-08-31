@@ -106,6 +106,20 @@
       "when": 1788156000000,
       "tag": "0014_visitor_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1788242400000,
+      "tag": "0015_product_categories",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1788328800000,
+      "tag": "0016_display_product_purchases",
+      "breakpoints": true
     }
   ]
 }

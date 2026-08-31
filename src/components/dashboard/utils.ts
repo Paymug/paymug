@@ -137,7 +137,16 @@ export function formatChartPointDate(
 ) {
   if (!point.date) return point.label;
   const date = parseChartDate(point.date);
-  return Number.isNaN(date.getTime()) ? point.label : formatter.format(date);
+  if (Number.isNaN(date.getTime())) return point.label;
+  if (point.date.includes("T")) {
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      timeZone: "UTC",
+    });
+  }
+  return formatter.format(date);
 }
 
 export function setChartTooltipText(

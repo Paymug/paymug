@@ -40,6 +40,8 @@ export interface VisitorAnalyticsSummary {
   uniqueVisitorsDelta: number | null;
   series: ChartPoint[];
   previousSeries: ChartPoint[];
+  uniqueVisitorSeries: ChartPoint[];
+  previousUniqueVisitorSeries: ChartPoint[];
   sources: AnalyticsBreakdownItem[];
   pages: AnalyticsBreakdownItem[];
   devices: AnalyticsBreakdownItem[];

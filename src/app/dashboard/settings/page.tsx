@@ -40,6 +40,7 @@ export default async function SettingsPage() {
         initialAffiliateAttributionModel={store.affiliateAttributionModel}
         initialEmailCampaignsEnabled={store.emailCampaignsEnabled}
         initialAnalyticsEnabled={store.analyticsEnabled}
+        initialDisplayPurchasesEnabled={store.displayPurchasesEnabled}
       />
       <StoreStatusSettings storeId={store.id} storeName={store.name} />
     </div>

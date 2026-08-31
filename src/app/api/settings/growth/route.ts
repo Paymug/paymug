@@ -14,6 +14,7 @@ const growthSettingsSchema = z
     affiliateAttributionModel: z.enum(["first_click", "last_click"]),
     emailCampaignsEnabled: z.boolean(),
     analyticsEnabled: z.boolean(),
+    displayPurchasesEnabled: z.boolean(),
   })
   .refine(
     (settings) =>

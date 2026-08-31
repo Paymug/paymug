@@ -23,6 +23,7 @@ export interface UpdateStoreInput {
   emailCampaignsEnabled?: boolean;
   abandonedCheckoutRemindersEnabled?: boolean;
   analyticsEnabled?: boolean;
+  displayPurchasesEnabled?: boolean;
   currency?: string;
   transactionFeeType?: "fixed" | "percentage";
   transactionFeeValue?: number;

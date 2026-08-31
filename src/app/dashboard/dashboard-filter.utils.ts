@@ -63,6 +63,7 @@ export function getDashboardInterval(
           86_400_000,
       ),
     ) + 1;
+  if (days === 1) return "hourly";
   if (days < 7 * 7) return "daily";
   if (days < 365) return "weekly";
   return "monthly";

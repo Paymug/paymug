@@ -22,6 +22,7 @@ export function GrowthSettingsForm({
   initialAffiliateAttributionModel,
   initialEmailCampaignsEnabled,
   initialAnalyticsEnabled,
+  initialDisplayPurchasesEnabled,
 }: GrowthSettingsFormProps) {
   const router = useRouter();
   const [affiliatesEnabled, setAffiliatesEnabled] = useState(
@@ -41,6 +42,9 @@ export function GrowthSettingsForm({
   );
   const [analyticsEnabled, setAnalyticsEnabled] = useState(
     initialAnalyticsEnabled
+  );
+  const [displayPurchasesEnabled, setDisplayPurchasesEnabled] = useState(
+    initialDisplayPurchasesEnabled
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +68,7 @@ export function GrowthSettingsForm({
           affiliateAttributionModel: attributionModel,
           emailCampaignsEnabled,
           analyticsEnabled,
+          displayPurchasesEnabled,
         }),
       });
       const data = (await response.json()) as GrowthSettingsResponse;
@@ -206,6 +211,32 @@ export function GrowthSettingsForm({
               checked={analyticsEnabled}
               onChange={(event) => setAnalyticsEnabled(event.target.checked)}
               aria-label="Enable visitor analytics"
+            />
+            <span className="h-6 w-11 rounded-full bg-[#d9d9e1] transition peer-checked:bg-accent peer-focus-visible:ring-3 peer-focus-visible:ring-accent/30 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5" />
+          </label>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-[#e8e8ee] bg-white px-5 py-5 sm:px-6">
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <h2 className="text-base font-semibold text-[#333]">
+              Display purchases
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-[#85859d]">
+              Show the number of completed purchases on product cards and
+              product pages.
+            </p>
+          </div>
+          <label className="relative mt-0.5 inline-flex shrink-0 cursor-pointer items-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={displayPurchasesEnabled}
+              onChange={(event) =>
+                setDisplayPurchasesEnabled(event.target.checked)
+              }
+              aria-label="Display product purchases"
             />
             <span className="h-6 w-11 rounded-full bg-[#d9d9e1] transition peer-checked:bg-accent peer-focus-visible:ring-3 peer-focus-visible:ring-accent/30 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5" />
           </label>

@@ -6,14 +6,17 @@ export function AnalyticsBreakdownCard({
   emptyLabel = "No visitor data in this period",
 }: AnalyticsBreakdownCardProps) {
   return (
-    <section className="overflow-hidden rounded-xl border border-[#e8e8ee] bg-white">
+    <section className="flex aspect-square min-h-72 flex-col overflow-hidden border-b border-r border-[#e8e8ee] bg-white">
       <h2 className="border-b border-[#e8e8ee] px-5 py-4 text-base font-semibold">
         {title}
       </h2>
       {items.length ? (
-        <div className="divide-y divide-[#ededf2]">
+        <div className="min-h-0 flex-1 divide-y divide-[#ededf2] overflow-y-auto">
           {items.map((item) => (
-            <div key={item.label} className="relative flex items-center justify-between gap-4 px-5 py-3">
+            <div
+              key={item.label}
+              className="relative flex items-center justify-between gap-4 px-5 py-3"
+            >
               <div
                 className="absolute inset-y-1 left-2 rounded-md bg-[#fff8e5]"
                 style={{ width: `calc(${item.share}% - 0.5rem)` }}

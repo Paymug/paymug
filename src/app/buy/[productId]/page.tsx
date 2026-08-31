@@ -157,9 +157,16 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
             </header>
 
             <div className="mb-6 flex items-start justify-between gap-6">
-              <h1 className="min-w-0 text-2xl font-bold tracking-tight sm:text-3xl">
-                {product.name}
-              </h1>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                  {product.name}
+                </h1>
+                {store.displayPurchasesEnabled && (
+                  <p className="mt-2 text-sm text-muted">
+                    {product.purchaseCount.toLocaleString()} purchased
+                  </p>
+                )}
+              </div>
               <div className="shrink-0 text-right">
                 <p className="text-2xl font-bold sm:text-3xl">
                   {formatProductPageMoney(checkoutPrice, product.currency)}

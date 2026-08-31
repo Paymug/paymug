@@ -26,6 +26,7 @@ import {
   serializeProductFiles,
 } from "./product-files.utils";
 import { getStoreCredentialSource } from "./stores";
+import { incrementProductPurchaseCount } from "./product-purchases";
 import { parseStoredCheckoutCustomData } from "./checkout-custom-data";
 import {
   emitCreatedOrderWebhook,
@@ -100,6 +101,8 @@ function rowToProduct(row: typeof productsTable.$inferSelect): Product {
     id: row.id,
     userId: row.userId,
     storeId: row.storeId || row.userId,
+    categoryId: row.categoryId ?? undefined,
+    purchaseCount: row.purchaseCount,
     environment: row.environment,
     name: row.name,
     slug: row.slug,
@@ -426,6 +429,8 @@ export async function createProduct(product: Product): Promise<Product> {
     id: product.id,
     userId: product.userId,
     storeId: product.storeId,
+    categoryId: product.categoryId ?? null,
+    purchaseCount: product.purchaseCount,
     environment: product.environment,
     name: product.name,
     slug: product.slug,
@@ -483,6 +488,12 @@ export async function updateProduct(
     .set({
       ...(patch.name !== undefined ? { name: patch.name } : {}),
       ...(patch.slug !== undefined ? { slug: patch.slug } : {}),
+      ...(patch.categoryId !== undefined
+        ? { categoryId: patch.categoryId || null }
+        : {}),
+      ...(patch.purchaseCount !== undefined
+        ? { purchaseCount: Math.max(0, patch.purchaseCount) }
+        : {}),
       ...(patch.description !== undefined ? { description: patch.description } : {}),
       ...(patch.price !== undefined ? { price: patch.price } : {}),
       ...(patch.transactionFeeType !== undefined
@@ -656,6 +667,9 @@ export async function createOrder(order: Order): Promise<Order> {
     githubAccessGrantedAt: order.githubAccessGrantedAt ?? null,
     githubAccessRevokedAt: order.githubAccessRevokedAt ?? null,
   });
+  if (order.status === "paid") {
+    await incrementProductPurchaseCount(order.productId);
+  }
   await emitCreatedOrderWebhook(order);
   return order;
 }
@@ -733,6 +747,9 @@ export async function updateOrder(
         : {}),
     })
     .where(eq(ordersTable.id, id));
+  if (previous && !previous.paidAt && patch.status === "paid") {
+    await incrementProductPurchaseCount(previous.productId);
+  }
   const updated = await findOrderById(id);
   await emitUpdatedOrderWebhook(previous, updated);
   return updated;

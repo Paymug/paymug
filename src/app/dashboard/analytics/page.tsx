@@ -71,7 +71,6 @@ export default async function AnalyticsPage({
   return (
     <div className={dashboardPageClass}>
       <AnalyticsOverview
-        storeName={store.name}
         startDate={filter.startDate}
         endDate={filter.endDate}
         interval={filter.interval}

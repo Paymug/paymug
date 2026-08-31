@@ -1,0 +1,130 @@
+"use client";
+
+import { PencilSimple, Plus, Trash } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Alert, Button } from "@/components/ui";
+import type { ProductCategory } from "@/lib/types";
+import { CategoryModal } from "./CategoryModal";
+import type {
+  CategoriesWorkspaceProps,
+  CategoryApiResponse,
+} from "./categories.types";
+
+export function CategoriesWorkspace({ categories }: CategoriesWorkspaceProps) {
+  const router = useRouter();
+  const [modalCategory, setModalCategory] = useState<
+    ProductCategory | null | undefined
+  >(undefined);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove(category: ProductCategory) {
+    if (
+      !window.confirm(
+        `Delete ${category.name}? Products will become uncategorized.`,
+      )
+    ) {
+      return;
+    }
+    setDeletingId(category.id);
+    setError(null);
+    const response = await fetch(`/api/categories/${category.id}`, {
+      method: "DELETE",
+    });
+    const data = (await response.json()) as CategoryApiResponse;
+    setDeletingId(null);
+    if (!response.ok) {
+      setError(data.error || "Could not delete category");
+      return;
+    }
+    router.refresh();
+  }
+
+  return (
+    <>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="text-sm text-muted">
+          Group products into storefront collections with their own public URL.
+        </p>
+        <Button type="button" onClick={() => setModalCategory(null)}>
+          <Plus size={16} weight="bold" />
+          Add category
+        </Button>
+      </div>
+
+      {error && (
+        <div className="mt-5">
+          <Alert>{error}</Alert>
+        </div>
+      )}
+
+      <section className="mt-6 overflow-x-auto rounded-xl border border-[#e8e8ee] bg-white">
+        {categories.length ? (
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#e8e8ee] text-muted">
+                <th className="px-5 py-3 font-medium">Name</th>
+                <th className="px-5 py-3 font-medium">URL</th>
+                <th className="px-5 py-3 font-medium">Description</th>
+                <th className="w-28 px-5 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <tr
+                  key={category.id}
+                  className="border-b border-[#ededf2] last:border-0"
+                >
+                  <td className="px-5 py-4 font-medium">{category.name}</td>
+                  <td className="px-5 py-4 font-mono text-xs text-muted">
+                    /{category.slug}
+                  </td>
+                  <td className="max-w-sm truncate px-5 py-4 text-muted">
+                    {category.description || "—"}
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setModalCategory(category)}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground"
+                        aria-label={`Edit ${category.name}`}
+                      >
+                        <PencilSimple size={17} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void remove(category)}
+                        disabled={deletingId === category.id}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                        aria-label={`Delete ${category.name}`}
+                      >
+                        <Trash size={17} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="px-6 py-14 text-center">
+            <p className="text-sm font-medium">No product categories yet</p>
+            <p className="mt-1 text-sm text-muted">
+              Add a category, then assign it from a product’s category dropdown.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {modalCategory !== undefined && (
+        <CategoryModal
+          key={modalCategory?.id || "new"}
+          category={modalCategory || undefined}
+          onClose={() => setModalCategory(undefined)}
+        />
+      )}
+    </>
+  );
+}

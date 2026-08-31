@@ -33,6 +33,12 @@ function formatBucketLabel(
   endDate: string,
   interval: DashboardInterval
 ) {
+  if (interval === "hourly") {
+    return new Date(startDate).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      timeZone: "UTC",
+    });
+  }
   if (interval === "monthly") {
     return toDate(startDate).toLocaleDateString("en-US", {
       month: "short",
@@ -60,6 +66,23 @@ function createBuckets(
   interval: DashboardInterval
 ): DashboardSeriesBucket[] {
   const buckets: DashboardSeriesBucket[] = [];
+  if (interval === "hourly") {
+    const day = startDate.slice(0, 10);
+    for (let hour = 0; hour < 24; hour += 1) {
+      const bucketStart = new Date(`${day}T00:00:00.000Z`);
+      bucketStart.setUTCHours(hour);
+      const bucketEnd = new Date(bucketStart);
+      bucketEnd.setUTCMinutes(59, 59, 999);
+      const bucketStartKey = bucketStart.toISOString();
+      buckets.push({
+        startDate: bucketStartKey,
+        endDate: bucketEnd.toISOString(),
+        label: formatBucketLabel(bucketStartKey, bucketStartKey, interval),
+        value: 0,
+      });
+    }
+    return buckets;
+  }
   let cursor = toDate(startDate);
   const end = toDate(endDate);
 
@@ -91,7 +114,11 @@ function addValueToBucket(
   date: string,
   value: number
 ) {
-  const dateKey = date.slice(0, 10);
+  const hourly = buckets[0]?.startDate.includes("T") || false;
+  const parsedDate = new Date(date);
+  const dateKey = hourly && !Number.isNaN(parsedDate.getTime())
+    ? parsedDate.toISOString()
+    : date.slice(0, 10);
   const bucket = buckets.find(
     (candidate) =>
       dateKey >= candidate.startDate && dateKey <= candidate.endDate
@@ -137,8 +164,9 @@ function buildOrderBuckets(
 ) {
   const buckets = createBuckets(startDate, endDate, interval);
   for (const order of orders) {
-    const date = (order.paidAt || order.createdAt).slice(0, 10);
-    if (date < startDate || date > endDate) continue;
+    const date = order.paidAt || order.createdAt;
+    const day = date.slice(0, 10);
+    if (day < startDate || day > endDate) continue;
     const revenue = order.status === "paid" ? order.amount : 0;
     const refunds = order.status === "refunded" ? order.amount : 0;
     const value =
@@ -161,8 +189,9 @@ function buildOrderValueBuckets(
 ) {
   const buckets = createBuckets(startDate, endDate, interval);
   for (const order of orders) {
-    const date = (order.paidAt || order.createdAt).slice(0, 10);
-    if (date < startDate || date > endDate) continue;
+    const date = order.paidAt || order.createdAt;
+    const day = date.slice(0, 10);
+    if (day < startDate || day > endDate) continue;
     const value = getValue(order);
     if (value) addValueToBucket(buckets, date, value);
   }
@@ -212,10 +241,17 @@ function buildReturningCustomerBuckets(
     );
 
   for (const order of paidOrders) {
-    const date = (order.paidAt || order.createdAt).slice(0, 10);
+    const date = order.paidAt || order.createdAt;
+    const day = date.slice(0, 10);
     const customer = order.customerEmail.trim().toLowerCase();
+    const parsedDate = new Date(date);
+    const comparableDate =
+      interval === "hourly" && !Number.isNaN(parsedDate.getTime())
+        ? parsedDate.toISOString()
+        : day;
     const bucketIndex = buckets.findIndex(
-      (bucket) => date >= bucket.startDate && date <= bucket.endDate
+      (bucket) =>
+        comparableDate >= bucket.startDate && comparableDate <= bucket.endDate
     );
     if (bucketIndex >= 0) {
       customersByBucket[bucketIndex].add(customer);
@@ -223,7 +259,7 @@ function buildReturningCustomerBuckets(
         returningByBucket[bucketIndex].add(customer);
       }
     }
-    if (date <= endDate) seenCustomers.add(customer);
+    if (day <= endDate) seenCustomers.add(customer);
   }
 
   return buckets.map((bucket, index) => ({
@@ -275,8 +311,9 @@ function buildFeatureBuckets(
 ) {
   const buckets = createBuckets(startDate, endDate, interval);
   for (const record of records) {
-    const date = getDate(record).slice(0, 10);
-    if (date < startDate || date > endDate) continue;
+    const date = getDate(record);
+    const day = date.slice(0, 10);
+    if (day < startDate || day > endDate) continue;
     const value = getValue(record);
     if (value) addValueToBucket(buckets, date, value);
   }
@@ -341,12 +378,18 @@ function buildPaymentBuckets(
 ) {
   const buckets = createBuckets(startDate, endDate, interval);
   for (const payment of payments) {
-    const date = payment.date.slice(0, 10);
-    if (date >= startDate && date <= endDate) {
-      addValueToBucket(buckets, date, Math.round(payment.amount * 100));
+    const day = payment.date.slice(0, 10);
+    if (day >= startDate && day <= endDate) {
+      addValueToBucket(buckets, payment.date, Math.round(payment.amount * 100));
     }
   }
   return buckets;
+}
+
+function isAtOrBefore(value: string, boundary: string): boolean {
+  if (!boundary.includes("T")) return value.slice(0, 10) <= boundary;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() <= boundary;
 }
 
 function getMrrAt(
@@ -354,7 +397,7 @@ function getMrrAt(
   date: string
 ) {
   return subscriptions.reduce((total, subscription) => {
-    if (subscription.createdAt.slice(0, 10) > date) return total;
+    if (!isAtOrBefore(subscription.createdAt, date)) return total;
     if (
       subscription.status !== "active" &&
       subscription.status !== "trialing"
@@ -364,7 +407,7 @@ function getMrrAt(
     const trialEndsAt = String(subscription.data.trialEndsAt || "");
     if (
       subscription.status === "trialing" ||
-      (trialEndsAt && trialEndsAt.slice(0, 10) > date)
+      (trialEndsAt && !isAtOrBefore(trialEndsAt, date))
     ) {
       return total;
     }
@@ -380,7 +423,7 @@ function getChurnRateAt(
   date: string
 ) {
   const eligible = subscriptions.filter(
-    (subscription) => subscription.createdAt.slice(0, 10) <= date
+    (subscription) => isAtOrBefore(subscription.createdAt, date)
   );
   if (!eligible.length) return 0;
   const churned = eligible.filter((subscription) =>
@@ -400,7 +443,7 @@ function getTrialConversionRateAt(
         subscription.data.approvedAt ||
         subscription.createdAt
     );
-    return trialStartedAt.slice(0, 10) <= date;
+    return isAtOrBefore(trialStartedAt, date);
   });
   if (!eligible.length) return 0;
   const converted = eligible.filter((subscription) => {
@@ -416,13 +459,13 @@ function getTrialConversionRateAt(
           payment !== null &&
           "date" in payment &&
           typeof payment.date === "string" &&
-          payment.date.slice(0, 10) <= date
+          isAtOrBefore(payment.date, date)
       )
     ) {
       return true;
     }
     const lastPaymentAt = String(subscription.data.lastPaymentAt || "");
-    return Boolean(lastPaymentAt && lastPaymentAt.slice(0, 10) <= date);
+    return Boolean(lastPaymentAt && isAtOrBefore(lastPaymentAt, date));
   }).length;
   return (converted / eligible.length) * 100;
 }
@@ -433,7 +476,7 @@ function getSubscriberCountAt(
 ) {
   return subscribers.filter(
     (subscriber) =>
-      subscriber.createdAt.slice(0, 10) <= date &&
+      isAtOrBefore(subscriber.createdAt, date) &&
       subscriber.status !== "unsubscribed"
   ).length;
 }

@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/types";
+import type { Product, ProductCategory } from "@/lib/types";
 
 export type ProductTransactionFeeSelection =
   | "none"
@@ -10,6 +10,7 @@ export interface ProductFormProps {
   storeCurrency: string;
   storeTransactionFeeType: "fixed" | "percentage";
   storeTransactionFeeValue: number;
+  categories: ProductCategory[];
 }
 
 export interface GitHubRepositoryOption {

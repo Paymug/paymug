@@ -14,14 +14,20 @@ import { resolveStorefrontEnvironment } from "@/lib/storefront-environment.utils
 import { getPrimaryStore, getStoreBySlug } from "@/lib/stores";
 import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import type { ScopedPublicStorePageProps } from "./page.types";
+import { StoreCategoryPage } from "@/components/StoreCategoryPage";
+import { findProductCategoryBySlug } from "@/lib/product-categories";
 
 export default async function ScopedPublicStorePage({
   params,
 }: ScopedPublicStorePageProps) {
-  if (!(await hasProFeature("pages"))) notFound();
   const { slug, pageSlug } = await params;
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
+  const category = await findProductCategoryBySlug(store.id, pageSlug);
+  if (category) {
+    return <StoreCategoryPage store={store} category={category} />;
+  }
+  if (!(await hasProFeature("pages"))) notFound();
   const [viewer, seller, primaryStore, affiliatesUnlocked] = await Promise.all([
     getSessionUser(),
     findUserById(store.userId),

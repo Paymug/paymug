@@ -1,6 +1,7 @@
 const dashboardTitles: Record<string, string> = {
   "/dashboard": "Home",
   "/dashboard/products": "Products",
+  "/dashboard/categories": "Categories",
   "/dashboard/orders": "Orders",
   "/dashboard/subscriptions": "Subscriptions",
   "/dashboard/customers": "Customers",

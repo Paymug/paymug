@@ -171,6 +171,7 @@ export async function importStoreBackup(
       id: productIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
+      categoryId: null,
       environment: options.environment,
       slug: productSlugs.get(source.id)!,
     };

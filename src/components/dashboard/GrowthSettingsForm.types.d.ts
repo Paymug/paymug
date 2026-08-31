@@ -13,6 +13,7 @@ export interface GrowthSettingsFormProps {
   initialAffiliateAttributionModel: AffiliateAttributionModel;
   initialEmailCampaignsEnabled: boolean;
   initialAnalyticsEnabled: boolean;
+  initialDisplayPurchasesEnabled: boolean;
 }
 
 export interface GrowthSettingsResponse {

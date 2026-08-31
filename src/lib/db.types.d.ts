@@ -18,9 +18,15 @@ export type CreateUserInput = Omit<
 export type UpdateProductInput = Partial<
   Omit<
     Product,
-    "id" | "userId" | "createdAt" | "imageUrl" | "redirectUrl"
+    | "id"
+    | "userId"
+    | "createdAt"
+    | "imageUrl"
+    | "redirectUrl"
+    | "categoryId"
   >
 > & {
   imageUrl?: string | null;
   redirectUrl?: string | null;
+  categoryId?: string | null;
 };

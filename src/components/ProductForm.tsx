@@ -42,11 +42,13 @@ export function ProductForm({
   storeCurrency,
   storeTransactionFeeType,
   storeTransactionFeeValue,
+  categories,
 }: ProductFormProps) {
   const router = useRouter();
   const [name, setName] = useState(product?.name || "");
   const [slug, setSlug] = useState(product?.slug || "");
   const [description, setDescription] = useState(product?.description || "");
+  const [categoryId, setCategoryId] = useState(product?.categoryId || "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
   const [price, setPrice] = useState(
     product ? (product.price / 100).toFixed(2) : "",
@@ -183,6 +185,7 @@ export function ProductForm({
     name: name.trim() || "Untitled product",
     slug,
     description,
+    categoryId: categoryId || null,
     imageUrl,
     price: autosavePriceCents,
     transactionFeeType:
@@ -228,6 +231,7 @@ export function ProductForm({
     name.trim() ||
     slug.trim() ||
     description.trim() ||
+    categoryId ||
     imageUrl ||
     price.trim() ||
     deliveryContent.trim() ||
@@ -483,6 +487,31 @@ export function ProductForm({
             /buy/{slug.trim() || productId || "product-id"}
           </p>
         </div>
+
+        <Select
+          label="Category"
+          name="categoryId"
+          value={categoryId}
+          onValueChange={(value) => {
+            setCategoryId(value);
+            requestAutosave(1);
+          }}
+          options={[
+            { value: "", label: "No category" },
+            ...categories.map((category) => ({
+              value: category.id,
+              label: category.name,
+            })),
+          ]}
+          menuFooter={
+            <Link
+              href="/dashboard/categories"
+              className="flex w-full items-center px-4 py-2.5 text-sm font-medium text-[#555568] hover:bg-[#f7f7f8] hover:text-foreground"
+            >
+              Manage categories
+            </Link>
+          }
+        />
 
         <div>
           <label className={labelClass} htmlFor="price">

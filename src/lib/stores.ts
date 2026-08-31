@@ -51,6 +51,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     abandonedCheckoutRemindersEnabled:
       row.abandonedCheckoutRemindersEnabled,
     analyticsEnabled: row.analyticsEnabled,
+    displayPurchasesEnabled: row.displayPurchasesEnabled,
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
@@ -163,6 +164,7 @@ export async function createStore(
     emailCampaignsEnabled: true,
     abandonedCheckoutRemindersEnabled: false,
     analyticsEnabled: false,
+    displayPurchasesEnabled: false,
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
@@ -344,6 +346,9 @@ export async function updateStore(
         : {}),
       ...(input.analyticsEnabled !== undefined
         ? { analyticsEnabled: input.analyticsEnabled }
+        : {}),
+      ...(input.displayPurchasesEnabled !== undefined
+        ? { displayPurchasesEnabled: input.displayPurchasesEnabled }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.transactionFeeType !== undefined

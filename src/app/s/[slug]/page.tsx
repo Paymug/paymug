@@ -6,17 +6,10 @@ import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StorefrontNavigation } from "@/components/StorefrontNavigation";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
+import { StorefrontProductGrid } from "@/components/StorefrontProductGrid";
 import { cardClass } from "@/components/ui.styles";
 import { getSessionUser } from "@/lib/auth";
 import { findUserByStoreSlug, listProductsByUser } from "@/lib/db";
-import { formatMoney } from "@/lib/format";
-import { formatProductPriceSuffix } from "@/lib/product-billing";
-import { getProductPublicPath } from "@/lib/product-paths";
-import {
-  formatLicenseUpdatePeriodLabel,
-  isPerpetualLicenseProduct,
-} from "@/lib/license-entitlements";
-import { getProductDescriptionPlainText } from "@/components/product-description.utils";
 import { getPrimaryStore, getStoreById } from "@/lib/stores";
 import { getStorefrontBasePath } from "@/lib/storefront-paths";
 import { listStorePages } from "@/lib/store-pages";
@@ -25,6 +18,7 @@ import { generateStorefrontMetadata } from "./page.utils";
 import type { StorefrontPageProps } from "./page.types";
 import clsx from "clsx";
 import { hasProFeature } from "@/lib/app-license";
+import { listProductCategories } from "@/lib/product-categories";
 
 export const generateMetadata = generateStorefrontMetadata;
 
@@ -45,6 +39,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
     storePages,
     pagesUnlocked,
     affiliatesUnlocked,
+    categories,
   ] = await Promise.all([
     getStoreById(seller.activeStoreId, seller.id),
     getPrimaryStore(),
@@ -52,6 +47,7 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
     listStorePages(seller.id, seller.activeStoreId, environment),
     hasProFeature("pages"),
     hasProFeature("affiliates"),
+    listProductCategories(seller.id, seller.activeStoreId),
   ]);
   const products = allProducts.filter((p) => p.status === "published");
   const publishedPages = pagesUnlocked ? storePages.filter(
@@ -64,6 +60,17 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   const isTestMode = environment === "sandbox";
   if (!store) notFound();
   const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
+  const categorizedProducts = categories
+    .map((category) => ({
+      category,
+      products: products.filter((product) => product.categoryId === category.id),
+    }))
+    .filter((section) => section.products.length > 0);
+  const uncategorizedProducts = products.filter(
+    (product) =>
+      !product.categoryId ||
+      !categories.some((category) => category.id === product.categoryId),
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -123,46 +130,36 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
             No products published yet.
           </div>
         ) : (
-          <div className="my-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
-              <Link
-                key={p.id}
-                href={`${getProductPublicPath(p)}${isTestMode ? "?preview" : ""}`}
-                className={`group flex flex-col transition shadow-gray-300/20`}
-              >
-                {p.imageUrl ? (
-                  <img
-                    src={p.imageUrl}
-                    alt={p.name}
-                    className="aspect-[16/9] w-full object-cover rounded-xl"
-                  />
-                ) : (
-                  <div className="flex h-28 items-center justify-center bg-accent-soft text-3xl">
-                    📦
-                  </div>
-                )}
-                <h2 className="mt-4 font-semibold group-hover:text-accent-dark">
-                  {p.name}
-                </h2>
-                <p className="mt-1 line-clamp-2 flex-1 text-sm text-muted">
-                  {getProductDescriptionPlainText(p.description) ||
-                    "Digital product"}
-                </p>
-                <p className="mt-4 text-lg font-bold">
-                  {formatMoney(p.price, p.currency)}
-                  {formatProductPriceSuffix(p)}
-                </p>
-                {isPerpetualLicenseProduct(p) && (
-                  <p className="mt-1 text-xs text-muted">
-                    Lifetime use ·{" "}
-                    {formatLicenseUpdatePeriodLabel(
-                      p.licenseUpdatePeriodUnit || "year",
-                      p.licenseUpdatePeriodCount,
-                    )}{" "}
-                    of updates
+          <div className="my-14 space-y-14">
+            {!!uncategorizedProducts.length && (
+              <StorefrontProductGrid
+                products={uncategorizedProducts}
+                isTestMode={isTestMode}
+                displayPurchases={store.displayPurchasesEnabled}
+              />
+            )}
+            {categorizedProducts.map(({ category, products: categoryProducts }) => (
+              <section key={category.id}>
+                <Link
+                  href={`${storefrontBasePath}/${category.slug}`}
+                  className="group inline-block"
+                >
+                  <h2 className="text-2xl font-semibold tracking-tight group-hover:text-accent-dark">
+                    {category.name}
+                  </h2>
+                </Link>
+                {category.description && (
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                    {category.description}
                   </p>
                 )}
-              </Link>
+                <StorefrontProductGrid
+                  products={categoryProducts}
+                  isTestMode={isTestMode}
+                  displayPurchases={store.displayPurchasesEnabled}
+                  className="mt-6"
+                />
+              </section>
             ))}
           </div>
         )}

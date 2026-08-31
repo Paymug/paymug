@@ -24,6 +24,7 @@ export async function duplicateProduct(
     id,
     name,
     slug: "",
+    purchaseCount: 0,
     createdAt: now,
     updatedAt: now,
   });

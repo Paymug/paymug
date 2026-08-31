@@ -16,6 +16,8 @@ import type {
   StorePageStatus,
 } from "./store-pages.types";
 import type { PayPalMode } from "./types";
+import { findProductCategoryBySlug } from "./product-categories";
+import { isReservedStorefrontSlug } from "./storefront-slug.utils";
 
 function mapStorePage(record: FeatureRecord): StorePage {
   return {
@@ -67,25 +69,6 @@ export async function findStorePageBySlug(
   );
 }
 
-const reservedPageSlugs = new Set([
-  "api",
-  "affiliates",
-  "buy",
-  "checkout",
-  "customer",
-  "dashboard",
-  "login",
-  "og",
-  "page-editor",
-  "pages",
-  "r",
-  "s",
-  "setup",
-  "signup",
-  "subscription",
-  "unsubscribe",
-]);
-
 async function resolvePageSlug(
   userId: string,
   storeId: string,
@@ -95,11 +78,14 @@ async function resolvePageSlug(
 ): Promise<string> {
   const pages = await listStorePages(userId, storeId, environment);
   const slug = slugify(requestedSlug);
-  if (!slug || reservedPageSlugs.has(slug)) {
+  if (!slug || isReservedStorefrontSlug(slug)) {
     throw new Error("Choose a different page slug");
   }
   if (pages.some((page) => page.id !== currentPageId && page.slug === slug)) {
     throw new Error("This page URL is already in use");
+  }
+  if (await findProductCategoryBySlug(storeId, slug)) {
+    throw new Error("This URL is already used by a product category");
   }
   return slug;
 }

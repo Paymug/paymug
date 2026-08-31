@@ -73,6 +73,7 @@ export interface Store {
   emailCampaignsEnabled: boolean;
   abandonedCheckoutRemindersEnabled: boolean;
   analyticsEnabled: boolean;
+  displayPurchasesEnabled: boolean;
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
@@ -109,6 +110,8 @@ export interface Product {
   id: string;
   userId: string;
   storeId: string;
+  categoryId?: string;
+  purchaseCount: number;
   environment: PayPalMode;
   name: string;
   slug: string;
@@ -144,6 +147,17 @@ export interface Product {
   trialDays: number;
   githubRepoOwner?: string | null;
   githubRepoName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  userId: string;
+  storeId: string;
+  name: string;
+  slug: string;
+  description: string;
   createdAt: string;
   updatedAt: string;
 }

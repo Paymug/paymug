@@ -22,11 +22,23 @@ function addDays(value: string, days: number): string {
   return dateKey(date);
 }
 
+function addHours(value: string, hours: number): string {
+  const date = new Date(value);
+  date.setUTCHours(date.getUTCHours() + hours);
+  return date.toISOString();
+}
+
 function formatLabel(
   start: string,
   interval: BuildVisitorAnalyticsInput["interval"],
 ): string {
-  const date = parseDate(start);
+  const date = interval === "hourly" ? new Date(start) : parseDate(start);
+  if (interval === "hourly") {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+  }
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     ...(interval === "monthly" ? {} : { day: "numeric" }),
@@ -38,6 +50,13 @@ function bucketKey(
   dateValue: string,
   interval: BuildVisitorAnalyticsInput["interval"],
 ): string {
+  if (interval === "hourly") {
+    const date = dateValue.includes("T")
+      ? new Date(dateValue)
+      : new Date(`${dateValue.slice(0, 10)}T00:00:00.000Z`);
+    date.setUTCMinutes(0, 0, 0);
+    return date.toISOString();
+  }
   const date = parseDate(dateValue);
   if (interval === "monthly") {
     return dateKey(
@@ -56,23 +75,38 @@ function createSeries(
   startDate: string,
   endDate: string,
   interval: BuildVisitorAnalyticsInput["interval"],
+  uniqueVisitors = false,
 ) {
   const counts = new Map<string, number>();
+  const visitorIds = new Map<string, Set<string>>();
   for (const event of events) {
     const key = bucketKey(event.createdAt, interval);
-    counts.set(key, (counts.get(key) || 0) + 1);
+    if (uniqueVisitors) {
+      const bucketVisitors = visitorIds.get(key) || new Set<string>();
+      bucketVisitors.add(event.visitorId);
+      visitorIds.set(key, bucketVisitors);
+    } else {
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
   }
 
   const points = [];
   let cursor = bucketKey(startDate, interval);
-  const finalBucket = bucketKey(endDate, interval);
+  const finalBucket =
+    interval === "hourly"
+      ? `${endDate.slice(0, 10)}T23:00:00.000Z`
+      : bucketKey(endDate, interval);
   while (cursor <= finalBucket) {
     points.push({
       date: cursor,
       label: formatLabel(cursor, interval),
-      value: counts.get(cursor) || 0,
+      value: uniqueVisitors
+        ? visitorIds.get(cursor)?.size || 0
+        : counts.get(cursor) || 0,
     });
-    if (interval === "monthly") {
+    if (interval === "hourly") {
+      cursor = addHours(cursor, 1);
+    } else if (interval === "monthly") {
       const date = parseDate(cursor);
       date.setUTCMonth(date.getUTCMonth() + 1);
       cursor = dateKey(date);
@@ -99,7 +133,10 @@ function createBreakdown(
       visits,
       share: total ? (visits / total) * 100 : 0,
     }))
-    .sort((left, right) => right.visits - left.visits || left.label.localeCompare(right.label))
+    .sort(
+      (left, right) =>
+        right.visits - left.visits || left.label.localeCompare(right.label),
+    )
     .slice(0, 8);
 }
 
@@ -158,6 +195,20 @@ export function buildVisitorAnalytics({
       previousRange.startDate,
       previousRange.endDate,
       interval,
+    ),
+    uniqueVisitorSeries: createSeries(
+      currentEvents,
+      startDate,
+      endDate,
+      interval,
+      true,
+    ),
+    previousUniqueVisitorSeries: createSeries(
+      previousEvents,
+      previousRange.startDate,
+      previousRange.endDate,
+      interval,
+      true,
     ),
     sources: createBreakdown(currentEvents, (event) => event.source),
     pages: createBreakdown(currentEvents, (event) => event.path),

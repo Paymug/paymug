@@ -3,7 +3,7 @@ import type { Order, Product } from "@/lib/types";
 import type { ChartPoint } from "@/components/dashboard/charts.types";
 import type { ReactNode } from "react";
 
-export type DashboardInterval = "daily" | "weekly" | "monthly";
+export type DashboardInterval = "hourly" | "daily" | "weekly" | "monthly";
 
 export interface DashboardOverviewSearchParams {
   start?: string;

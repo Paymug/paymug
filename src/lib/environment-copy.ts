@@ -32,6 +32,7 @@ async function copyProductRecord(
     id: copiedId,
     environment: input.targetEnvironment,
     slug: "",
+    purchaseCount: 0,
     createdAt: now,
     updatedAt: now,
   });

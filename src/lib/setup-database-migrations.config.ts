@@ -143,5 +143,23 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "CREATE INDEX `visitor_events_store_created_idx` ON `visitor_events` (`store_id`,`created_at`);",
       "CREATE INDEX `visitor_events_store_visitor_idx` ON `visitor_events` (`store_id`,`visitor_id`);"
     ]
+  },
+  {
+    "name": "0015_product_categories.sql",
+    "statements": [
+      "CREATE TABLE `product_categories` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`user_id` text NOT NULL,\n\t`store_id` text NOT NULL,\n\t`name` text NOT NULL,\n\t`slug` text NOT NULL,\n\t`description` text DEFAULT '' NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE UNIQUE INDEX `product_categories_store_slug_idx` ON `product_categories` (`store_id`,`slug`);",
+      "CREATE INDEX `product_categories_user_store_idx` ON `product_categories` (`user_id`,`store_id`);",
+      "ALTER TABLE `products` ADD `category_id` text REFERENCES product_categories(id) ON DELETE set null;",
+      "CREATE INDEX `products_category_idx` ON `products` (`category_id`);"
+    ]
+  },
+  {
+    "name": "0016_display_product_purchases.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `display_purchases_enabled` integer DEFAULT false NOT NULL;",
+      "ALTER TABLE `products` ADD `purchase_count` integer DEFAULT 0 NOT NULL;",
+      "UPDATE `products`\nSET `purchase_count` = (\n\tSELECT count(*)\n\tFROM `orders`\n\tWHERE `orders`.`product_id` = `products`.`id`\n\t\tAND `orders`.`status` IN ('paid', 'refunded')\n);"
+    ]
   }
 ];
