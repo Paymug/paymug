@@ -1,8 +1,14 @@
 "use client";
 
-import { PencilSimple, Plus, Trash } from "@phosphor-icons/react";
+import {
+  ArrowDown,
+  ArrowUp,
+  PencilSimple,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button } from "@/components/ui";
 import type { ProductCategory } from "@/lib/types";
 import { CategoryModal } from "./CategoryModal";
@@ -11,13 +17,53 @@ import type {
   CategoryApiResponse,
 } from "./categories.types";
 
-export function CategoriesWorkspace({ categories }: CategoriesWorkspaceProps) {
+export function CategoriesWorkspace({
+  categories,
+  products,
+}: CategoriesWorkspaceProps) {
   const router = useRouter();
   const [modalCategory, setModalCategory] = useState<
     ProductCategory | null | undefined
   >(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [orderedCategories, setOrderedCategories] = useState(categories);
+  const [reordering, setReordering] = useState(false);
+
+  useEffect(() => setOrderedCategories(categories), [categories]);
+
+  async function move(categoryId: string, direction: -1 | 1) {
+    const currentIndex = orderedCategories.findIndex(
+      (category) => category.id === categoryId,
+    );
+    const nextIndex = currentIndex + direction;
+    if (
+      currentIndex < 0 ||
+      nextIndex < 0 ||
+      nextIndex >= orderedCategories.length
+    ) {
+      return;
+    }
+    const previous = orderedCategories;
+    const next = [...orderedCategories];
+    [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
+    setOrderedCategories(next);
+    setReordering(true);
+    setError(null);
+    const response = await fetch("/api/categories/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryIds: next.map((category) => category.id) }),
+    });
+    const data = (await response.json()) as CategoryApiResponse;
+    setReordering(false);
+    if (!response.ok) {
+      setOrderedCategories(previous);
+      setError(data.error || "Could not reorder categories");
+      return;
+    }
+    router.refresh();
+  }
 
   async function remove(category: ProductCategory) {
     if (
@@ -60,18 +106,18 @@ export function CategoriesWorkspace({ categories }: CategoriesWorkspaceProps) {
       )}
 
       <section className="mt-6 overflow-x-auto rounded-xl border border-[#e8e8ee] bg-white">
-        {categories.length ? (
+        {orderedCategories.length ? (
           <table className="w-full min-w-[680px] text-left text-sm">
             <thead>
               <tr className="border-b border-[#e8e8ee] text-muted">
                 <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-5 py-3 font-medium">URL</th>
                 <th className="px-5 py-3 font-medium">Description</th>
-                <th className="w-28 px-5 py-3 font-medium" />
+                <th className="w-44 px-5 py-3 font-medium" />
               </tr>
             </thead>
             <tbody>
-              {categories.map((category) => (
+              {orderedCategories.map((category, index) => (
                 <tr
                   key={category.id}
                   className="border-b border-[#ededf2] last:border-0"
@@ -85,6 +131,24 @@ export function CategoriesWorkspace({ categories }: CategoriesWorkspaceProps) {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => void move(category.id, -1)}
+                        disabled={reordering || index === 0}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground disabled:opacity-30"
+                        aria-label={`Move ${category.name} up`}
+                      >
+                        <ArrowUp size={17} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void move(category.id, 1)}
+                        disabled={reordering || index === orderedCategories.length - 1}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground disabled:opacity-30"
+                        aria-label={`Move ${category.name} down`}
+                      >
+                        <ArrowDown size={17} />
+                      </button>
                       <button
                         type="button"
                         onClick={() => setModalCategory(category)}
@@ -122,6 +186,7 @@ export function CategoriesWorkspace({ categories }: CategoriesWorkspaceProps) {
         <CategoryModal
           key={modalCategory?.id || "new"}
           category={modalCategory || undefined}
+          products={products}
           onClose={() => setModalCategory(undefined)}
         />
       )}

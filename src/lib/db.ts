@@ -27,6 +27,10 @@ import {
 } from "./product-files.utils";
 import { getStoreCredentialSource } from "./stores";
 import { incrementProductPurchaseCount } from "./product-purchases";
+import {
+  getProductCategoryIds,
+  replaceProductCategories,
+} from "./product-category-assignments";
 import { parseStoredCheckoutCustomData } from "./checkout-custom-data";
 import {
   emitCreatedOrderWebhook,
@@ -96,12 +100,17 @@ function rowToUser(row: typeof usersTable.$inferSelect): User {
   };
 }
 
-function rowToProduct(row: typeof productsTable.$inferSelect): Product {
+function rowToProduct(
+  row: typeof productsTable.$inferSelect,
+  categoryIds?: string[],
+): Product {
+  const resolvedCategoryIds = categoryIds || [];
   return {
     id: row.id,
     userId: row.userId,
     storeId: row.storeId || row.userId,
     categoryId: row.categoryId ?? undefined,
+    categoryIds: resolvedCategoryIds,
     purchaseCount: row.purchaseCount,
     environment: row.environment,
     name: row.name,
@@ -372,7 +381,8 @@ export async function listProductsByUser(
     ),
     orderBy: [desc(productsTable.createdAt)],
   });
-  return rows.map(rowToProduct);
+  const categoryIds = await getProductCategoryIds(rows.map((row) => row.id));
+  return rows.map((row) => rowToProduct(row, categoryIds.get(row.id)));
 }
 
 export async function findProductById(id: string): Promise<Product | undefined> {
@@ -380,7 +390,9 @@ export async function findProductById(id: string): Promise<Product | undefined> 
   const row = await db.query.products.findFirst({
     where: eq(productsTable.id, id),
   });
-  return row ? rowToProduct(row) : undefined;
+  if (!row) return undefined;
+  const categoryIds = await getProductCategoryIds([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id));
 }
 
 export async function findProductBySlug(
@@ -390,7 +402,9 @@ export async function findProductBySlug(
   const row = await db.query.products.findFirst({
     where: eq(productsTable.slug, slug),
   });
-  return row ? rowToProduct(row) : undefined;
+  if (!row) return undefined;
+  const categoryIds = await getProductCategoryIds([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id));
 }
 
 export async function findProductByPublicIdentifier(
@@ -405,7 +419,9 @@ export async function findProductByPublicIdentifier(
     limit: 2,
   });
   const row = rows.find((candidate) => candidate.id === identifier) || rows[0];
-  return row ? rowToProduct(row) : undefined;
+  if (!row) return undefined;
+  const categoryIds = await getProductCategoryIds([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id));
 }
 
 export async function findPublishedProduct(
@@ -420,7 +436,9 @@ export async function findPublishedProduct(
       eq(productsTable.status, "published")
     ),
   });
-  return row ? rowToProduct(row) : undefined;
+  if (!row) return undefined;
+  const categoryIds = await getProductCategoryIds([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id));
 }
 
 export async function createProduct(product: Product): Promise<Product> {
@@ -429,7 +447,7 @@ export async function createProduct(product: Product): Promise<Product> {
     id: product.id,
     userId: product.userId,
     storeId: product.storeId,
-    categoryId: product.categoryId ?? null,
+    categoryId: product.categoryIds[0] ?? product.categoryId ?? null,
     purchaseCount: product.purchaseCount,
     environment: product.environment,
     name: product.name,
@@ -469,6 +487,7 @@ export async function createProduct(product: Product): Promise<Product> {
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   });
+  await replaceProductCategories(product.id, product.categoryIds);
   return product;
 }
 
@@ -490,6 +509,9 @@ export async function updateProduct(
       ...(patch.slug !== undefined ? { slug: patch.slug } : {}),
       ...(patch.categoryId !== undefined
         ? { categoryId: patch.categoryId || null }
+        : {}),
+      ...(patch.categoryIds !== undefined
+        ? { categoryId: patch.categoryIds[0] || null }
         : {}),
       ...(patch.purchaseCount !== undefined
         ? { purchaseCount: Math.max(0, patch.purchaseCount) }
@@ -558,6 +580,10 @@ export async function updateProduct(
       updatedAt: new Date().toISOString(),
     })
     .where(and(eq(productsTable.id, id), eq(productsTable.userId, userId)));
+
+  if (patch.categoryIds !== undefined) {
+    await replaceProductCategories(id, patch.categoryIds);
+  }
 
   return findProductById(id);
 }

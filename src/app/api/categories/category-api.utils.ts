@@ -8,6 +8,7 @@ export const productCategorySchema = z.object({
   name: z.string().trim().min(1).max(80),
   slug: z.string().trim().min(1).max(80),
   description: z.string().trim().max(500).optional().default(""),
+  productIds: z.array(z.string().min(1)).max(500).optional().default([]),
 });
 
 export async function resolveProductCategorySlug(

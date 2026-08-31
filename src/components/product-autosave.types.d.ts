@@ -5,7 +5,7 @@ export interface ProductFormSavePayload {
   name: string;
   slug: string;
   description: string;
-  categoryId?: string | null;
+  categoryIds: string[];
   imageUrl: string;
   price: number;
   transactionFeeType: "fixed" | "percentage";

@@ -63,13 +63,16 @@ export default async function StorefrontPage({ params }: StorefrontPageProps) {
   const categorizedProducts = categories
     .map((category) => ({
       category,
-      products: products.filter((product) => product.categoryId === category.id),
+      products: products.filter((product) =>
+        product.categoryIds.includes(category.id),
+      ),
     }))
     .filter((section) => section.products.length > 0);
   const uncategorizedProducts = products.filter(
     (product) =>
-      !product.categoryId ||
-      !categories.some((category) => category.id === product.categoryId),
+      !product.categoryIds.some((categoryId) =>
+        categories.some((category) => category.id === categoryId),
+      ),
   );
 
   return (

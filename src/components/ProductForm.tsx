@@ -36,6 +36,7 @@ import type {
   ProductTransactionFeeSelection,
 } from "./ProductForm.types";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import { MultiSelectDropdown } from "./MultiSelectDropdown";
 
 export function ProductForm({
   product,
@@ -48,7 +49,7 @@ export function ProductForm({
   const [name, setName] = useState(product?.name || "");
   const [slug, setSlug] = useState(product?.slug || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [categoryId, setCategoryId] = useState(product?.categoryId || "");
+  const [categoryIds, setCategoryIds] = useState(product?.categoryIds || []);
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
   const [price, setPrice] = useState(
     product ? (product.price / 100).toFixed(2) : "",
@@ -185,7 +186,7 @@ export function ProductForm({
     name: name.trim() || "Untitled product",
     slug,
     description,
-    categoryId: categoryId || null,
+    categoryIds,
     imageUrl,
     price: autosavePriceCents,
     transactionFeeType:
@@ -231,7 +232,7 @@ export function ProductForm({
     name.trim() ||
     slug.trim() ||
     description.trim() ||
-    categoryId ||
+    categoryIds.length ||
     imageUrl ||
     price.trim() ||
     deliveryContent.trim() ||
@@ -488,21 +489,19 @@ export function ProductForm({
           </p>
         </div>
 
-        <Select
-          label="Category"
-          name="categoryId"
-          value={categoryId}
-          onValueChange={(value) => {
-            setCategoryId(value);
+        <MultiSelectDropdown
+          label="Categories"
+          name="categoryIds"
+          values={categoryIds}
+          placeholder="No categories"
+          onChange={(values) => {
+            setCategoryIds(values);
             requestAutosave(1);
           }}
-          options={[
-            { value: "", label: "No category" },
-            ...categories.map((category) => ({
-              value: category.id,
-              label: category.name,
-            })),
-          ]}
+          options={categories.map((category) => ({
+            value: category.id,
+            label: category.name,
+          }))}
           menuFooter={
             <Link
               href="/dashboard/categories"

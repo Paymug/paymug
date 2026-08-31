@@ -39,7 +39,8 @@ export async function StoreCategoryPage({
   ]);
   const products = allProducts.filter(
     (product) =>
-      product.status === "published" && product.categoryId === category.id,
+      product.status === "published" &&
+      product.categoryIds.includes(category.id),
   );
   const publishedPages = pagesUnlocked
     ? storePages.filter((page) => page.status === "published")

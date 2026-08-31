@@ -28,7 +28,7 @@ import {
 import { jsonError } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { omitProductPurchaseDetails } from "./route.utils";
-import { findProductCategory } from "@/lib/product-categories";
+import { validateProductCategoryIds } from "@/lib/product-categories";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -61,6 +61,7 @@ const updateSchema = z.object({
   slug: z.string().trim().max(100).optional(),
   description: z.string().max(100000).optional(),
   categoryId: z.string().min(1).nullable().optional(),
+  categoryIds: z.array(z.string().min(1)).max(100).optional(),
   price: z.number().int().nonnegative().optional(),
   transactionFeeType: z.enum(["fixed", "percentage"]).optional(),
   transactionFeeValue: z.number().int().min(0).max(1000000000).optional(),
@@ -113,11 +114,21 @@ export async function PATCH(req: Request, ctx: Ctx) {
     ) {
       return jsonError("Not found", 404);
     }
-    if (parsed.data.categoryId) {
-      const category = await findProductCategory(parsed.data.categoryId, user.id);
-      if (!category || category.storeId !== user.activeStoreId) {
-        return jsonError("Category not found", 404);
-      }
+    const categoryIds = parsed.data.categoryIds ??
+      (parsed.data.categoryId !== undefined
+        ? parsed.data.categoryId
+          ? [parsed.data.categoryId]
+          : []
+        : undefined);
+    if (
+      categoryIds &&
+      !(await validateProductCategoryIds(
+        user.id,
+        user.activeStoreId,
+        categoryIds,
+      ))
+    ) {
+      return jsonError("Category not found", 404);
     }
     const productSlug =
       parsed.data.slug === undefined ? undefined : slugify(parsed.data.slug);
@@ -223,6 +234,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       ...(parsed.data.categoryId !== undefined
         ? { categoryId: parsed.data.categoryId }
         : {}),
+      ...(categoryIds !== undefined ? { categoryIds } : {}),
     };
     const repositoryChanged =
       (parsed.data.githubRepoOwner !== undefined &&

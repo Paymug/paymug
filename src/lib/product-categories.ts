@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { productCategories } from "@/db/schema";
 import { getDb } from "@/db";
 import { slugify } from "./format";
@@ -18,7 +18,10 @@ export async function listProductCategories(
       eq(productCategories.userId, userId),
       eq(productCategories.storeId, storeId),
     ),
-    orderBy: [asc(productCategories.createdAt)],
+    orderBy: [
+      asc(productCategories.sortOrder),
+      asc(productCategories.createdAt),
+    ],
   });
 }
 
@@ -54,6 +57,7 @@ export async function createProductCategory(
 ): Promise<ProductCategory> {
   const db = await getDb();
   const now = new Date().toISOString();
+  const existingCategories = await listProductCategories(userId, storeId);
   const category: ProductCategory = {
     id: uid(),
     userId,
@@ -61,11 +65,63 @@ export async function createProductCategory(
     name: input.name.trim(),
     slug: slugify(input.slug),
     description: input.description?.trim() || "",
+    sortOrder:
+      Math.max(-1, ...existingCategories.map((category) => category.sortOrder)) +
+      1,
     createdAt: now,
     updatedAt: now,
   };
   await db.insert(productCategories).values(category);
   return category;
+}
+
+export async function reorderProductCategories(
+  userId: string,
+  storeId: string,
+  categoryIds: string[],
+): Promise<void> {
+  const categories = await listProductCategories(userId, storeId);
+  const expectedIds = new Set(categories.map((category) => category.id));
+  if (
+    categoryIds.length !== expectedIds.size ||
+    categoryIds.some((id) => !expectedIds.has(id))
+  ) {
+    throw new Error("Invalid category order");
+  }
+  const db = await getDb();
+  await Promise.all(
+    categoryIds.map((id, sortOrder) =>
+      db
+        .update(productCategories)
+        .set({ sortOrder, updatedAt: new Date().toISOString() })
+        .where(
+          and(
+            eq(productCategories.id, id),
+            eq(productCategories.userId, userId),
+            eq(productCategories.storeId, storeId),
+          ),
+        ),
+    ),
+  );
+}
+
+export async function validateProductCategoryIds(
+  userId: string,
+  storeId: string,
+  categoryIds: string[],
+): Promise<boolean> {
+  const uniqueIds = [...new Set(categoryIds)];
+  if (!uniqueIds.length) return true;
+  const db = await getDb();
+  const categories = await db.query.productCategories.findMany({
+    columns: { id: true },
+    where: and(
+      eq(productCategories.userId, userId),
+      eq(productCategories.storeId, storeId),
+      inArray(productCategories.id, uniqueIds),
+    ),
+  });
+  return categories.length === uniqueIds.length;
 }
 
 export async function updateProductCategory(

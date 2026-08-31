@@ -5,6 +5,8 @@ import {
   updateProductCategory,
 } from "@/lib/product-categories";
 import { jsonError } from "@/lib/utils";
+import { replaceCategoryProducts } from "@/lib/product-category-assignments";
+import { listProductsByUser } from "@/lib/db";
 import {
   productCategorySchema,
   resolveProductCategorySlug,
@@ -33,11 +35,30 @@ export async function PATCH(
       parsed.data.slug,
       category.id,
     );
+    const products = await listProductsByUser(
+      user.id,
+      user.activeStoreId,
+      user.environment,
+    );
+    const validProductIds = new Set(products.map((product) => product.id));
+    if (
+      parsed.data.productIds.some(
+        (productId) => !validProductIds.has(productId),
+      )
+    ) {
+      return jsonError("Product not found", 404);
+    }
+    const updatedCategory = await updateProductCategory(category, {
+      ...parsed.data,
+      slug,
+    });
+    await replaceCategoryProducts(
+      category.id,
+      parsed.data.productIds,
+      products.map((product) => product.id),
+    );
     return Response.json({
-      category: await updateProductCategory(category, {
-        ...parsed.data,
-        slug,
-      }),
+      category: updatedCategory,
     });
   } catch (error) {
     return jsonError(

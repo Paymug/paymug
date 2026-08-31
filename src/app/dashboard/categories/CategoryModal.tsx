@@ -4,17 +4,29 @@ import { X } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input, Textarea } from "@/components/ui";
+import { MultiSelectDropdown } from "@/components/MultiSelectDropdown";
 import { slugify } from "@/lib/format";
 import type {
   CategoryApiResponse,
   CategoryModalProps,
 } from "./categories.types";
 
-export function CategoryModal({ category, onClose }: CategoryModalProps) {
+export function CategoryModal({
+  category,
+  products,
+  onClose,
+}: CategoryModalProps) {
   const router = useRouter();
   const [name, setName] = useState(category?.name || "");
   const [slug, setSlug] = useState(category?.slug || "");
   const [description, setDescription] = useState(category?.description || "");
+  const [productIds, setProductIds] = useState(
+    category
+      ? products
+          .filter((product) => product.categoryIds.includes(category.id))
+          .map((product) => product.id)
+      : [],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +39,7 @@ export function CategoryModal({ category, onClose }: CategoryModalProps) {
       {
         method: category ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, slug, description }),
+        body: JSON.stringify({ name, slug, description, productIds }),
       },
     );
     const data = (await response.json()) as CategoryApiResponse;
@@ -96,6 +108,17 @@ export function CategoryModal({ category, onClose }: CategoryModalProps) {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={500}
+          />
+          <MultiSelectDropdown
+            label="Products"
+            name="productIds"
+            values={productIds}
+            options={products.map((product) => ({
+              value: product.id,
+              label: product.name,
+            }))}
+            placeholder="No products selected"
+            onChange={setProductIds}
           />
           {error && <Alert>{error}</Alert>}
           <div className="flex justify-end gap-2 border-t border-[#e8e8ee] pt-5">

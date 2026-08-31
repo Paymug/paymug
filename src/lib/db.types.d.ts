@@ -24,9 +24,11 @@ export type UpdateProductInput = Partial<
     | "imageUrl"
     | "redirectUrl"
     | "categoryId"
+    | "categoryIds"
   >
 > & {
   imageUrl?: string | null;
   redirectUrl?: string | null;
   categoryId?: string | null;
+  categoryIds?: string[];
 };

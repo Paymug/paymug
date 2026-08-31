@@ -111,6 +111,7 @@ export interface Product {
   userId: string;
   storeId: string;
   categoryId?: string;
+  categoryIds: string[];
   purchaseCount: number;
   environment: PayPalMode;
   name: string;
@@ -158,6 +159,7 @@ export interface ProductCategory {
   name: string;
   slug: string;
   description: string;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }

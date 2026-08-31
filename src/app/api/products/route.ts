@@ -24,7 +24,7 @@ import {
 } from "@/lib/license-entitlements";
 import { jsonError, uid } from "@/lib/utils";
 import { requireProFeature } from "@/lib/pro-feature-access";
-import { findProductCategory } from "@/lib/product-categories";
+import { validateProductCategoryIds } from "@/lib/product-categories";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -42,6 +42,7 @@ const createSchema = z.object({
   slug: z.string().trim().max(100).optional().default(""),
   description: z.string().max(100000).optional().default(""),
   categoryId: z.string().min(1).nullable().optional(),
+  categoryIds: z.array(z.string().min(1)).max(100).optional(),
   price: z.number().int().nonnegative(),
   transactionFeeType: z.enum(["fixed", "percentage"]).default("fixed"),
   transactionFeeValue: z.number().int().min(0).max(1000000000).default(0),
@@ -101,11 +102,16 @@ export async function POST(req: Request) {
       const denied = await requireProFeature("private_github");
       if (denied) return denied;
     }
-    if (parsed.data.categoryId) {
-      const category = await findProductCategory(parsed.data.categoryId, user.id);
-      if (!category || category.storeId !== user.activeStoreId) {
-        return jsonError("Category not found", 404);
-      }
+    const categoryIds = parsed.data.categoryIds ??
+      (parsed.data.categoryId ? [parsed.data.categoryId] : []);
+    if (
+      !(await validateProductCategoryIds(
+        user.id,
+        user.activeStoreId,
+        categoryIds,
+      ))
+    ) {
+      return jsonError("Category not found", 404);
     }
 
     const now = new Date().toISOString();
@@ -170,7 +176,8 @@ export async function POST(req: Request) {
       id: uid(),
       userId: user.id,
       storeId: user.activeStoreId,
-      categoryId: parsed.data.categoryId || undefined,
+      categoryId: categoryIds[0],
+      categoryIds,
       purchaseCount: 0,
       environment: user.environment,
       name: parsed.data.name,

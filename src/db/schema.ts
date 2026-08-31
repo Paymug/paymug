@@ -122,6 +122,7 @@ export const productCategories = sqliteTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     description: text("description").notNull().default(""),
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
@@ -212,6 +213,23 @@ export const products = sqliteTable(
       table.environment,
       table.createdAt,
     ),
+  ],
+);
+
+export const productCategoryProducts = sqliteTable(
+  "product_category_products",
+  {
+    categoryId: text("category_id")
+      .notNull()
+      .references(() => productCategories.id, { onDelete: "cascade" }),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.categoryId, table.productId] }),
+    index("product_category_products_product_idx").on(table.productId),
   ],
 );
 
