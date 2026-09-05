@@ -79,9 +79,13 @@ const createSchema = z.object({
     path: ["transactionFeeValue"],
   }
 ).refine(
-  (data) => data.status !== "published" || data.price > 0,
+  (data) =>
+    data.status !== "published" ||
+    data.price > 0 ||
+    (data.billingType === "one_time" && data.customAmountEnabled),
   {
-    message: "Published products must have a price greater than 0",
+    message:
+      "Published products must have a price greater than 0 unless custom amounts are enabled",
     path: ["price"],
   }
 ).refine(

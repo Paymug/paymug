@@ -5,7 +5,7 @@ import { completeFreePurchase } from "./complete.utils";
 
 const schema = z.object({
   productId: z.string().min(1),
-  customAmount: z.number().int().min(1).max(1_000_000_000).optional(),
+  customAmount: z.number().int().min(0).max(1_000_000_000).optional(),
   customerEmail: z.string().email(),
   customerName: z.string().max(120).optional(),
   discountCode: z.string().max(60).optional(),

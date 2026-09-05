@@ -155,9 +155,15 @@ export async function PATCH(req: Request, ctx: Ctx) {
     }
     if (
       (parsed.data.status ?? existing.status) === "published" &&
-      (parsed.data.price ?? existing.price) < 1
+      (parsed.data.price ?? existing.price) < 1 &&
+      !(
+        (parsed.data.billingType ?? existing.billingType) === "one_time" &&
+        (parsed.data.customAmountEnabled ?? existing.customAmountEnabled)
+      )
     ) {
-      return jsonError("Published products must have a price greater than 0");
+      return jsonError(
+        "Published products must have a price greater than 0 unless custom amounts are enabled",
+      );
     }
 
     const nextBillingType = parseProductBillingType(

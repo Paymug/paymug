@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PayPalButtons } from "@/components/PayPalButtons";
 import { StripeCheckoutButton } from "@/components/StripeCheckoutButton";
@@ -21,11 +21,17 @@ import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
 } from "@phosphor-icons/react";
+import {
+  formatCustomCheckoutAmount,
+  parseCustomCheckoutAmount,
+} from "@/lib/custom-product-amount";
 
 export function CheckoutClient({
   productId,
   productName,
   productPrice,
+  defaultProductPrice,
+  customAmountEnabled,
   customAmount,
   custom,
   affiliateRef,
@@ -40,6 +46,8 @@ export function CheckoutClient({
   priceSuffix = "",
 }: CheckoutClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const normalizedInitialDiscountCode = useMemo(
     () => initialDiscountCode?.trim().slice(0, 60).toUpperCase() || "",
     [initialDiscountCode],
@@ -47,6 +55,11 @@ export function CheckoutClient({
   const configurationKey = JSON.stringify(custom);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const appliedAmount = customAmount ?? defaultProductPrice;
+  const [amount, setAmount] = useState(
+    formatCustomCheckoutAmount(appliedAmount),
+  );
+  const [amountError, setAmountError] = useState<string | null>(null);
   const [discountVisible, setDiscountVisible] = useState(
     Boolean(normalizedInitialDiscountCode),
   );
@@ -72,11 +85,49 @@ export function CheckoutClient({
 
   const emailOk = useMemo(() => isValidCheckoutEmail(email), [email]);
   const discountOk = !discountCode.trim() || discountStatus === "valid";
+  const parsedAmount = useMemo(() => {
+    if (!customAmountEnabled) return undefined;
+    try {
+      return parseCustomCheckoutAmount(amount);
+    } catch {
+      return undefined;
+    }
+  }, [amount, customAmountEnabled]);
+  const amountOk =
+    !customAmountEnabled ||
+    (parsedAmount !== undefined && parsedAmount === appliedAmount);
   const paymentReady =
-    emailOk && discountOk && discountStatus !== "checking";
+    emailOk && discountOk && discountStatus !== "checking" && amountOk;
   const isFreePurchase = pricing.total === 0;
   const isForeverFreeSubscription =
     isSubscription && isFreePurchase && !discountPeriods;
+
+  useEffect(() => {
+    setAmount(formatCustomCheckoutAmount(appliedAmount));
+    setAmountError(null);
+  }, [appliedAmount]);
+
+  function applyCustomAmount() {
+    if (!customAmountEnabled) return;
+    let nextAmount: number;
+    try {
+      const parsed = parseCustomCheckoutAmount(amount);
+      if (parsed === undefined) throw new Error("Amount is required");
+      nextAmount = parsed;
+    } catch {
+      setAmountError("Enter an amount between 0 and 10,000,000.00");
+      return;
+    }
+
+    setAmountError(null);
+    setAmount(formatCustomCheckoutAmount(nextAmount));
+    if (nextAmount === appliedAmount) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    if (nextAmount === defaultProductPrice) next.delete("amount");
+    else next.set("amount", formatCustomCheckoutAmount(nextAmount));
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
 
   const applyDiscountCode = useCallback(
     async (value: string) => {
@@ -307,6 +358,40 @@ export function CheckoutClient({
       </section>
 
       <section className="space-y-3 p-6">
+
+        {customAmountEnabled && (
+          <div className="space-y-1 pb-2">
+            <Input
+              label={`Pay what you want (${currency})`}
+              type="number"
+              name="customAmount"
+              min="0"
+              max="10000000"
+              step="0.01"
+              inputMode="decimal"
+              value={amount}
+              onChange={(event) => {
+                setAmount(event.target.value);
+                setAmountError(null);
+              }}
+              onBlur={applyCustomAmount}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyCustomAmount();
+                }
+              }}
+              error={amountError || undefined}
+              required
+            />
+            {!amountError && !amountOk && (
+              <p className="text-xs text-muted">
+                Press Enter or leave the field to apply this amount.
+              </p>
+            )}
+          </div>
+        )}
+
         <h3 className="text-sm font-semibold tracking-wide text-foreground">
           {isSubscription ? "Subscription summary" : "Order summary"}
         </h3>

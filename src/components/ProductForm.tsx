@@ -308,8 +308,16 @@ export function ProductForm({
     setSaving(true);
 
     const priceCents = Math.round(parseFloat(price) * 100);
-    if (!Number.isFinite(priceCents) || priceCents < 1) {
-      setError("Enter a valid price greater than 0");
+    if (
+      !Number.isFinite(priceCents) ||
+      priceCents < 0 ||
+      (priceCents === 0 && !customAmountEnabled)
+    ) {
+      setError(
+        customAmountEnabled
+          ? "Enter a valid price of 0 or more"
+          : "Enter a valid price greater than 0",
+      );
       setSaving(false);
       return;
     }
@@ -528,7 +536,7 @@ export function ProductForm({
               id="price"
               name="price"
               type="number"
-              min="0.01"
+              min={customAmountEnabled ? "0" : "0.01"}
               step="0.01"
               value={price}
               onChange={(event) => setPrice(event.target.value)}
@@ -585,10 +593,10 @@ export function ProductForm({
             />
             <span>
               <span className="block font-semibold text-foreground">
-                Allow custom checkout amount
+                Let buyers pay what they want
               </span>
-              Checkout links can override the default price, for example
-              {" "}<code>?amount=300</code>.
+              Buyers can enter their own amount at checkout. The price above is
+              used as the default.
             </span>
           </label>
         )}

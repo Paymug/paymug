@@ -9,7 +9,7 @@ import { resolveProductConfiguration } from "@/lib/product-configurations";
 
 const schema = z.object({
   productId: z.string().min(1),
-  customAmount: z.number().int().min(1).max(1_000_000_000).optional(),
+  customAmount: z.number().int().min(0).max(1_000_000_000).optional(),
   code: z.string().trim().min(1).max(60),
   custom: checkoutCustomDataSchema.optional(),
 });

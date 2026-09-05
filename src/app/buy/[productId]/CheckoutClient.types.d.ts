@@ -4,6 +4,8 @@ export interface CheckoutClientProps {
   productId: string;
   productName: string;
   productPrice: number;
+  defaultProductPrice: number;
+  customAmountEnabled: boolean;
   customAmount?: number;
   custom: CheckoutCustomData;
   affiliateRef?: string;

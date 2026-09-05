@@ -52,11 +52,11 @@ export function StorefrontProductGrid({
               {formatMoney(getProductStartingPrice(product), product.currency)}
               {formatProductPriceSuffix(product)}
             </p>
-            {displayPurchases && product.purchaseCount && (
+            {displayPurchases && product.purchaseCount ? (
               <p className="mt-1 text-xs text-muted">
                 {product.purchaseCount.toLocaleString()} purchased
               </p>
-            )}
+            ) : null}
           </div>
           {isPerpetualLicenseProduct(product) && (
             <p className="mt-1 text-xs text-muted">

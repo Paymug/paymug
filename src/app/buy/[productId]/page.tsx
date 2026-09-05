@@ -95,8 +95,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       productName: product.name,
       customAmount: amount,
       custom: configuration.custom,
-      requestUrl:
-        getRequestOrigin(await headers()) || "http://localhost",
+      requestUrl: getRequestOrigin(await headers()) || "http://localhost",
     }).catch((error) => {
       console.error("Could not schedule checkout reminder", error);
     });
@@ -170,11 +169,11 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                 <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                   {product.name}
                 </h1>
-                {store.displayPurchasesEnabled && (
+                {store.displayPurchasesEnabled && product.purchaseCount > 0 ? (
                   <p className="mt-2 text-sm text-muted">
                     {product.purchaseCount.toLocaleString()} purchased
                   </p>
-                )}
+                ) : null}
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-2xl font-bold sm:text-3xl">
@@ -242,6 +241,8 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               productId={product.id}
               productName={product.name}
               productPrice={checkoutPrice}
+              defaultProductPrice={product.price}
+              customAmountEnabled={product.customAmountEnabled}
               customAmount={customAmount}
               custom={configuration.custom}
               affiliateRef={ref?.trim() || undefined}

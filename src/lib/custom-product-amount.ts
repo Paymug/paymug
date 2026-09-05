@@ -8,10 +8,10 @@ export function parseCustomCheckoutAmount(
   if (value === undefined || value.trim() === "") return undefined;
   const normalized = value.trim();
   if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(normalized)) {
-    throw new Error("Custom amount must be a valid positive amount");
+    throw new Error("Custom amount must be a valid non-negative amount");
   }
   const cents = Math.round(Number(normalized) * 100);
-  if (cents < 1 || cents > maximumCustomAmountCents) {
+  if (cents < 0 || cents > maximumCustomAmountCents) {
     throw new Error("Custom amount is outside the supported range");
   }
   return cents;
@@ -27,7 +27,7 @@ export function resolveProductCheckoutPrice(
   }
   if (
     !Number.isSafeInteger(customAmount) ||
-    customAmount < 1 ||
+    customAmount < 0 ||
     customAmount > maximumCustomAmountCents
   ) {
     throw new Error("Custom amount is outside the supported range");
