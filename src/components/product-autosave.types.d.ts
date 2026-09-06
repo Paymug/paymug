@@ -18,6 +18,7 @@ export interface ProductFormSavePayload {
   transactionFeeValue: number;
   currency: string;
   status: "draft" | "published";
+  hideFromStorefront: boolean;
   deliveryContent?: string;
   redirectUrl?: string | null;
   productFiles: ProductFile[];

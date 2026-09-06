@@ -170,6 +170,9 @@ export const products = sqliteTable(
   transactionFeeValue: integer("transaction_fee_value").notNull().default(0),
   currency: text("currency").notNull().default("USD"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
+  hideFromStorefront: integer("hide_from_storefront", { mode: "boolean" })
+    .notNull()
+    .default(false),
   imageUrl: text("image_url"),
   deliveryContent: text("delivery_content"),
   redirectUrl: text("redirect_url"),

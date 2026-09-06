@@ -73,6 +73,7 @@ const updateSchema = z.object({
   transactionFeeValue: z.number().int().min(0).max(1000000000).optional(),
   currency: z.string().length(3).optional(),
   status: z.enum(["draft", "published"]).optional(),
+  hideFromStorefront: z.boolean().optional(),
   deliveryContent: z.string().max(100000).optional(),
   redirectUrl: productRedirectUrlSchema.nullable().optional(),
   productFiles: z.array(productFileInputSchema).max(20).optional(),

@@ -128,6 +128,7 @@ function rowToProduct(
     transactionFeeValue: row.transactionFeeValue,
     currency: row.currency,
     status: row.status,
+    hideFromStorefront: row.hideFromStorefront,
     imageUrl: row.imageUrl ?? undefined,
     deliveryContent: row.deliveryContent ?? undefined,
     redirectUrl: row.redirectUrl ?? undefined,
@@ -467,6 +468,7 @@ export async function createProduct(product: Product): Promise<Product> {
     transactionFeeValue: product.transactionFeeValue,
     currency: product.currency,
     status: product.status,
+    hideFromStorefront: product.hideFromStorefront,
     imageUrl: product.imageUrl ?? null,
     deliveryContent: product.deliveryContent ?? null,
     redirectUrl: product.redirectUrl ?? null,
@@ -541,6 +543,9 @@ export async function updateProduct(
         : {}),
       ...(patch.currency !== undefined ? { currency: patch.currency } : {}),
       ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.hideFromStorefront !== undefined
+        ? { hideFromStorefront: patch.hideFromStorefront }
+        : {}),
       ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl ?? null } : {}),
       ...(patch.deliveryContent !== undefined
         ? { deliveryContent: patch.deliveryContent ?? null }

@@ -15,7 +15,10 @@ export async function GET(_req: Request, ctx: Ctx) {
     user.activeStoreId,
     user.environment,
   ))
-    .filter((p) => p.status === "published")
+    .filter(
+      (product) =>
+        product.status === "published" && !product.hideFromStorefront,
+    )
     .map(({
       deliveryContent: _,
       redirectUrl: ________,

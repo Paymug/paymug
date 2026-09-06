@@ -40,6 +40,7 @@ export async function StoreCategoryPage({
   const products = allProducts.filter(
     (product) =>
       product.status === "published" &&
+      !product.hideFromStorefront &&
       product.categoryIds.includes(category.id),
   );
   const publishedPages = pagesUnlocked

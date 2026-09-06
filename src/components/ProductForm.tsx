@@ -79,6 +79,9 @@ export function ProductForm({
   const [status, setStatus] = useState<"draft" | "published">(
     product?.status || "draft",
   );
+  const [hideFromStorefront, setHideFromStorefront] = useState(
+    product?.hideFromStorefront || false,
+  );
   const [deliveryContent, setDeliveryContent] = useState(
     product?.deliveryContent || "",
   );
@@ -199,6 +202,7 @@ export function ProductForm({
     transactionFeeValue: autosaveTransactionFeeValue,
     currency,
     status,
+    hideFromStorefront,
     deliveryContent: deliveryContent || undefined,
     redirectUrl: redirectUrl.trim() || null,
     productFiles,
@@ -250,6 +254,7 @@ export function ProductForm({
     transactionFeeType !== storeTransactionFeeSelection ||
     transactionFeeValue !== storeTransactionFeeDisplayValue ||
     status !== "draft" ||
+    hideFromStorefront ||
     customAmountEnabled,
   );
   const {
@@ -480,6 +485,24 @@ export function ProductForm({
             />
           </button>
         </div>
+
+        <label className="flex items-start gap-3 rounded-xl border border-border bg-[#fafafd] p-4 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={hideFromStorefront}
+            onChange={(event) => {
+              setHideFromStorefront(event.target.checked);
+              requestAutosave(1);
+            }}
+            className="mt-0.5 h-4 w-4 rounded border-border"
+          />
+          <span>
+            <span className="block font-semibold text-foreground">
+              Hide from storefront
+            </span>
+            Keep the product published and available through its direct link.
+          </span>
+        </label>
 
         <Input
           label="Product name"

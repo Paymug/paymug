@@ -61,7 +61,10 @@ export default async function AffiliateProgramPage({
     getPrimaryStore(),
   ]);
   const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
-  const products = allProducts.filter((product) => product.status === "published");
+  const products = allProducts.filter(
+    (product) =>
+      product.status === "published" && !product.hideFromStorefront,
+  );
   const publishedPages = storePages.filter((page) => page.status === "published");
   const topPages = publishedPages.filter((page) => page.navigation === "top");
   const footerPages = publishedPages.filter(

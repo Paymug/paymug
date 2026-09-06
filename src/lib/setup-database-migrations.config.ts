@@ -184,5 +184,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `stores` ADD `domain` text;"
     ]
+  },
+  {
+    "name": "0020_hide_products_from_storefront.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `hide_from_storefront` integer DEFAULT 0 NOT NULL;"
+    ]
   }
 ];

@@ -141,6 +141,13 @@
       "when": 1788588000000,
       "tag": "0019_store_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1788674400000,
+      "tag": "0020_hide_products_from_storefront",
+      "breakpoints": true
     }
   ]
 }

@@ -130,6 +130,8 @@ export interface Product {
   transactionFeeValue: number;
   currency: string;
   status: ProductStatus;
+  /** Keeps a published product accessible by direct URL but out of store listings. */
+  hideFromStorefront: boolean;
   imageUrl?: string;
   /** Optional delivery content (download link, license key text, etc.) */
   deliveryContent?: string;

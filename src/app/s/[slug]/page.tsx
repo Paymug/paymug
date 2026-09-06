@@ -52,7 +52,10 @@ export default async function StorefrontPage({
     hasProFeature("affiliates"),
     listProductCategories(seller.id, seller.activeStoreId),
   ]);
-  const products = allProducts.filter((p) => p.status === "published");
+  const products = allProducts.filter(
+    (product) =>
+      product.status === "published" && !product.hideFromStorefront,
+  );
   const publishedPages = pagesUnlocked ? storePages.filter(
     (page) => page.status === "published",
   ) : [];

@@ -9,6 +9,7 @@ import {
   buildVisitorAnalytics,
 } from "@/lib/visitor-analytics.utils";
 import { DashboardDateRangePicker } from "../DashboardDateRangePicker";
+import { DashboardGraphShareButton } from "../DashboardGraphShareButton";
 import { DeltaLine } from "../DashboardOverviewControls";
 import { saveDashboardFilterPreference } from "../dashboard-filter-preference.utils";
 import { AnalyticsBreakdownCard } from "./AnalyticsBreakdownCard";
@@ -106,20 +107,24 @@ export function AnalyticsOverview({
   const metric =
     metricKey === "uniqueVisitors"
       ? {
+          key: "uniqueVisitors",
           label: "Unique visitors",
           value: summary.uniqueVisitors,
           previousValue: summary.previousUniqueVisitors,
           delta: summary.uniqueVisitorsDelta,
           data: summary.uniqueVisitorSeries,
           comparisonData: summary.previousUniqueVisitorSeries,
+          format: "number" as const,
         }
       : {
+          key: "visits",
           label: "Visits",
           value: summary.visits,
           previousValue: summary.previousVisits,
           delta: summary.visitsDelta,
           data: summary.series,
           comparisonData: summary.previousSeries,
+          format: "number" as const,
         };
 
   return (
@@ -177,7 +182,12 @@ export function AnalyticsOverview({
         </div>
       </div>
 
-      <section className="pt-8">
+      <section className="group relative pt-8">
+        <DashboardGraphShareButton
+          metric={metric}
+          currency={currency}
+          className="right-0 top-7"
+        />
         <div className="flex flex-wrap items-center">
           <p className="text-3xl font-medium leading-none tracking-[-0.04em] tabular-nums">
             {metric.value.toLocaleString()}
