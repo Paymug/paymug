@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ProductDescription } from "@/components/ProductDescription";
+import { PayWhatYouWantBadge } from "@/components/PayWhatYouWantBadge";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { cardClass } from "@/components/ui.styles";
@@ -176,10 +177,15 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                 ) : null}
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-2xl font-bold sm:text-3xl">
-                  {formatProductPageMoney(checkoutPrice, product.currency)}
-                  {priceSuffix}
-                </p>
+                <div className="flex items-center justify-end gap-2">
+                  <p className="text-2xl font-bold sm:text-3xl">
+                    {formatProductPageMoney(checkoutPrice, product.currency)}
+                    {priceSuffix}
+                  </p>
+                  {product.customAmountEnabled && (
+                    <PayWhatYouWantBadge />
+                  )}
+                </div>
                 {perpetualUpdateSummary ? (
                   <p className="mt-1 max-w-56 text-xs leading-5 text-muted">
                     {perpetualUpdateSummary}

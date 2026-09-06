@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PayWhatYouWantBadge } from "./PayWhatYouWantBadge";
 import { getProductDescriptionPlainText } from "./product-description.utils";
 import { formatMoney } from "@/lib/format";
 import {
@@ -47,11 +48,16 @@ export function StorefrontProductGrid({
             }}
           />
           <div className="mt-4 flex flex-row justify-between">
-            <p className="text-lg font-bold">
-              {!!product.options.length && "From "}
-              {formatMoney(getProductStartingPrice(product), product.currency)}
-              {formatProductPriceSuffix(product)}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-lg font-bold">
+                {!!product.options.length && "From "}
+                {formatMoney(getProductStartingPrice(product), product.currency)}
+                {formatProductPriceSuffix(product)}
+              </p>
+              {product.customAmountEnabled && (
+                <PayWhatYouWantBadge />
+              )}
+            </div>
             {displayPurchases && product.purchaseCount ? (
               <p className="mt-1 text-xs text-muted">
                 {product.purchaseCount.toLocaleString()} purchased
