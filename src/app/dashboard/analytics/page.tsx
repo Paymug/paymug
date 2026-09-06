@@ -5,15 +5,13 @@ import {
   dashboardPageClass,
 } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
+import { listOrdersByUser, listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
 import {
   getEarliestVisitorEventDate,
   listVisitorEvents,
 } from "@/lib/visitor-analytics";
-import {
-  buildVisitorAnalytics,
-  getPreviousAnalyticsRange,
-} from "@/lib/visitor-analytics.utils";
+import { getPreviousAnalyticsRange } from "@/lib/visitor-analytics.utils";
 import {
   dashboardFilterCookieName,
   parseDashboardFilterCookie,
@@ -57,16 +55,17 @@ export default async function AnalyticsPage({
     filter.startDate,
     filter.endDate,
   );
-  const [events, earliestDate] = await Promise.all([
+  const [events, earliestDate, products, orders] = await Promise.all([
     listVisitorEvents(store.id, previousRange.startDate, filter.endDate),
     getEarliestVisitorEventDate(store.id),
+    listProductsByUser(user.id, store.id, user.environment),
+    listOrdersByUser(user.id, store.id, user.environment),
   ]);
-  const summary = buildVisitorAnalytics({
-    events,
-    startDate: filter.startDate,
-    endDate: filter.endDate,
-    interval: filter.interval,
-  });
+  const selectedProductId =
+    filter.productId === "all" ||
+    products.some((product) => product.id === filter.productId)
+      ? filter.productId
+      : "all";
 
   return (
     <div className={dashboardPageClass}>
@@ -74,8 +73,24 @@ export default async function AnalyticsPage({
         startDate={filter.startDate}
         endDate={filter.endDate}
         interval={filter.interval}
+        rangeMode={filter.rangeMode}
+        productId={selectedProductId}
+        products={products.map(({ id, name, slug }) => ({ id, name, slug }))}
         earliestDate={earliestDate}
-        summary={summary}
+        events={events}
+        orders={orders
+          .filter((order) => {
+            const date = (order.paidAt || order.createdAt).slice(0, 10);
+            return date >= filter.startDate && date <= filter.endDate;
+          })
+          .map(({ productId, status, amount, paidAt, createdAt }) => ({
+            productId,
+            status,
+            amount,
+            paidAt,
+            createdAt,
+          }))}
+        currency={store.currency}
       />
     </div>
   );

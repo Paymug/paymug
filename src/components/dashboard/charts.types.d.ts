@@ -29,6 +29,7 @@ export interface ChartProps {
   gridEvery?: number;
   showGrid?: boolean;
   endpointLabelFontSize?: number;
+  transparentBackground?: boolean;
   className?: string;
 }
 

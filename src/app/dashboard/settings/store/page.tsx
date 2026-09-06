@@ -22,6 +22,7 @@ export default async function StoreSettingsPage() {
         storeId={store.id}
         initialName={store.name}
         initialSlug={store.slug}
+        initialDomain={store.domain}
         initialIsPrimary={store.id === user.primaryStoreId}
         initialDescription={store.description}
         initialLogoImageUrl={store.logoImageUrl}

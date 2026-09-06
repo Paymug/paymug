@@ -307,54 +307,55 @@ export function CheckoutClient({
           Send me product updates and offers from this store.
         </label>
 
-        {!discountVisible ? (
-          <button
-            type="button"
-            onClick={() => setDiscountVisible(true)}
-            className="w-fit cursor-pointer text-xs font-medium text-accent-dark hover:underline"
-          >
-            Add discount code
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <Input
-              label="Discount code"
-              name="discountCode"
-              value={discountCode}
-              onChange={(event) => {
-                discountRequestRef.current += 1;
-                setDiscountCode(event.target.value.toUpperCase());
-                setDiscountStatus("idle");
-                setDiscountError(null);
-                setDiscountPeriods(null);
-                setPricing({
-                  subtotal: productPrice,
-                  discountAmount: 0,
-                  transactionFeeAmount: initialTransactionFeeAmount,
-                  total: productPrice + initialTransactionFeeAmount,
-                });
-              }}
-              onBlur={() => void applyDiscountCode(discountCode)}
-              placeholder="WELCOME10"
-              error={discountError || undefined}
-            />
-            {discountStatus === "checking" && (
-              <p className="flex items-center gap-2 text-sm text-muted">
-                <ArrowClockwiseIcon className="animate-spin" size={14} />
-                Checking discount code…
-              </p>
-            )}
-            {discountStatus === "valid" && (
-              <p className="text-sm text-emerald-600">
-                Discount applied
-                {isSubscription && discountPeriods
-                  ? ` for the first ${discountPeriods} billing ${discountPeriods === 1 ? "period" : "periods"}`
-                  : ""}
-                .
-              </p>
-            )}
-          </div>
-        )}
+        {customAmountEnabled ? null :
+          !discountVisible ? (
+            <button
+              type="button"
+              onClick={() => setDiscountVisible(true)}
+              className="w-fit cursor-pointer text-xs font-medium text-accent-dark hover:underline"
+            >
+              Add discount code
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <Input
+                label="Discount code"
+                name="discountCode"
+                value={discountCode}
+                onChange={(event) => {
+                  discountRequestRef.current += 1;
+                  setDiscountCode(event.target.value.toUpperCase());
+                  setDiscountStatus("idle");
+                  setDiscountError(null);
+                  setDiscountPeriods(null);
+                  setPricing({
+                    subtotal: productPrice,
+                    discountAmount: 0,
+                    transactionFeeAmount: initialTransactionFeeAmount,
+                    total: productPrice + initialTransactionFeeAmount,
+                  });
+                }}
+                onBlur={() => void applyDiscountCode(discountCode)}
+                placeholder="WELCOME10"
+                error={discountError || undefined}
+              />
+              {discountStatus === "checking" && (
+                <p className="flex items-center gap-2 text-sm text-muted">
+                  <ArrowClockwiseIcon className="animate-spin" size={14} />
+                  Checking discount code…
+                </p>
+              )}
+              {discountStatus === "valid" && (
+                <p className="text-sm text-emerald-600">
+                  Discount applied
+                  {isSubscription && discountPeriods
+                    ? ` for the first ${discountPeriods} billing ${discountPeriods === 1 ? "period" : "periods"}`
+                    : ""}
+                  .
+                </p>
+              )}
+            </div>
+          )}
       </section>
 
       <section className="space-y-3 p-6">

@@ -67,6 +67,7 @@ export function AreaChart({
   gridEvery,
   showGrid = true,
   endpointLabelFontSize,
+  transparentBackground = false,
   className = "",
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -297,7 +298,10 @@ export function AreaChart({
     );
   }
 
-  const containerStyle: CSSProperties = { height };
+  const containerStyle: CSSProperties = {
+    height,
+    ...(transparentBackground ? { background: "transparent" } : {}),
+  };
   const trendClass =
     trendDirection === "positive"
       ? styles.trendPositive

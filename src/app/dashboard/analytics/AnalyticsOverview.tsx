@@ -1,24 +1,108 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CustomSelect } from "@/components/CustomSelect";
 import { AreaChart } from "@/components/dashboard/charts";
+import {
+  buildAnalyticsCommerceSeries,
+  buildVisitorAnalytics,
+} from "@/lib/visitor-analytics.utils";
 import { DashboardDateRangePicker } from "../DashboardDateRangePicker";
 import { DeltaLine } from "../DashboardOverviewControls";
+import { saveDashboardFilterPreference } from "../dashboard-filter-preference.utils";
 import { AnalyticsBreakdownCard } from "./AnalyticsBreakdownCard";
+import { AnalyticsChartBars } from "./AnalyticsChartBars";
+import { AnalyticsChartMenu } from "./AnalyticsChartMenu";
 import type {
+  AnalyticsCommerceMetric,
   AnalyticsMetricKey,
   AnalyticsOverviewProps,
 } from "./analytics.types";
+import type {
+  AnalyticsDimension,
+  AnalyticsDimensionFilters,
+} from "@/lib/visitor-analytics.types";
+
+const emptyFilters: AnalyticsDimensionFilters = {
+  pages: [],
+  sources: [],
+  devices: [],
+  operatingSystems: [],
+  cities: [],
+  countries: [],
+};
 
 export function AnalyticsOverview({
   startDate,
   endDate,
   interval,
+  rangeMode,
+  productId,
+  products,
   earliestDate,
-  summary,
+  events,
+  orders,
+  currency,
 }: AnalyticsOverviewProps) {
+  const router = useRouter();
   const [metricKey, setMetricKey] = useState<AnalyticsMetricKey>("visits");
+  const [commerceMetric, setCommerceMetric] =
+    useState<AnalyticsCommerceMetric | null>(null);
+  const [filters, setFilters] =
+    useState<AnalyticsDimensionFilters>(emptyFilters);
+  const summary = useMemo(
+    () =>
+      buildVisitorAnalytics({
+        events,
+        startDate,
+        endDate,
+        interval,
+        products,
+        productId,
+        filters,
+      }),
+    [endDate, events, filters, interval, productId, products, startDate],
+  );
+  const commerceData = useMemo(
+    () =>
+      commerceMetric
+        ? buildAnalyticsCommerceSeries({
+            orders,
+            startDate,
+            endDate,
+            interval,
+            productId,
+            metric: commerceMetric,
+          })
+        : [],
+    [commerceMetric, endDate, interval, orders, productId, startDate],
+  );
+  const selectedFilterCount = Object.values(filters).reduce(
+    (total, values) => total + values.length,
+    0,
+  );
+
+  function updateProduct(nextProductId: string) {
+    saveDashboardFilterPreference({
+      startDate,
+      endDate,
+      interval,
+      productId: nextProductId,
+      rangeMode,
+    });
+    setFilters(emptyFilters);
+    router.refresh();
+  }
+
+  function toggleFilter(dimension: AnalyticsDimension, value: string) {
+    setFilters((current) => ({
+      ...current,
+      [dimension]: current[dimension].includes(value)
+        ? current[dimension].filter((candidate) => candidate !== value)
+        : [...current[dimension], value],
+    }));
+  }
   const metric =
     metricKey === "uniqueVisitors"
       ? {
@@ -57,9 +141,24 @@ export function AnalyticsOverview({
             startDate={startDate}
             endDate={endDate}
             interval={interval}
-            productId="all"
-            products={[]}
+            productId={productId}
+            rangeMode={rangeMode}
+            products={products}
             earliestDate={earliestDate}
+          />
+          <CustomSelect
+            value={productId}
+            onValueChange={updateProduct}
+            options={[
+              { value: "all", label: "All products" },
+              ...products.map((product) => ({
+                value: product.id,
+                label: product.name,
+              })),
+            ]}
+            variant="plain"
+            ariaLabel="Product"
+            triggerClassName="max-w-56 text-sm font-medium"
           />
         </div>
         <div className="flex items-center gap-5 text-xs text-[#74748f]">
@@ -71,6 +170,10 @@ export function AnalyticsOverview({
             <span className="w-5 border-t-2 border-dashed border-[#a3a3ad]" />
             Last period
           </span>
+          <AnalyticsChartMenu
+            value={commerceMetric}
+            onChange={setCommerceMetric}
+          />
         </div>
       </div>
 
@@ -83,8 +186,21 @@ export function AnalyticsOverview({
         </div>
         <p className="mt-2 text-sm text-muted">
           vs. {metric.previousValue.toLocaleString()} last period
+          {commerceMetric && (
+            <span className="ml-4 inline-flex items-center gap-2 text-[#6f61ca]">
+              <span className="h-2.5 w-2.5 rounded-sm bg-[#8b7cf6]/40" />
+              {commerceMetric === "orders" ? "Orders" : "Revenue"}
+            </span>
+          )}
         </p>
-        <div className="mt-7">
+        <div className="relative mt-7">
+          {commerceMetric && (
+            <AnalyticsChartBars
+              data={commerceData}
+              label={commerceMetric === "orders" ? "Orders" : "Revenue"}
+              currency={commerceMetric === "revenue" ? currency : undefined}
+            />
+          )}
           <AreaChart
             data={metric.data}
             comparisonData={metric.comparisonData}
@@ -97,20 +213,71 @@ export function AnalyticsOverview({
             emptyLabel=""
             title={metric.label}
             trendPercent={metric.delta}
+            transparentBackground={Boolean(commerceMetric)}
+            className={commerceMetric ? "relative z-10" : ""}
           />
         </div>
       </section>
 
+      {selectedFilterCount > 0 && (
+        <div className="mt-8 flex items-center justify-between rounded-xl bg-[#fffaf0] px-4 py-3 text-sm">
+          <span>
+            {selectedFilterCount} analytics{" "}
+            {selectedFilterCount === 1 ? "filter" : "filters"} active
+          </span>
+          <button
+            type="button"
+            onClick={() => setFilters(emptyFilters)}
+            className="font-medium text-accent-hover hover:underline"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
       <div className="mt-10 grid border-l border-t border-[#e8e8ee] md:grid-cols-2 lg:grid-cols-3">
-        <AnalyticsBreakdownCard title="Pages" items={summary.pages} />
-        <AnalyticsBreakdownCard title="Sources" items={summary.sources} />
-        <AnalyticsBreakdownCard title="Devices" items={summary.devices} />
+        <AnalyticsBreakdownCard
+          title="Pages"
+          dimension="pages"
+          items={summary.pages}
+          selectedValues={filters.pages}
+          onToggle={toggleFilter}
+        />
+        <AnalyticsBreakdownCard
+          title="Sources"
+          dimension="sources"
+          items={summary.sources}
+          selectedValues={filters.sources}
+          onToggle={toggleFilter}
+        />
+        <AnalyticsBreakdownCard
+          title="Devices"
+          dimension="devices"
+          items={summary.devices}
+          selectedValues={filters.devices}
+          onToggle={toggleFilter}
+        />
         <AnalyticsBreakdownCard
           title="Operating systems"
+          dimension="operatingSystems"
           items={summary.operatingSystems}
+          selectedValues={filters.operatingSystems}
+          onToggle={toggleFilter}
         />
-        <AnalyticsBreakdownCard title="Cities" items={summary.cities} />
-        <AnalyticsBreakdownCard title="Countries" items={summary.countries} />
+        <AnalyticsBreakdownCard
+          title="Cities"
+          dimension="cities"
+          items={summary.cities}
+          selectedValues={filters.cities}
+          onToggle={toggleFilter}
+        />
+        <AnalyticsBreakdownCard
+          title="Countries"
+          dimension="countries"
+          items={summary.countries}
+          selectedValues={filters.countries}
+          onToggle={toggleFilter}
+        />
       </div>
     </>
   );

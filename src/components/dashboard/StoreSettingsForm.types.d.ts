@@ -4,6 +4,7 @@ export interface StoreSettingsFormProps {
   storeId: string;
   initialName: string;
   initialSlug: string;
+  initialDomain?: string;
   initialIsPrimary: boolean;
   initialDescription: string;
   initialLogoImageUrl?: string;

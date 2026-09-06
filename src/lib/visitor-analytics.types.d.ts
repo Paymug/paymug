@@ -1,5 +1,23 @@
 import type { ChartPoint } from "@/components/dashboard/charts.types";
 import type { DashboardInterval } from "@/app/dashboard/dashboard-overview.types";
+import type { Order, Product } from "./types";
+
+export type AnalyticsDimension =
+  | "pages"
+  | "sources"
+  | "devices"
+  | "operatingSystems"
+  | "cities"
+  | "countries";
+
+export type AnalyticsDimensionFilters = Record<AnalyticsDimension, string[]>;
+
+export type AnalyticsProduct = Pick<Product, "id" | "name" | "slug">;
+
+export type AnalyticsOrder = Pick<
+  Order,
+  "productId" | "status" | "amount" | "paidAt" | "createdAt"
+>;
 
 export interface VisitorEvent {
   id: string;
@@ -26,6 +44,7 @@ export interface RecordVisitorEventInput {
 }
 
 export interface AnalyticsBreakdownItem {
+  value: string;
   label: string;
   visits: number;
   share: number;
@@ -55,4 +74,16 @@ export interface BuildVisitorAnalyticsInput {
   startDate: string;
   endDate: string;
   interval: DashboardInterval;
+  products: AnalyticsProduct[];
+  productId: string;
+  filters: AnalyticsDimensionFilters;
+}
+
+export interface BuildAnalyticsCommerceSeriesInput {
+  orders: AnalyticsOrder[];
+  startDate: string;
+  endDate: string;
+  interval: DashboardInterval;
+  productId: string;
+  metric: "orders" | "revenue";
 }

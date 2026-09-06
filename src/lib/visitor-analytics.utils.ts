@@ -1,6 +1,10 @@
 import { pctChange } from "./analytics.utils";
 import type {
   AnalyticsBreakdownItem,
+  AnalyticsDimension,
+  AnalyticsDimensionFilters,
+  AnalyticsProduct,
+  BuildAnalyticsCommerceSeriesInput,
   BuildVisitorAnalyticsInput,
   VisitorAnalyticsSummary,
   VisitorEvent,
@@ -119,25 +123,36 @@ function createSeries(
 
 function createBreakdown(
   events: VisitorEvent[],
-  readLabel: (event: VisitorEvent) => string,
+  dimension: AnalyticsDimension,
+  filters: AnalyticsDimensionFilters,
+  products: AnalyticsProduct[],
 ): AnalyticsBreakdownItem[] {
+  const filteredEvents = filterVisitorEvents(
+    events,
+    filters,
+    products,
+    dimension,
+  );
   const counts = new Map<string, number>();
-  for (const event of events) {
-    const label = readLabel(event) || "Unknown";
-    counts.set(label, (counts.get(label) || 0) + 1);
+  for (const event of filteredEvents) {
+    const value = getAnalyticsDimensionValue(event, dimension, products);
+    counts.set(value, (counts.get(value) || 0) + 1);
   }
-  const total = events.length;
+  for (const selectedValue of filters[dimension]) {
+    if (!counts.has(selectedValue)) counts.set(selectedValue, 0);
+  }
+  const total = filteredEvents.length;
   return [...counts.entries()]
-    .map(([label, visits]) => ({
-      label,
+    .map(([value, visits]) => ({
+      value,
+      label: getAnalyticsDimensionLabel(value, dimension, products),
       visits,
       share: total ? (visits / total) * 100 : 0,
     }))
     .sort(
       (left, right) =>
         right.visits - left.visits || left.label.localeCompare(right.label),
-    )
-    .slice(0, 8);
+    );
 }
 
 function uniqueVisitorCount(events: VisitorEvent[]): number {
@@ -149,6 +164,71 @@ function formatCountry(country: string): string {
   return new Intl.DisplayNames(["en"], { type: "region" }).of(
     country.toUpperCase(),
   ) || country;
+}
+
+function getEventProductId(
+  event: VisitorEvent,
+  products: AnalyticsProduct[],
+): string | undefined {
+  const match = /^\/buy\/([^/]+)\/?$/.exec(event.path);
+  if (!match) return undefined;
+  let identifier = match[1];
+  try {
+    identifier = decodeURIComponent(identifier);
+  } catch {
+    // Keep the encoded identifier when a legacy path is malformed.
+  }
+  return products.find(
+    (product) => product.id === identifier || product.slug === identifier,
+  )?.id;
+}
+
+function getAnalyticsDimensionValue(
+  event: VisitorEvent,
+  dimension: AnalyticsDimension,
+  products: AnalyticsProduct[],
+): string {
+  if (dimension === "pages") {
+    const productId = getEventProductId(event, products);
+    return productId ? `product:${productId}` : event.path;
+  }
+  if (dimension === "operatingSystems") return event.os;
+  if (dimension === "sources") return event.source;
+  if (dimension === "devices") return event.device;
+  if (dimension === "cities") return event.city;
+  return event.country;
+}
+
+function getAnalyticsDimensionLabel(
+  value: string,
+  dimension: AnalyticsDimension,
+  products: AnalyticsProduct[],
+): string {
+  if (dimension === "pages" && value.startsWith("product:")) {
+    return (
+      products.find((product) => product.id === value.slice(8))?.name || value
+    );
+  }
+  if (dimension === "countries") return formatCountry(value || "Unknown");
+  return value || "Unknown";
+}
+
+function filterVisitorEvents(
+  events: VisitorEvent[],
+  filters: AnalyticsDimensionFilters,
+  products: AnalyticsProduct[],
+  excludedDimension?: AnalyticsDimension,
+): VisitorEvent[] {
+  return events.filter((event) =>
+    (Object.keys(filters) as AnalyticsDimension[]).every((dimension) => {
+      if (dimension === excludedDimension || filters[dimension].length === 0) {
+        return true;
+      }
+      return filters[dimension].includes(
+        getAnalyticsDimensionValue(event, dimension, products),
+      );
+    }),
+  );
 }
 
 export function getPreviousAnalyticsRange(startDate: string, endDate: string) {
@@ -167,17 +247,34 @@ export function buildVisitorAnalytics({
   startDate,
   endDate,
   interval,
+  products,
+  productId,
+  filters,
 }: BuildVisitorAnalyticsInput): VisitorAnalyticsSummary {
   const previousRange = getPreviousAnalyticsRange(startDate, endDate);
-  const currentEvents = events.filter(
+  const productEvents = events.filter(
+    (event) =>
+      productId === "all" || getEventProductId(event, products) === productId,
+  );
+  const currentEventsForPeriod = productEvents.filter(
     (event) =>
       event.createdAt.slice(0, 10) >= startDate &&
       event.createdAt.slice(0, 10) <= endDate,
   );
-  const previousEvents = events.filter(
+  const previousEventsForPeriod = productEvents.filter(
     (event) =>
       event.createdAt.slice(0, 10) >= previousRange.startDate &&
       event.createdAt.slice(0, 10) <= previousRange.endDate,
+  );
+  const currentEvents = filterVisitorEvents(
+    currentEventsForPeriod,
+    filters,
+    products,
+  );
+  const previousEvents = filterVisitorEvents(
+    previousEventsForPeriod,
+    filters,
+    products,
   );
   const uniqueVisitors = uniqueVisitorCount(currentEvents);
   const previousUniqueVisitors = uniqueVisitorCount(previousEvents);
@@ -210,13 +307,64 @@ export function buildVisitorAnalytics({
       interval,
       true,
     ),
-    sources: createBreakdown(currentEvents, (event) => event.source),
-    pages: createBreakdown(currentEvents, (event) => event.path),
-    devices: createBreakdown(currentEvents, (event) => event.device),
-    operatingSystems: createBreakdown(currentEvents, (event) => event.os),
-    cities: createBreakdown(currentEvents, (event) => event.city),
-    countries: createBreakdown(currentEvents, (event) =>
-      formatCountry(event.country),
+    sources: createBreakdown(
+      currentEventsForPeriod,
+      "sources",
+      filters,
+      products,
+    ),
+    pages: createBreakdown(currentEventsForPeriod, "pages", filters, products),
+    devices: createBreakdown(
+      currentEventsForPeriod,
+      "devices",
+      filters,
+      products,
+    ),
+    operatingSystems: createBreakdown(
+      currentEventsForPeriod,
+      "operatingSystems",
+      filters,
+      products,
+    ),
+    cities: createBreakdown(
+      currentEventsForPeriod,
+      "cities",
+      filters,
+      products,
+    ),
+    countries: createBreakdown(
+      currentEventsForPeriod,
+      "countries",
+      filters,
+      products,
     ),
   };
+}
+
+export function buildAnalyticsCommerceSeries({
+  orders,
+  startDate,
+  endDate,
+  interval,
+  productId,
+  metric,
+}: BuildAnalyticsCommerceSeriesInput) {
+  const points = createSeries([], startDate, endDate, interval);
+  const values = new Map(points.map((point) => [point.date || point.label, 0]));
+  for (const order of orders) {
+    if (order.status !== "paid") continue;
+    if (productId !== "all" && order.productId !== productId) continue;
+    const date = order.paidAt || order.createdAt;
+    const day = date.slice(0, 10);
+    if (day < startDate || day > endDate) continue;
+    const key = bucketKey(date, interval);
+    values.set(
+      key,
+      (values.get(key) || 0) + (metric === "orders" ? 1 : order.amount),
+    );
+  }
+  return points.map((point) => ({
+    ...point,
+    value: values.get(point.date || point.label) || 0,
+  }));
 }

@@ -18,6 +18,7 @@ export function StoreSettingsForm({
   storeId,
   initialName,
   initialSlug,
+  initialDomain,
   initialIsPrimary,
   initialDescription,
   initialLogoImageUrl,
@@ -31,6 +32,7 @@ export function StoreSettingsForm({
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [slug, setSlug] = useState(initialSlug);
+  const [domain, setDomain] = useState(initialDomain || "");
   const [isPrimary, setIsPrimary] = useState(initialIsPrimary);
   const [description, setDescription] = useState(initialDescription);
   const [logoImageUrl, setLogoImageUrl] = useState(initialLogoImageUrl || "");
@@ -136,6 +138,7 @@ export function StoreSettingsForm({
       body: JSON.stringify({
         name,
         slug,
+        domain,
         description,
         logoImageUrl,
         coverImageUrl,
@@ -292,6 +295,19 @@ export function StoreSettingsForm({
           {isPrimary
             ? "Primary storefront: /. Published pages use /page-slug."
             : `Storefront: /s/${slug || "my-store"}`}
+        </p>
+        <Input
+          label="Store domain (optional)"
+          name="storeDomain"
+          type="text"
+          inputMode="url"
+          value={domain}
+          onChange={(event) => setDomain(event.target.value)}
+          placeholder="https://store.example.com"
+        />
+        <p className="text-sm text-muted">
+          When set on the primary store, every non-API URL permanently redirects
+          to this origin while keeping its path and query string.
         </p>
         <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3.5">
           <div>
