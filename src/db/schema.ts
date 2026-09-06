@@ -34,6 +34,7 @@ export const stores = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    domain: text("domain"),
     description: text("description").notNull().default(""),
     logoImageUrl: text("logo_image_url"),
     coverImageUrl: text("cover_image_url"),

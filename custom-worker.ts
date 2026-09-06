@@ -5,9 +5,13 @@ import handler from "./.open-next/worker.js";
 import { generateBiweeklyAffiliatePayoutReports } from "./src/worker/affiliate-payout-reports";
 import { processCheckoutReminders } from "./src/worker/checkout-reminders";
 import { processScheduledEmailCampaigns } from "./src/worker/email-campaigns";
+import { getStoreDomainRedirect } from "./store-domain-redirect";
 
 export default {
-  fetch: handler.fetch,
+  async fetch(request, env, context) {
+    const redirect = await getStoreDomainRedirect(request, env.DB);
+    return redirect || handler.fetch(request, env, context);
+  },
   scheduled(_event, env, context) {
     context.waitUntil(
       Promise.all([

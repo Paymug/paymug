@@ -32,6 +32,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     userId: row.userId,
     name: row.name,
     slug: row.slug,
+    domain: row.domain ?? undefined,
     description: row.description,
     logoImageUrl: row.logoImageUrl ?? undefined,
     coverImageUrl: row.coverImageUrl ?? undefined,
@@ -150,6 +151,7 @@ export async function createStore(
     userId: input.userId,
     name: input.name,
     slug: storeSlug,
+    domain: undefined,
     description: input.description || "",
     logoImageUrl: input.logoImageUrl,
     coverImageUrl: input.coverImageUrl,
@@ -176,6 +178,7 @@ export async function createStore(
     ...store,
     logoImageUrl: store.logoImageUrl ?? null,
     coverImageUrl: store.coverImageUrl ?? null,
+    domain: null,
     emailFrom: null,
     emailReplyTo: null,
     paymentCredentialSourceStoreId:
@@ -302,6 +305,7 @@ export async function updateStore(
     .set({
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(slug !== undefined ? { slug } : {}),
+      ...(input.domain !== undefined ? { domain: input.domain } : {}),
       ...(input.description !== undefined
         ? { description: input.description }
         : {}),

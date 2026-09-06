@@ -178,5 +178,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "ALTER TABLE `products` ADD `options` text DEFAULT '[]' NOT NULL;",
       "ALTER TABLE `products` ADD `bundles` text DEFAULT '[]' NOT NULL;"
     ]
+  },
+  {
+    "name": "0019_store_domain.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `domain` text;"
+    ]
   }
 ];

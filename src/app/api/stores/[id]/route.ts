@@ -4,10 +4,12 @@ import { updateStore } from "@/lib/stores";
 import { jsonError } from "@/lib/utils";
 import type { StoreRouteProps } from "./route.types";
 import { requireProFeature } from "@/lib/pro-feature-access";
+import { normalizeStoreDomain } from "@/lib/store-domain.utils";
 
 const updateStoreSchema = z.object({
   name: z.string().trim().min(1).max(80),
   slug: z.string().trim().min(1).max(80),
+  domain: z.string().trim().max(2048),
   description: z.string().trim().max(1000),
   logoImageUrl: z
     .string()
@@ -66,6 +68,7 @@ export async function PATCH(
     const store = await updateStore(id, user.id, {
       name: parsed.data.name,
       slug: parsed.data.slug,
+      domain: normalizeStoreDomain(parsed.data.domain),
       description: parsed.data.description,
       logoImageUrl: parsed.data.logoImageUrl || null,
       coverImageUrl: parsed.data.coverImageUrl || null,

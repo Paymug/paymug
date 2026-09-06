@@ -61,6 +61,7 @@ export interface Store {
   userId: string;
   name: string;
   slug: string;
+  domain?: string;
   description: string;
   logoImageUrl?: string;
   coverImageUrl?: string;

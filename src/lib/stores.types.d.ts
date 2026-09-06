@@ -9,6 +9,7 @@ export interface CreateStoreInput {
 export interface UpdateStoreInput {
   name?: string;
   slug?: string;
+  domain?: string | null;
   description?: string;
   logoImageUrl?: string | null;
   coverImageUrl?: string | null;
