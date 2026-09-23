@@ -18,6 +18,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { DashboardEnvironmentSwitch } from "./dashboard/DashboardEnvironmentSwitch";
+import { AppIcon } from "./dashboard/Icon";
 import { DashboardLogoMark } from "./dashboard/DashboardLogoMark";
 import { DashboardNavGroup } from "./dashboard/DashboardNavGroup";
 import {
@@ -105,7 +106,7 @@ export function DashboardNav({
 
   return (
     <>
-      <aside className="sticky top-0 col-start-1 row-span-2 hidden h-dvh w-full flex-col self-start bg-white lg:flex">
+      <aside className="sticky top-0 z-30 col-start-1 row-span-2 hidden h-dvh w-full flex-col self-start bg-white lg:flex">
         <div
           className={`flex h-[5.5rem] shrink-0 items-center ${
             collapsed ? "justify-center" : "justify-between px-6"
@@ -120,14 +121,11 @@ export function DashboardNav({
             title={collapsed ? "Expand menu" : "Collapse menu"}
             className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-[#85859d] transition hover:bg-[#f7f7f8] hover:text-foreground"
           >
-            <SidebarSimple
-              size={19}
-              weight="regular"
-              className={`transition-transform duration-300 ${
-                collapsed ? "rotate-180" : ""
-              }`}
-              aria-hidden
-            />
+            {collapsed ? (
+              <AppIcon size={28} />
+            ) : (
+              <SidebarSimple size={19} weight="regular" aria-hidden />
+            )}
           </button>
         </div>
 
@@ -159,9 +157,8 @@ export function DashboardNav({
                 >
                   <button
                     type="button"
-                    onClick={toggle}
                     aria-label={group.label}
-                    className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition ${
+                    className={`flex h-10 w-10 cursor-default items-center justify-center rounded-xl transition ${
                       groupActive
                         ? "bg-[#f7f7f8] text-accent-hover"
                         : "text-[#333] hover:bg-[#f7f7f8]"
@@ -169,31 +166,33 @@ export function DashboardNav({
                   >
                     {groupIcons[group.id]}
                   </button>
-                  <div className="pointer-events-none invisible absolute left-full top-0 z-40 pl-3 opacity-0 transition group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100">
-                    <div className="w-48 rounded-xl border border-[#e8e8ee] bg-white py-2 shadow-xl">
-                      <p className="px-3 pb-1 pt-1 text-xs font-medium text-muted">
+                  <div className="pointer-events-none invisible absolute left-full top-0 z-[80] pl-3 opacity-0 transition before:absolute before:-left-4 before:top-0 before:h-full before:w-4 before:content-[''] group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100">
+                    <div className="w-52 rounded-xl border border-[#e8e8ee] bg-white py-2 shadow-xl">
+                      <p className="px-3.5 pb-1 pt-1 text-sm font-medium text-[#333]">
                         {group.label}
                       </p>
-                      {group.items.map((item) => {
-                        const itemActive = isDashboardNavItemActive(
-                          pathname,
-                          item,
-                        );
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            aria-current={itemActive ? "page" : undefined}
-                            className={`mx-1 flex min-h-9 items-center rounded-lg px-2.5 text-sm font-medium transition ${
-                              itemActive
-                                ? "bg-[#f7f7f8] text-[#333]"
-                                : "text-[#74748f] hover:bg-[#f7f7f8] hover:text-[#333]"
-                            }`}
-                          >
-                            {item.label}
-                          </Link>
-                        );
-                      })}
+                      <div className="relative grid before:absolute before:bottom-4 before:left-2 before:top-4 before:w-px before:bg-[#e8e8ee] before:ml-3">
+                        {group.items.map((item) => {
+                          const itemActive = isDashboardNavItemActive(
+                            pathname,
+                            item,
+                          );
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              aria-current={itemActive ? "page" : undefined}
+                              className={`relative pl-11 flex min-h-9 items-center rounded-xl px-2.5 text-sm transition before:absolute before:left-[17.5px] before:h-1.5 before:w-1.5 before:rounded-full  ${
+                                itemActive
+                                  ? "bg-[#f7f7f8] before:bg-accent"
+                                  : "text-[#74748f] before:bg-[#e8e8ee] hover:bg-[#f7f7f8]"
+                              }`}
+                            >
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -217,17 +216,6 @@ export function DashboardNav({
               <SlidersHorizontal size={18} weight="regular" aria-hidden />
             </Link>
 
-            <div className="mt-auto flex justify-center">
-              <button
-                type="button"
-                onClick={toggle}
-                aria-label="Expand menu"
-                title="Expand menu"
-                className="grid h-10 w-10 cursor-pointer place-items-center rounded-xl text-[#85859d] transition hover:bg-[#f7f7f8] hover:text-foreground"
-              >
-                <DotsThree size={20} weight="bold" aria-hidden />
-              </button>
-            </div>
           </div>
         )}
 

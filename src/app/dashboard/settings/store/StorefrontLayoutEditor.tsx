@@ -324,10 +324,6 @@ export function StorefrontLayoutEditor({
     <div className="space-y-10">
       {error && <Alert>{error}</Alert>}
 
-      <p className="text-xs text-muted">
-        Drag products to reorder them or move them between sections.
-      </p>
-
       {renderGrid(uncategorizedKey)}
 
       {orderedCategories.map((category, categoryIndex) => (

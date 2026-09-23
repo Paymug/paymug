@@ -56,6 +56,11 @@ export default async function StoreSettingsPage() {
           />
         }
       />
+
+
+      <p className="text-xs text-muted">
+        Drag products to reorder them or move them between sections.
+      </p>
     </div>
   );
 }
