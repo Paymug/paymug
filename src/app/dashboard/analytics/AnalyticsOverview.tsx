@@ -291,6 +291,7 @@ export function AnalyticsOverview({
             title={metric.label}
             trendPercent={metric.delta}
             transparentBackground={hasCommerce}
+            categoryOffset={hasCommerce}
             className={hasCommerce ? "relative z-10" : ""}
             commerceSeries={
               hasCommerce

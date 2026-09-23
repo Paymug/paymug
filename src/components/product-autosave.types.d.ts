@@ -30,6 +30,7 @@ export interface ProductFormSavePayload {
   billingType: "one_time" | "subscription";
   customAmountEnabled: boolean;
   allowNote: boolean;
+  notePlaceholder?: string;
   intervalUnit?: "week" | "month" | "year" | null;
   intervalCount: number;
   trialDays: number;

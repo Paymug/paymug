@@ -81,6 +81,9 @@ export interface Store {
   displayPurchasesEnabled: boolean;
   /** Comma-separated analytics overlay metrics (for example "orders,revenue"). */
   analyticsCommerceMetric?: string;
+  abandonmentPopupEnabled: boolean;
+  abandonmentQuestion?: string;
+  abandonmentOptions: string[];
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
@@ -153,6 +156,8 @@ export interface Product {
   customAmountEnabled: boolean;
   /** Lets buyers leave an optional note with their purchase. */
   allowNote: boolean;
+  /** Placeholder text shown in the buyer's note field. */
+  notePlaceholder?: string | null;
   /** Billing period unit when billingType is subscription. */
   intervalUnit?: ProductIntervalUnit | null;
   /** Number of interval units per billing period (e.g. 2 weeks). */

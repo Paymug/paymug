@@ -12,7 +12,7 @@ export function AnalyticsChartBars({ series }: AnalyticsChartBarsProps) {
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-1.5 bottom-8 top-2.5 z-0 grid items-end gap-px overflow-hidden"
+      className="pointer-events-none absolute inset-x-1.5 bottom-8 top-2.5 z-0 grid items-end overflow-hidden"
       style={{
         gridTemplateColumns: `repeat(${Math.max(1, length)}, minmax(0, 1fr))`,
       }}

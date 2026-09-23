@@ -11,6 +11,7 @@ import type {
 } from "./stores.types";
 import { uid } from "./utils";
 import { slugify } from "./format";
+import { parseAbandonmentOptions } from "./abandonment";
 
 function rowToStore(row: typeof stores.$inferSelect): Store {
   const emailFrom =
@@ -54,6 +55,9 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     analyticsEnabled: row.analyticsEnabled,
     displayPurchasesEnabled: row.displayPurchasesEnabled,
     analyticsCommerceMetric: row.analyticsCommerceMetric ?? undefined,
+    abandonmentPopupEnabled: row.abandonmentPopupEnabled,
+    abandonmentQuestion: row.abandonmentQuestion ?? undefined,
+    abandonmentOptions: parseAbandonmentOptions(row.abandonmentOptions),
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
@@ -169,6 +173,9 @@ export async function createStore(
     analyticsEnabled: false,
     displayPurchasesEnabled: false,
     analyticsCommerceMetric: undefined,
+    abandonmentPopupEnabled: false,
+    abandonmentQuestion: undefined,
+    abandonmentOptions: [],
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
@@ -184,6 +191,8 @@ export async function createStore(
     emailFrom: null,
     emailReplyTo: null,
     analyticsCommerceMetric: null,
+    abandonmentQuestion: null,
+    abandonmentOptions: "[]",
     paymentCredentialSourceStoreId:
       store.paymentCredentialSourceStoreId ?? null,
     githubCredentialSourceStoreId:
@@ -359,6 +368,15 @@ export async function updateStore(
         : {}),
       ...(input.analyticsCommerceMetric !== undefined
         ? { analyticsCommerceMetric: input.analyticsCommerceMetric }
+        : {}),
+      ...(input.abandonmentPopupEnabled !== undefined
+        ? { abandonmentPopupEnabled: input.abandonmentPopupEnabled }
+        : {}),
+      ...(input.abandonmentQuestion !== undefined
+        ? { abandonmentQuestion: input.abandonmentQuestion }
+        : {}),
+      ...(input.abandonmentOptions !== undefined
+        ? { abandonmentOptions: JSON.stringify(input.abandonmentOptions) }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.transactionFeeType !== undefined

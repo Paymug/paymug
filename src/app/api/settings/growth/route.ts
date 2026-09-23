@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
-import { updateStore } from "@/lib/stores";
+import { getStoreById, updateStore } from "@/lib/stores";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { jsonError } from "@/lib/utils";
 
@@ -15,6 +15,9 @@ const growthSettingsSchema = z
     emailCampaignsEnabled: z.boolean(),
     analyticsEnabled: z.boolean(),
     displayPurchasesEnabled: z.boolean(),
+    abandonmentPopupEnabled: z.boolean(),
+    abandonmentQuestion: z.string().max(200).nullable(),
+    abandonmentOptions: z.array(z.string().max(160)).max(20),
   })
   .refine(
     (settings) =>
@@ -37,11 +40,18 @@ export async function PATCH(request: Request) {
   if (storeId !== user.activeStoreId) {
     return jsonError("Store not found", 404);
   }
-  if (settings.affiliatesEnabled) {
+  const currentStore = await getStoreById(storeId, user.id);
+  if (
+    settings.affiliatesEnabled &&
+    !currentStore?.affiliatesEnabled
+  ) {
     const denied = await requireProFeature("affiliates");
     if (denied) return denied;
   }
-  if (settings.emailCampaignsEnabled) {
+  if (
+    settings.emailCampaignsEnabled &&
+    !currentStore?.emailCampaignsEnabled
+  ) {
     const denied = await requireProFeature("email_campaigns");
     if (denied) return denied;
   }

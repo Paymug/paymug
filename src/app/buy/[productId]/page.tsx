@@ -251,6 +251,10 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               defaultProductPrice={product.price}
               customAmountEnabled={product.customAmountEnabled}
               allowNote={product.allowNote}
+              notePlaceholder={product.notePlaceholder}
+              abandonmentEnabled={store.abandonmentPopupEnabled}
+              abandonmentQuestion={store.abandonmentQuestion}
+              abandonmentOptions={store.abandonmentOptions}
               customAmount={customAmount}
               custom={configuration.custom}
               affiliateRef={ref?.trim() || undefined}

@@ -29,6 +29,8 @@ import {
   formatCustomCheckoutAmount,
   parseCustomCheckoutAmount,
 } from "@/lib/custom-product-amount";
+import { AbandonmentSurvey } from "@/components/AbandonmentSurvey";
+import { DEFAULT_ABANDONMENT_QUESTION } from "@/lib/abandonment";
 
 export function CheckoutClient({
   storeId,
@@ -38,6 +40,7 @@ export function CheckoutClient({
   defaultProductPrice,
   customAmountEnabled,
   allowNote,
+  notePlaceholder,
   customAmount,
   custom,
   affiliateRef,
@@ -50,6 +53,9 @@ export function CheckoutClient({
   isSubscription = false,
   billingSummary,
   priceSuffix = "",
+  abandonmentEnabled = false,
+  abandonmentQuestion,
+  abandonmentOptions = [],
 }: CheckoutClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -89,6 +95,7 @@ export function CheckoutClient({
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [discountPeriods, setDiscountPeriods] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [orderCompleted, setOrderCompleted] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<CheckoutPricingPreview>({
     subtotal: productPrice,
@@ -237,6 +244,7 @@ export function CheckoutClient({
 
   const onSuccess = useCallback(
     (orderId: string) => {
+      setOrderCompleted(true);
       router.push(`/checkout/success?orderId=${orderId}`);
     },
     [router],
@@ -259,6 +267,7 @@ export function CheckoutClient({
         affiliateCode: affiliateRef,
         marketingOptIn,
       });
+      setOrderCompleted(true);
       router.push(`/checkout/success?orderId=${order.id}`);
     } catch (error) {
       setCompleteError(
@@ -284,6 +293,7 @@ export function CheckoutClient({
         affiliateCode: affiliateRef,
         marketingOptIn,
       });
+      setOrderCompleted(true);
       window.location.assign(approvalUrl);
     } catch (error) {
       setCompleteError(
@@ -342,7 +352,9 @@ export function CheckoutClient({
                   onChange={(event) => setNote(event.target.value)}
                   maxLength={1000}
                   rows={3}
-                  placeholder="Add any details for this order"
+                  placeholder={
+                    notePlaceholder?.trim() || "Add any details for this order"
+                  }
                   className="mt-1.5 w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-stone-400 focus:border-accent focus:ring-3 focus:ring-accent/25"
                 />
                 <button
@@ -645,6 +657,18 @@ export function CheckoutClient({
           </p>
         )} */}
       </section>
+
+      {abandonmentEnabled && (
+        <AbandonmentSurvey
+          storeId={storeId}
+          productId={productId}
+          question={abandonmentQuestion?.trim() || DEFAULT_ABANDONMENT_QUESTION}
+          options={abandonmentOptions}
+          hasEmail={emailOk}
+          email={email.trim() || undefined}
+          completed={orderCompleted}
+        />
+      )}
     </div>
   );
 }

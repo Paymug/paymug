@@ -33,6 +33,8 @@ export interface ChartProps {
   className?: string;
   /** Optional secondary series (for example orders/revenue bars) shown in the tooltip. */
   commerceSeries?: ChartCommerceSeries[];
+  /** Centers category points within their slots (aligns with overlaid bars). */
+  categoryOffset?: boolean;
 }
 
 export interface ChartCommerceSeries {

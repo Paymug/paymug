@@ -14,6 +14,11 @@ export interface GrowthSettingsFormProps {
   initialEmailCampaignsEnabled: boolean;
   initialAnalyticsEnabled: boolean;
   initialDisplayPurchasesEnabled: boolean;
+  initialAbandonmentPopupEnabled: boolean;
+  initialAbandonmentQuestion: string;
+  initialAbandonmentOptions: string[];
+  affiliatesUnlocked: boolean;
+  emailCampaignsUnlocked: boolean;
 }
 
 export interface GrowthSettingsResponse {

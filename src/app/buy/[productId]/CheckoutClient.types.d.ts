@@ -8,6 +8,7 @@ export interface CheckoutClientProps {
   defaultProductPrice: number;
   customAmountEnabled: boolean;
   allowNote: boolean;
+  notePlaceholder?: string | null;
   customAmount?: number;
   custom: CheckoutCustomData;
   affiliateRef?: string;
@@ -21,6 +22,9 @@ export interface CheckoutClientProps {
   isSubscription?: boolean;
   billingSummary?: string | null;
   priceSuffix?: string;
+  abandonmentEnabled?: boolean;
+  abandonmentQuestion?: string | null;
+  abandonmentOptions?: string[];
 }
 
 export interface CheckoutPricingPreview {

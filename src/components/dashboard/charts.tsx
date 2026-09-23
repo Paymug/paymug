@@ -70,6 +70,7 @@ export function AreaChart({
   transparentBackground = false,
   className = "",
   commerceSeries,
+  categoryOffset = false,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -273,7 +274,7 @@ export function AreaChart({
       },
       scales: {
         x: {
-          offset: false,
+          offset: categoryOffset,
           border: {
             display: false,
           },
@@ -299,7 +300,7 @@ export function AreaChart({
         },
       },
     }),
-    [compact, externalTooltipHandler, showAxis]
+    [categoryOffset, compact, externalTooltipHandler, showAxis]
   );
 
   const plugins = useMemo<Plugin<"line">[]>(

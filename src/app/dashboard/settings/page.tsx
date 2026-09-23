@@ -1,4 +1,5 @@
 import { getSessionUser } from "@/lib/auth";
+import { hasProFeature } from "@/lib/app-license";
 import { GeneralSettingsForm } from "@/components/dashboard/GeneralSettingsForm";
 import { GrowthSettingsForm } from "@/components/dashboard/GrowthSettingsForm";
 import { StoreStatusSettings } from "@/components/dashboard/StoreStatusSettings";
@@ -9,6 +10,10 @@ export default async function SettingsPage() {
   if (!user) return null;
   const store = await getStoreById(user.activeStoreId, user.id);
   if (!store) return null;
+  const [affiliatesUnlocked, emailCampaignsUnlocked] = await Promise.all([
+    hasProFeature("affiliates"),
+    hasProFeature("email_campaigns"),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-xl pb-12">
@@ -41,6 +46,11 @@ export default async function SettingsPage() {
         initialEmailCampaignsEnabled={store.emailCampaignsEnabled}
         initialAnalyticsEnabled={store.analyticsEnabled}
         initialDisplayPurchasesEnabled={store.displayPurchasesEnabled}
+        initialAbandonmentPopupEnabled={store.abandonmentPopupEnabled}
+        initialAbandonmentQuestion={store.abandonmentQuestion || ""}
+        initialAbandonmentOptions={store.abandonmentOptions}
+        affiliatesUnlocked={affiliatesUnlocked}
+        emailCampaignsUnlocked={emailCampaignsUnlocked}
       />
       <StoreStatusSettings storeId={store.id} storeName={store.name} />
     </div>

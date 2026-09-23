@@ -85,6 +85,7 @@ const updateSchema = z.object({
   billingType: z.enum(["one_time", "subscription"]).optional(),
   customAmountEnabled: z.boolean().optional(),
   allowNote: z.boolean().optional(),
+  notePlaceholder: z.string().max(200).nullable().optional(),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
   intervalCount: z.number().int().min(1).max(52).optional(),
   trialDays: z.number().int().min(0).max(365).optional(),

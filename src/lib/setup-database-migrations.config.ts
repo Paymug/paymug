@@ -217,5 +217,22 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `allow_note` integer DEFAULT false NOT NULL;"
     ]
+  },
+  {
+    "name": "0025_product_note_placeholder.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `note_placeholder` text;"
+    ]
+  },
+  {
+    "name": "0026_abandonment_popup.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `abandonment_popup_enabled` integer DEFAULT false NOT NULL;",
+      "ALTER TABLE `stores` ADD `abandonment_question` text;",
+      "ALTER TABLE `stores` ADD `abandonment_options` text DEFAULT '[]' NOT NULL;",
+      "CREATE TABLE `abandonment_responses` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`store_id` text NOT NULL,\n\t`user_id` text NOT NULL,\n\t`product_id` text,\n\t`email` text,\n\t`question` text NOT NULL,\n\t`answer` text,\n\t`marketing_opt_in` integer DEFAULT false NOT NULL,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`created_at` text NOT NULL,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `abandonment_responses_store_created_idx` ON `abandonment_responses` (`store_id`,`created_at`);",
+      "CREATE INDEX `abandonment_responses_user_created_idx` ON `abandonment_responses` (`user_id`,`created_at`);"
+    ]
   }
 ];

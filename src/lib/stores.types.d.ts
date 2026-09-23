@@ -26,6 +26,9 @@ export interface UpdateStoreInput {
   analyticsEnabled?: boolean;
   displayPurchasesEnabled?: boolean;
   analyticsCommerceMetric?: string | null;
+  abandonmentPopupEnabled?: boolean;
+  abandonmentQuestion?: string | null;
+  abandonmentOptions?: string[];
   currency?: string;
   transactionFeeType?: "fixed" | "percentage";
   transactionFeeValue?: number;

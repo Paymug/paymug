@@ -92,6 +92,13 @@ export const stores = sqliteTable(
       .notNull()
       .default(false),
     analyticsCommerceMetric: text("analytics_commerce_metric"),
+    abandonmentPopupEnabled: integer("abandonment_popup_enabled", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(false),
+    abandonmentQuestion: text("abandonment_question"),
+    abandonmentOptions: text("abandonment_options").notNull().default("[]"),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -204,6 +211,7 @@ export const products = sqliteTable(
     allowNote: integer("allow_note", { mode: "boolean" })
       .notNull()
       .default(false),
+    notePlaceholder: text("note_placeholder"),
   intervalUnit: text("interval_unit", {
     enum: ["week", "month", "year"],
   }),
@@ -730,6 +738,40 @@ export const analyticsVisitorIdentities = sqliteTable(
     index("analytics_visitor_identities_store_email_idx").on(
       table.storeId,
       table.email,
+    ),
+  ],
+);
+
+export const abandonmentResponses = sqliteTable(
+  "abandonment_responses",
+  {
+    id: text("id").primaryKey(),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    productId: text("product_id"),
+    email: text("email"),
+    question: text("question").notNull(),
+    answer: text("answer"),
+    marketingOptIn: integer("marketing_opt_in", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    environment: text("environment", { enum: ["sandbox", "live"] })
+      .notNull()
+      .default("sandbox"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("abandonment_responses_store_created_idx").on(
+      table.storeId,
+      table.createdAt,
+    ),
+    index("abandonment_responses_user_created_idx").on(
+      table.userId,
+      table.createdAt,
     ),
   ],
 );

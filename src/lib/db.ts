@@ -150,6 +150,7 @@ function rowToProduct(
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
     customAmountEnabled: row.customAmountEnabled,
     allowNote: row.allowNote,
+    notePlaceholder: row.notePlaceholder ?? null,
     intervalUnit:
       row.intervalUnit === "week" ||
       row.intervalUnit === "month" ||
@@ -489,6 +490,7 @@ export async function createProduct(product: Product): Promise<Product> {
     customAmountEnabled:
       product.billingType === "one_time" && product.customAmountEnabled,
     allowNote: product.allowNote ?? false,
+    notePlaceholder: product.notePlaceholder ?? null,
     intervalUnit:
       product.billingType === "subscription"
         ? product.intervalUnit || "month"
@@ -585,6 +587,9 @@ export async function updateProduct(
         ? { customAmountEnabled: patch.customAmountEnabled }
         : {}),
       ...(patch.allowNote !== undefined ? { allowNote: patch.allowNote } : {}),
+      ...(patch.notePlaceholder !== undefined
+        ? { notePlaceholder: patch.notePlaceholder }
+        : {}),
       ...(patch.intervalUnit !== undefined
         ? { intervalUnit: patch.intervalUnit ?? null }
         : {}),

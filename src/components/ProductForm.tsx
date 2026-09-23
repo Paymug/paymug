@@ -158,6 +158,9 @@ export function ProductForm({
     product?.customAmountEnabled || false,
   );
   const [allowNote, setAllowNote] = useState(product?.allowNote || false);
+  const [notePlaceholder, setNotePlaceholder] = useState(
+    product?.notePlaceholder || "",
+  );
   const [intervalUnit, setIntervalUnit] = useState<ProductIntervalUnit>(
     product?.intervalUnit || "month",
   );
@@ -267,6 +270,7 @@ export function ProductForm({
     customAmountEnabled:
       billingType === "one_time" && customAmountEnabled,
     allowNote,
+    notePlaceholder: allowNote ? notePlaceholder.trim() : undefined,
     intervalUnit: billingType === "subscription" ? intervalUnit : null,
     intervalCount:
       billingType === "subscription" ? parsedIntervalCount : 1,
@@ -547,6 +551,17 @@ export function ProductForm({
             requestAutosave(1);
           }}
         />
+
+        {allowNote && (
+          <Input
+            label="Note placeholder"
+            name="notePlaceholder"
+            value={notePlaceholder}
+            onChange={(event) => setNotePlaceholder(event.target.value)}
+            placeholder="Add any details for this order"
+            maxLength={200}
+          />
+        )}
 
         <Input
           label="Product name"

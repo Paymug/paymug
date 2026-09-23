@@ -176,6 +176,20 @@
       "when": 1789020000000,
       "tag": "0024_product_allow_note",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1789106400000,
+      "tag": "0025_product_note_placeholder",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1789192800000,
+      "tag": "0026_abandonment_popup",
+      "breakpoints": true
     }
   ]
 }
