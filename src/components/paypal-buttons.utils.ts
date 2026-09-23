@@ -96,7 +96,10 @@ export async function createCheckoutPayPalOrder(
   const response = await fetch("/api/payments/paypal/create-order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(checkoutDetails),
+    body: JSON.stringify({
+      ...checkoutDetails,
+      customerEmail: checkoutDetails.customerEmail?.trim() || undefined,
+    }),
   });
   const data = (await response.json()) as {
     error?: string;
@@ -114,13 +117,18 @@ export async function createCheckoutPayPalOrder(
 
 export async function captureCheckoutPayPalOrder(
   orderId: string | null,
-  paypalOrderId: string
+  paypalOrderId: string,
+  customerEmail?: string,
 ): Promise<string> {
   if (!orderId) throw new Error("Checkout order is missing");
   const response = await fetch("/api/payments/paypal/capture-order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId, paypalOrderId }),
+    body: JSON.stringify({
+      orderId,
+      paypalOrderId,
+      customerEmail: customerEmail || undefined,
+    }),
   });
   const data = (await response.json()) as {
     error?: string;

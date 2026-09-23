@@ -30,6 +30,7 @@ export function PayPalButtons({
   clientId,
   currency = "USD",
   disabled = false,
+  onBeforeCapture,
   onSuccess,
   onError,
 }: PayPalButtonsProps) {
@@ -59,6 +60,7 @@ export function PayPalButtons({
   });
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
+  const onBeforeCaptureRef = useRef(onBeforeCapture);
 
   checkoutDetailsRef.current = {
     productId,
@@ -73,6 +75,7 @@ export function PayPalButtons({
   };
   onSuccessRef.current = onSuccess;
   onErrorRef.current = onError;
+  onBeforeCaptureRef.current = onBeforeCapture;
   disabledRef.current = disabled;
 
   useEffect(() => {
@@ -112,9 +115,11 @@ export function PayPalButtons({
         }
 
         async function approveOrder(data: { orderID: string }) {
+          const overrideEmail = await onBeforeCaptureRef.current?.();
           const completedOrderId = await captureCheckoutPayPalOrder(
             orderIdRef.current,
-            data.orderID
+            data.orderID,
+            overrideEmail || undefined,
           );
           onSuccessRef.current(completedOrderId);
         }

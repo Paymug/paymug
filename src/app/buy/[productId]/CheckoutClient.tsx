@@ -104,6 +104,12 @@ export function CheckoutClient({
     total: productPrice + initialTransactionFeeAmount,
   });
   const discountRequestRef = useRef(0);
+  const [emailPromptOpen, setEmailPromptOpen] = useState(false);
+  const [promptEmail, setPromptEmail] = useState("");
+  const [promptError, setPromptError] = useState<string | null>(null);
+  const emailPromptResolveRef = useRef<((value: string | null) => void) | null>(
+    null,
+  );
 
   const emailOk = useMemo(() => isValidCheckoutEmail(email), [email]);
   const discountOk = !discountCode.trim() || discountStatus === "valid";
@@ -120,6 +126,7 @@ export function CheckoutClient({
     (parsedAmount !== undefined && parsedAmount === appliedAmount);
   const paymentReady =
     emailOk && discountOk && discountStatus !== "checking" && amountOk;
+  const paypalReady = discountOk && discountStatus !== "checking" && amountOk;
   const isFreePurchase = pricing.total === 0;
   const isForeverFreeSubscription =
     isSubscription && isFreePurchase && !discountPeriods;
@@ -303,6 +310,29 @@ export function CheckoutClient({
       );
       setSubmitting(false);
     }
+  }
+
+  function requestCheckoutEmail(): Promise<string | null> {
+    if (emailOk) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      emailPromptResolveRef.current = resolve;
+      setPromptEmail(email.trim());
+      setPromptError(null);
+      setEmailPromptOpen(true);
+    });
+  }
+
+  function submitEmailPrompt() {
+    const value = promptEmail.trim();
+    if (!isValidCheckoutEmail(value)) {
+      setPromptError("Enter a valid email");
+      return;
+    }
+    const resolve = emailPromptResolveRef.current;
+    emailPromptResolveRef.current = null;
+    setEmail(value);
+    setEmailPromptOpen(false);
+    resolve?.(value);
   }
 
   return (
@@ -638,7 +668,8 @@ export function CheckoutClient({
                 clientId={paypalClientId}
                 mode={mode}
                 currency={currency}
-                disabled={!paymentReady}
+                disabled={!paypalReady}
+                onBeforeCapture={requestCheckoutEmail}
                 onSuccess={onSuccess}
               />
             )}
@@ -657,6 +688,39 @@ export function CheckoutClient({
           </p>
         )} */}
       </section>
+
+      {emailPromptOpen && (
+        <div className="fixed inset-0 z-[110] grid place-items-center bg-[#222129]/45 p-4 backdrop-blur-[1px]">
+          <div className="w-full max-w-sm rounded-2xl border border-[#e8e8ee] bg-white p-6 shadow-[0_24px_60px_rgba(25,24,31,0.25)]">
+            <h2 className="text-lg font-semibold text-[#2a2a33]">
+              Almost done
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Enter your email so we can send your purchase and receipt.
+            </p>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitEmailPrompt();
+              }}
+              className="mt-4 space-y-3"
+            >
+              <Input
+                label="Email"
+                type="email"
+                value={promptEmail}
+                autoFocus
+                onChange={(event) => setPromptEmail(event.target.value)}
+                placeholder="you@example.com"
+                error={promptError || undefined}
+              />
+              <Button type="submit" className="w-full">
+                Continue
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {abandonmentEnabled && (
         <AbandonmentSurvey

@@ -66,6 +66,8 @@ export interface PayPalButtonsProps {
   mode: "sandbox" | "live";
   currency?: string;
   disabled?: boolean;
+  /** Called after PayPal approval and before capture; return an email to override the order's. */
+  onBeforeCapture?: () => Promise<string | null | undefined>;
   onSuccess: (orderId: string) => void;
   onError?: (message: string) => void;
 }
