@@ -9,6 +9,7 @@ import { listFeatureRecords } from "@/lib/feature-records";
 import { getStoreById } from "@/lib/stores";
 import { listVisitorIdentities } from "@/lib/visitor-identities";
 import { listVisitorVisitDays } from "@/lib/visitor-analytics";
+import { listOriginVisitsByEmail } from "@/lib/customer-origin";
 import {
   dashboardFilterCookieName,
   parseDashboardFilterCookie,
@@ -69,6 +70,9 @@ export default async function CustomersPage({
   const accounts = await listCustomerAccountsByEmails([...customerEmails]);
 
   const identities = await listVisitorIdentities(store.id);
+  const originVisitsByEmail = user.environment === "live"
+    ? await listOriginVisitsByEmail(store.id, identities)
+    : new Map();
   const visitorIds = [...new Set(identities.map((identity) => identity.visitorId))];
   const visitDays = await listVisitorVisitDays(store.id, visitorIds);
   const emailByVisitorId = new Map(
@@ -95,6 +99,7 @@ export default async function CustomersPage({
     storeEmailPreferences: emailPreferences,
     abandonmentResponses,
     returningEmails,
+    originVisitsByEmail,
     defaultCurrency: store.currency,
   });
 

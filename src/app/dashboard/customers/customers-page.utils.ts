@@ -11,6 +11,8 @@ import {
 } from "@/lib/license-activations.utils";
 import { resolveCustomerAvatarUrl } from "@/lib/customer-avatar";
 import { normalizeLegacySubscriptionInterval } from "@/lib/product-billing";
+import { getFirstCustomerOrigin, getOrderCustomerOrigin } from "@/lib/customer-origin.utils";
+import type { OriginVisit } from "@/lib/customer-origin.types";
 import type { Order } from "@/lib/types";
 import type {
   CustomerEmailStatus,
@@ -31,6 +33,7 @@ export interface BuildCustomerSummariesInput {
   abandonmentResponses: AbandonmentResponse[];
   /** Customers with linked storefront visits on two or more distinct days. */
   returningEmails: string[];
+  originVisitsByEmail: Map<string, OriginVisit[]>;
   defaultCurrency: string;
 }
 
@@ -118,7 +121,7 @@ function timeValue(value: string | undefined): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function buildOrders(orders: Order[], currency: string): CustomerOrderSummary[] {
+function buildOrders(orders: Order[], currency: string, visits: OriginVisit[]): CustomerOrderSummary[] {
   return [...orders]
     .sort((left, right) => timeValue(right.createdAt) - timeValue(left.createdAt))
     .map((order) => ({
@@ -132,6 +135,7 @@ function buildOrders(orders: Order[], currency: string): CustomerOrderSummary[] 
       paidAt: order.paidAt,
       discountCode: order.discountCode,
       discountAmount: order.discountAmount,
+      ...getOrderCustomerOrigin(visits, order.createdAt),
     }));
 }
 
@@ -390,6 +394,7 @@ export function buildCustomerSummaries(
         orders.find((order) => order.customerName)?.customerName ||
         account?.name ||
         email.split("@")[0];
+      const visits = input.originVisitsByEmail.get(email) ?? [];
 
       const summary: CustomerSummary = {
         email,
@@ -399,6 +404,7 @@ export function buildCustomerSummaries(
           avatarImageUrl: account?.avatarImageUrl,
         }),
         firstSeen: firstSeen ?? new Date().toISOString(),
+        ...getFirstCustomerOrigin(visits),
         emailStatus: resolveEmailStatus(
           email,
           subscriberStatusByEmail,
@@ -416,7 +422,7 @@ export function buildCustomerSummaries(
         revenue: paidOrders.reduce((total, order) => total + order.amount, 0),
         isReturning: returningEmails.has(email),
         currency,
-        orders: buildOrders(orders, currency),
+        orders: buildOrders(orders, currency, visits),
         subscriptions: buildSubscriptions(subscriptions, currency),
         licenses: buildLicenses(licenses),
         timeline: buildTimeline({

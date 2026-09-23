@@ -15,6 +15,7 @@ const analyticsTrackSchema = z.object({
   visitorId: z.string().min(8).max(100),
   path: z.string().min(1).max(500),
   referrer: z.string().max(2048),
+  pageOrigin: z.string().url().max(2048).optional(),
 });
 
 export async function POST(request: Request) {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     storeId: store.id,
     visitorId: parsed.data.visitorId,
     path: parsed.data.path,
-    source: getAnalyticsSource(parsed.data.referrer, request.url),
+    source: getAnalyticsSource(parsed.data.referrer, parsed.data.pageOrigin || request.url),
     device: getAnalyticsDevice(userAgent),
     os: getAnalyticsOperatingSystem(userAgent),
     city: location.city,

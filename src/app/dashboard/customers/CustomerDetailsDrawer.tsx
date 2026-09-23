@@ -177,6 +177,9 @@ export function CustomerDetailsDrawer({
               </div>
             ))}
           </div>
+          <p className="mt-4 text-xs text-muted">
+            First tracked source site: <span className="font-medium text-foreground">{customer.source ?? "Unknown"}</span>
+          </p>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
@@ -215,6 +218,9 @@ export function CustomerDetailsDrawer({
                         {order.discountCode
                           ? ` · ${order.discountCode}`
                           : ""}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        Source: {order.source ?? "Unknown"} · {[order.city, order.country].filter(Boolean).join(", ") || "Location unknown"}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">

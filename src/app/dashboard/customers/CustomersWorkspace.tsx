@@ -72,11 +72,14 @@ export function CustomersWorkspace({
         </div>
       ) : (
         <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-          <table className="w-full min-w-[880px] text-left text-sm">
+          <table className="w-full min-w-[1160px] text-left text-sm">
             <thead>
               <tr className="border-b border-border text-sm text-muted">
                 <th className="px-4 py-3 font-medium">First seen</th>
                 <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Source site</th>
+                <th className="px-4 py-3 font-medium">City</th>
+                <th className="px-4 py-3 font-medium">Country</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Subscriptions</th>
                 <th className="px-4 py-3 font-medium">Orders</th>
@@ -110,6 +113,15 @@ export function CustomersWorkspace({
                         </p>
                       </div>
                     </div>
+                  </td>
+                  <td className="max-w-[12rem] truncate px-4 py-3" title={customer.source}>
+                    {customer.source ?? "—"}
+                  </td>
+                  <td className="max-w-[9rem] truncate px-4 py-3" title={customer.city}>
+                    {customer.city ?? "—"}
+                  </td>
+                  <td className="max-w-[9rem] truncate px-4 py-3" title={customer.country}>
+                    {customer.country ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <span

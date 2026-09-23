@@ -3,6 +3,8 @@ import { resolveCustomerAvatarUrl } from "@/lib/customer-avatar";
 import { listFeatureRecords } from "@/lib/feature-records";
 import type { Order } from "@/lib/types";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
+import { getOrderCustomerOrigin } from "@/lib/customer-origin.utils";
+import type { OriginVisit } from "@/lib/customer-origin.types";
 import type { DashboardOrderItem } from "./OrdersWorkspace.types";
 
 function resolveProductPrice(order: Order): number {
@@ -72,7 +74,8 @@ function groupOrders(items: DashboardOrderItem[]): DashboardOrderItem[] {
 
 export async function buildDashboardOrderItems(
   userId: string,
-  orders: Order[]
+  orders: Order[],
+  originVisitsByEmail: Map<string, OriginVisit[]>,
 ): Promise<DashboardOrderItem[]> {
   const uniqueEmails = [
     ...new Set(
@@ -135,6 +138,7 @@ export async function buildDashboardOrderItems(
       currency: order.currency,
       status: order.status,
       customerEmail: order.customerEmail,
+      ...getOrderCustomerOrigin(originVisitsByEmail.get(email) ?? [], order.createdAt),
       customerName:
         customer?.name ||
         order.customerName ||

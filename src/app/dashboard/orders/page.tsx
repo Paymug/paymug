@@ -1,5 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { listOrdersByUser } from "@/lib/db";
+import { listOriginVisitsByEmail } from "@/lib/customer-origin";
+import { listVisitorIdentities } from "@/lib/visitor-identities";
 import {
   dashboardPageClass,
   dashboardPageCopyClass,
@@ -15,7 +17,11 @@ export default async function OrdersPage() {
     user.activeStoreId,
     user.environment
   );
-  const items = await buildDashboardOrderItems(user.id, orders);
+  const identities = user.environment === "live"
+    ? await listVisitorIdentities(user.activeStoreId)
+    : [];
+  const originVisitsByEmail = await listOriginVisitsByEmail(user.activeStoreId, identities);
+  const items = await buildDashboardOrderItems(user.id, orders, originVisitsByEmail);
 
   return (
     <div className={dashboardPageClass}>

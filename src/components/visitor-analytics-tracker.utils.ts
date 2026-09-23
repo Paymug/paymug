@@ -70,6 +70,7 @@ export function sendVisitorAnalyticsEvent(storeId: string): void {
     visitorId: getAnalyticsVisitorId(storeId),
     path,
     referrer: document.referrer,
+    pageOrigin: window.location.origin,
   });
   if (
     navigator.sendBeacon?.(

@@ -14,6 +14,9 @@ export interface CustomerOrderSummary {
   paidAt?: string;
   discountCode?: string;
   discountAmount: number;
+  source?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface CustomerSubscriptionSummary {
@@ -63,6 +66,7 @@ export interface CustomerSummary {
   name: string;
   avatarUrl?: string;
   firstSeen: string;
+  source?: string;
   emailStatus: CustomerEmailStatus;
   subscriptionsCount: number;
   ordersCount: number;

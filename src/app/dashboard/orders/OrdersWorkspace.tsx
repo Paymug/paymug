@@ -158,6 +158,20 @@ function OrderDetailDrawer({
               </p>
             </div>
           </div>
+          <dl className="mt-3 rounded-xl border border-[#ececf1] px-4 py-3 text-sm">
+            <div className="flex justify-between gap-3">
+              <dt className="text-[#8b8ba3]">Source site</dt>
+              <dd className="min-w-0 truncate text-right font-medium" title={order.source}>{order.source ?? "Unknown"}</dd>
+            </div>
+            <div className="mt-2 flex justify-between gap-3">
+              <dt className="text-[#8b8ba3]">City</dt>
+              <dd className="min-w-0 truncate text-right font-medium">{order.city ?? "Unknown"}</dd>
+            </div>
+            <div className="mt-2 flex justify-between gap-3">
+              <dt className="text-[#8b8ba3]">Country</dt>
+              <dd className="min-w-0 truncate text-right font-medium">{order.country ?? "Unknown"}</dd>
+            </div>
+          </dl>
           {order.customerNote && (
             <div className="mt-3 rounded-xl border border-[#ececf1] px-4 py-3">
               <p className="text-sm font-semibold text-[#2a2a33]">
@@ -333,12 +347,15 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
   return (
     <>
       <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[1040px] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-sm text-muted">
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Customer</th>
+              <th className="px-4 py-3 font-medium">Source site</th>
+              <th className="px-4 py-3 font-medium">City</th>
+              <th className="px-4 py-3 font-medium">Country</th>
               <th className="px-4 py-3 font-medium">Product</th>
               <th className="px-4 py-3 text-right font-medium">Revenue</th>
             </tr>
@@ -375,6 +392,15 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
                       {order.customerName}
                     </span>
                   </div>
+                </td>
+                <td className="max-w-[12rem] truncate px-4 py-3" title={order.source}>
+                  {order.source ?? "—"}
+                </td>
+                <td className="max-w-[9rem] truncate px-4 py-3" title={order.city}>
+                  {order.city ?? "—"}
+                </td>
+                <td className="max-w-[9rem] truncate px-4 py-3" title={order.country}>
+                  {order.country ?? "—"}
                 </td>
                 <td className="max-w-[14rem] truncate px-4 py-3">
                   {order.productName}

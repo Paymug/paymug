@@ -35,6 +35,9 @@ export interface DashboardOrderItem {
   currency: string;
   status: OrderStatus;
   customerEmail: string;
+  source?: string;
+  city?: string;
+  country?: string;
   customerName: string;
   customerAvatarUrl?: string;
   customerNote?: string;
