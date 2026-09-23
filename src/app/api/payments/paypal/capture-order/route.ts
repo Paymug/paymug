@@ -26,6 +26,7 @@ import { formatPaymentFailureDetails } from "@/lib/payment-failure.utils";
 const schema = z.object({
   orderId: z.string().min(1),
   paypalOrderId: z.string().min(1),
+  customerEmail: z.string().email().optional(),
 });
 
 export async function POST(req: Request) {
@@ -122,6 +123,7 @@ export async function POST(req: Request) {
       return jsonError("PayPal payment currency mismatch", 400);
     }
 
+    const resolvedEmail = parsed.data.customerEmail || order.customerEmail;
     const paidAt = new Date().toISOString();
     const updated = await updateOrder(order.id, {
       status: "paid",
@@ -130,7 +132,7 @@ export async function POST(req: Request) {
       paypalCaptureId: capture.captureId,
       paidAt,
       paymentFailureDetails: null,
-      customerEmail: order.customerEmail,
+      customerEmail: resolvedEmail,
       customerName: capture.payerName || order.customerName,
     });
 

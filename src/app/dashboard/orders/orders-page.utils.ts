@@ -13,6 +13,58 @@ function resolveProductPrice(order: Order): number {
   );
 }
 
+function timeValue(value: string | undefined): number {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function groupOrders(items: DashboardOrderItem[]): DashboardOrderItem[] {
+  const groups = new Map<string, DashboardOrderItem[]>();
+  for (const item of items) {
+    const key = `${item.customerEmail.trim().toLowerCase()}|${item.productId}`;
+    const list = groups.get(key);
+    if (list) list.push(item);
+    else groups.set(key, [item]);
+  }
+
+  const merged: DashboardOrderItem[] = [];
+  for (const list of groups.values()) {
+    if (list.length === 1) {
+      merged.push(list[0]);
+      continue;
+    }
+    const paidOrders = list.filter((order) => order.status === "paid");
+    const representative = paidOrders.length
+      ? paidOrders.reduce((best, order) =>
+          timeValue(order.paidAt || order.createdAt) >
+          timeValue(best.paidAt || best.createdAt)
+            ? order
+            : best,
+        )
+      : list.reduce((best, order) =>
+          timeValue(order.createdAt) > timeValue(best.createdAt) ? order : best,
+        );
+    const timeline = [...list]
+      .sort((a, b) => timeValue(a.createdAt) - timeValue(b.createdAt))
+      .map((order) => ({
+        id: order.id,
+        status: order.status,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt,
+        amount: order.amount,
+        currency: order.currency,
+        gateway: order.gateway,
+        paymentFailureDetails: order.paymentFailureDetails,
+      }));
+    merged.push({ ...representative, orderCount: list.length, timeline });
+  }
+
+  return merged.sort(
+    (a, b) => timeValue(b.createdAt) - timeValue(a.createdAt),
+  );
+}
+
 export async function buildDashboardOrderItems(
   userId: string,
   orders: Order[]
@@ -61,7 +113,7 @@ export async function buildDashboardOrderItems(
       .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
   );
 
-  return orders.map((order): DashboardOrderItem => {
+  const items = orders.map((order): DashboardOrderItem => {
     const email = order.customerEmail.trim().toLowerCase();
     const customer = customerByEmail.get(email);
     const hasGithub =
@@ -70,6 +122,7 @@ export async function buildDashboardOrderItems(
 
     return {
       id: order.id,
+      productId: order.productId,
       productName: order.productName,
       productDescription: order.productDescription,
       productPrice: resolveProductPrice(order),
@@ -110,4 +163,6 @@ export async function buildDashboardOrderItems(
       githubAccessStatus: hasGithub ? order.githubAccessStatus : undefined,
     };
   });
+
+  return groupOrders(items);
 }

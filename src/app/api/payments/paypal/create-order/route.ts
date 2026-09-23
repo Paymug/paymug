@@ -33,7 +33,7 @@ import { resolveProductConfiguration } from "@/lib/product-configurations";
 const schema = z.object({
   productId: z.string().min(1),
   customAmount: z.number().int().min(0).max(1_000_000_000).optional(),
-  customerEmail: z.string().email(),
+  customerEmail: z.string().email().optional(),
   customerName: z.string().max(120).optional(),
   discountCode: z.string().max(60).optional(),
   affiliateCode: z.string().max(80).optional(),
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       return jsonError("This purchase is free and does not require payment", 400);
     }
 
-    if (parsed.data.marketingOptIn) {
+    if (parsed.data.marketingOptIn && parsed.data.customerEmail) {
       await subscribeCheckoutCustomer(
         product.userId,
         parsed.data.customerEmail,
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
       amount: pricing.total,
       currency: product.currency,
       status: "pending",
-      customerEmail: parsed.data.customerEmail,
+      customerEmail: parsed.data.customerEmail ?? "",
       customerName: parsed.data.customerName,
       custom: configuration.custom,
       discountCode: discount?.code,

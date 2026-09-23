@@ -1,3 +1,4 @@
+import type { AbandonmentResponse } from "@/lib/abandonment-responses.types";
 import type { CustomerAccount } from "@/lib/customer-auth.types";
 import type { StoreCustomerEmailPreference } from "@/lib/customer-email-preferences";
 import type {
@@ -27,6 +28,7 @@ export interface BuildCustomerSummariesInput {
   subscribers: FeatureRecord[];
   accounts: CustomerAccount[];
   storeEmailPreferences: StoreCustomerEmailPreference[];
+  abandonmentResponses: AbandonmentResponse[];
   /** Customers with linked storefront visits on two or more distinct days. */
   returningEmails: string[];
   defaultCurrency: string;
@@ -168,9 +170,11 @@ function buildLicenses(licenses: FeatureRecord[]): CustomerLicenseSummary[] {
 }
 
 function buildTimeline(input: {
+  email: string;
   orders: Order[];
   subscriptions: FeatureRecord[];
   licenses: FeatureRecord[];
+  abandonmentResponses: AbandonmentResponse[];
   subscriber?: FeatureRecord;
   account?: CustomerAccount;
   marketingDisabledPreference?: StoreCustomerEmailPreference;
@@ -298,6 +302,17 @@ function buildTimeline(input: {
     });
   }
 
+  for (const response of input.abandonmentResponses) {
+    if (!response.email) continue;
+    if (normalizeEmail(response.email) !== input.email) continue;
+    push({
+      kind: "abandonment",
+      title: "Abandoned checkout",
+      description: response.answer || "No answer provided",
+      at: response.createdAt,
+    });
+  }
+
   return events
     .sort((left, right) => timeValue(right.at) - timeValue(left.at))
     .slice(0, 200);
@@ -405,9 +420,11 @@ export function buildCustomerSummaries(
         subscriptions: buildSubscriptions(subscriptions, currency),
         licenses: buildLicenses(licenses),
         timeline: buildTimeline({
+          email,
           orders,
           subscriptions,
           licenses,
+          abandonmentResponses: input.abandonmentResponses,
           subscriber: subscriberByEmail.get(email),
           account,
           marketingDisabledPreference: preferenceByEmail.get(email),

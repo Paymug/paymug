@@ -45,7 +45,8 @@ export type CustomerTimelineKind =
   | "subscription"
   | "license"
   | "account"
-  | "email";
+  | "email"
+  | "abandonment";
 
 export interface CustomerTimelineEvent {
   id: string;

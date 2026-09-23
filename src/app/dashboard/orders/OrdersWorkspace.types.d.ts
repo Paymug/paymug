@@ -11,8 +11,23 @@ export interface DashboardOrderLicense {
   updatesActive: boolean;
 }
 
+export interface DashboardOrderTimelineEntry {
+  id: string;
+  status: OrderStatus;
+  createdAt: string;
+  paidAt?: string;
+  amount: number;
+  currency: string;
+  gateway: OrderGateway;
+  paymentFailureDetails?: string;
+}
+
 export interface DashboardOrderItem {
   id: string;
+  productId: string;
+  /** Total orders merged into this row (same customer + product). */
+  orderCount?: number;
+  timeline?: DashboardOrderTimelineEntry[];
   productName: string;
   productDescription?: string;
   productPrice: number;

@@ -3,6 +3,7 @@ import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
 import { listCustomerAccountsByEmails } from "@/lib/customer-accounts";
 import { listStoreCustomerEmailPreferences } from "@/lib/customer-email-preferences";
+import { listAbandonmentResponses } from "@/lib/abandonment-responses";
 import { listOrdersByUser } from "@/lib/db";
 import { listFeatureRecords } from "@/lib/feature-records";
 import { getStoreById } from "@/lib/stores";
@@ -33,14 +34,25 @@ export default async function CustomersPage({
     parseDashboardFilterCookie(cookieJar.get(dashboardFilterCookieName)?.value),
   );
 
-  const [orders, subscriptions, licenses, subscribers, emailPreferences] =
-    await Promise.all([
-      listOrdersByUser(user.id, store.id, user.environment),
-      listFeatureRecords(user.id, "subscriptions", user.environment),
-      listFeatureRecords(user.id, "licenses", user.environment),
-      listFeatureRecords(user.id, "subscribers", user.environment),
-      listStoreCustomerEmailPreferences(store.id),
-    ]);
+  const [
+    orders,
+    subscriptions,
+    licenses,
+    subscribers,
+    emailPreferences,
+    abandonmentResponses,
+  ] = await Promise.all([
+    listOrdersByUser(user.id, store.id, user.environment),
+    listFeatureRecords(user.id, "subscriptions", user.environment),
+    listFeatureRecords(user.id, "licenses", user.environment),
+    listFeatureRecords(user.id, "subscribers", user.environment),
+    listStoreCustomerEmailPreferences(store.id),
+    listAbandonmentResponses({
+      userId: user.id,
+      storeId: store.id,
+      environment: user.environment,
+    }),
+  ]);
 
   const customerEmails = new Set<string>();
   for (const order of orders) customerEmails.add(order.customerEmail);
@@ -81,6 +93,7 @@ export default async function CustomersPage({
     subscribers,
     accounts,
     storeEmailPreferences: emailPreferences,
+    abandonmentResponses,
     returningEmails,
     defaultCurrency: store.currency,
   });

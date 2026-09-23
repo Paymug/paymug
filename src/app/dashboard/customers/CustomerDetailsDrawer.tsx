@@ -3,6 +3,7 @@
 import {
   CaretDown,
   CaretRight,
+  ChatCircleDots,
   CurrencyDollar,
   EnvelopeSimple,
   Key,
@@ -46,6 +47,7 @@ const timelineIcons: Record<CustomerTimelineKind, typeof Receipt> = {
   license: Key,
   account: User,
   email: EnvelopeSimple,
+  abandonment: ChatCircleDots,
 };
 
 const timelineTones: Record<
@@ -60,6 +62,7 @@ const timelineTones: Record<
   license: { icon: "text-blue-600", background: "bg-blue-50" },
   account: { icon: "text-stone-600", background: "bg-stone-100" },
   email: { icon: "text-sky-600", background: "bg-sky-50" },
+  abandonment: { icon: "text-orange-600", background: "bg-orange-50" },
 };
 
 export function CustomerDetailsDrawer({

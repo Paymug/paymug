@@ -43,6 +43,12 @@ export function ProductsWorkspace({
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/dashboard/products/abandonment"
+            className={`${dashboardButtonBaseClass} border border-[#dddde7] bg-white text-[#555568] hover:border-accent/50 hover:bg-accent-soft hover:text-accent-hover`}
+          >
+            View abandonment
+          </Link>
+          <Link
             href="/dashboard/products/new"
             className={`${dashboardButtonBaseClass} bg-accent text-dark hover:bg-accent-hover`}
           >
