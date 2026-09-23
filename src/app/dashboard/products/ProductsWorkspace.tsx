@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PencilSimple } from "@phosphor-icons/react";
+import { ArrowSquareOut } from "@phosphor-icons/react";
 import {
   dashboardButtonBaseClass,
   dashboardCardClass,
@@ -15,6 +15,11 @@ import { formatMoney } from "@/lib/format";
 import { getProductPublicPath } from "@/lib/product-paths";
 import { ProductActionsMenu } from "./ProductActionsMenu";
 import type { ProductsWorkspaceProps } from "./ProductsWorkspace.types";
+
+function formatConversion(conversion: number | null | undefined): string {
+  if (conversion === null || conversion === undefined) return "";
+  return `${(conversion * 100).toFixed(1)}%`;
+}
 
 export function ProductsWorkspace({
   products,
@@ -105,6 +110,7 @@ export function ProductsWorkspace({
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Sales</th>
                 <th className="px-4 py-3 font-medium">Revenue</th>
+                <th className="px-4 py-3 font-medium">Conversion</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
             </thead>
@@ -189,6 +195,11 @@ export function ProductsWorkspace({
                         )
                       : ""}
                   </td>
+                  <td className="px-4 py-3 tabular-nums">
+                    {formatConversion(
+                      performance.byProduct[product.id]?.conversion,
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <Link
@@ -199,18 +210,11 @@ export function ProductsWorkspace({
                             : "?preview"
                         }`}
                         target="_blank"
-                        title={getProductPublicPath(product)}
-                        className="mr-1 inline-block max-w-40 truncate align-middle font-mono text-xs text-muted hover:text-foreground hover:underline"
-                      >
-                        {getProductPublicPath(product)}
-                      </Link>
-                      <Link
-                        href={`/dashboard/products/${product.id}`}
-                        aria-label={`Edit ${product.name}`}
-                        title="Edit"
+                        aria-label={`Open checkout for ${product.name}`}
+                        title="Open checkout"
                         className={dashboardIconButtonClass}
                       >
-                        <PencilSimple size={18} aria-hidden />
+                        <ArrowSquareOut size={18} aria-hidden />
                       </Link>
                       <ProductActionsMenu
                         id={product.id}

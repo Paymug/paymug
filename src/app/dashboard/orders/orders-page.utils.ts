@@ -30,24 +30,22 @@ function groupOrders(items: DashboardOrderItem[]): DashboardOrderItem[] {
 
   const merged: DashboardOrderItem[] = [];
   for (const list of groups.values()) {
-    if (list.length === 1) {
-      merged.push(list[0]);
-      continue;
-    }
-    const paidOrders = list.filter((order) => order.status === "paid");
-    const representative = paidOrders.length
-      ? paidOrders.reduce((best, order) =>
-          timeValue(order.paidAt || order.createdAt) >
-          timeValue(best.paidAt || best.createdAt)
-            ? order
-            : best,
-        )
-      : list.reduce((best, order) =>
-          timeValue(order.createdAt) > timeValue(best.createdAt) ? order : best,
-        );
-    const timeline = [...list]
-      .sort((a, b) => timeValue(a.createdAt) - timeValue(b.createdAt))
-      .map((order) => ({
+    // Walk the attempts oldest → newest. A paid order closes the group, so any
+    // activity after a payment starts a new group.
+    const sorted = [...list].sort(
+      (a, b) => timeValue(a.createdAt) - timeValue(b.createdAt),
+    );
+    let current: DashboardOrderItem[] = [];
+    const flush = () => {
+      if (current.length === 0) return;
+      const paidOrders = current.filter((order) => order.status === "paid");
+      const representative = paidOrders.length
+        ? paidOrders[paidOrders.length - 1]
+        : [...current]
+            .reverse()
+            .find((order) => order.status === "pending") ??
+          current[current.length - 1];
+      const timeline = current.map((order) => ({
         id: order.id,
         status: order.status,
         createdAt: order.createdAt,
@@ -57,7 +55,14 @@ function groupOrders(items: DashboardOrderItem[]): DashboardOrderItem[] {
         gateway: order.gateway,
         paymentFailureDetails: order.paymentFailureDetails,
       }));
-    merged.push({ ...representative, orderCount: list.length, timeline });
+      merged.push({ ...representative, orderCount: current.length, timeline });
+      current = [];
+    };
+    for (const order of sorted) {
+      current.push(order);
+      if (order.status === "paid") flush();
+    }
+    flush();
   }
 
   return merged.sort(

@@ -74,40 +74,6 @@ function OrderDetailDrawer({
           </span>
         </div>
 
-        {order.timeline && order.timeline.length > 1 && (
-          <section>
-            <div className="mb-3 flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-[#2a2a33]">
-                Activity timeline
-              </h3>
-              <span className="text-xs text-[#8b8ba3]">
-                {order.timeline.length} orders
-              </span>
-            </div>
-            <ol className="space-y-3 border-l border-[#ececf1] pl-4">
-              {order.timeline.map((entry) => (
-                <li key={entry.id} className="relative">
-                  <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#d8d8e0]" />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={entry.status} />
-                    <span className="text-xs text-[#8b8ba3]">
-                      {formatOrderDateTime(entry.paidAt || entry.createdAt)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-[#8b8ba3]">
-                    {formatMoney(entry.amount, entry.currency)} · {entry.gateway}
-                  </p>
-                  {entry.paymentFailureDetails && (
-                    <p className="mt-1 line-clamp-2 text-xs text-red-600">
-                      {entry.paymentFailureDetails}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
-
         {order.status === "failed" && order.paymentFailureDetails && (
           <section className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
             <h3 className="text-sm font-semibold text-red-800">
@@ -311,6 +277,40 @@ function OrderDetailDrawer({
             )}
           </div>
         </section>
+
+        {order.timeline && order.timeline.length > 1 && (
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-[#2a2a33]">
+                Activity timeline
+              </h3>
+              <span className="text-xs text-[#8b8ba3]">
+                {order.timeline.length} orders
+              </span>
+            </div>
+            <ol className="space-y-3 border-l border-[#ececf1] pl-4">
+              {[...order.timeline].reverse().map((entry) => (
+                <li key={entry.id} className="relative">
+                  <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#d8d8e0]" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={entry.status} />
+                    <span className="text-xs text-[#8b8ba3]">
+                      {formatOrderDateTime(entry.paidAt || entry.createdAt)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#8b8ba3]">
+                    {formatMoney(entry.amount, entry.currency)} · {entry.gateway}
+                  </p>
+                  {entry.paymentFailureDetails && (
+                    <p className="mt-1 line-clamp-2 text-xs text-red-600">
+                      {entry.paymentFailureDetails}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
       </div>
     </RightDrawerModal>
   );
@@ -361,14 +361,7 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
                   {formatOrderListDate(order.createdAt)}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={order.status} />
-                    {order.orderCount && order.orderCount > 1 ? (
-                      <span className="whitespace-nowrap text-xs text-[#8b8ba3]">
-                        {order.orderCount} orders
-                      </span>
-                    ) : null}
-                  </div>
+                  <StatusBadge status={order.status} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex min-w-0 items-center gap-2.5">

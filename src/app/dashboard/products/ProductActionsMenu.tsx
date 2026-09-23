@@ -6,8 +6,10 @@ import {
   Copy,
   File,
   GlobeSimple,
+  PencilSimple,
   Trash,
 } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -177,6 +179,15 @@ export function ProductActionsMenu({
             style={{ left: position.left, top: position.top }}
             className="fixed z-80 w-52 rounded-xl border border-[#d7e0ea] bg-white py-2 text-left shadow-[0_20px_45px_rgba(28,39,55,0.18)]"
           >
+            <Link
+              href={`/dashboard/products/${id}`}
+              role="menuitem"
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8]"
+            >
+              <PencilSimple size={16} aria-hidden />
+              Edit
+            </Link>
+            <div className="my-2 border-t border-[#e8e8ee]" />
             <p className="px-4 pb-1.5 pt-1 text-xs font-medium text-muted">
               Change status
             </p>
