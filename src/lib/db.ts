@@ -149,6 +149,7 @@ function rowToProduct(
         : Math.max(1, row.licenseSeatLimit || 1),
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
     customAmountEnabled: row.customAmountEnabled,
+    allowNote: row.allowNote,
     intervalUnit:
       row.intervalUnit === "week" ||
       row.intervalUnit === "month" ||
@@ -487,6 +488,7 @@ export async function createProduct(product: Product): Promise<Product> {
     billingType: product.billingType || "one_time",
     customAmountEnabled:
       product.billingType === "one_time" && product.customAmountEnabled,
+    allowNote: product.allowNote ?? false,
     intervalUnit:
       product.billingType === "subscription"
         ? product.intervalUnit || "month"
@@ -582,6 +584,7 @@ export async function updateProduct(
       ...(patch.customAmountEnabled !== undefined
         ? { customAmountEnabled: patch.customAmountEnabled }
         : {}),
+      ...(patch.allowNote !== undefined ? { allowNote: patch.allowNote } : {}),
       ...(patch.intervalUnit !== undefined
         ? { intervalUnit: patch.intervalUnit ?? null }
         : {}),

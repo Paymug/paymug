@@ -26,7 +26,7 @@ export interface AnalyticsOverviewProps {
   events: VisitorEvent[];
   orders: AnalyticsOrder[];
   currency: string;
-  commerceMetric: AnalyticsCommerceMetric | null;
+  commerceMetrics: AnalyticsCommerceMetric[];
 }
 
 export type AnalyticsMetricKey = "visits" | "uniqueVisitors";
@@ -40,16 +40,23 @@ export interface AnalyticsBreakdownCardProps {
   emptyLabel?: string;
 }
 
-export type AnalyticsCommerceMetric = "orders" | "revenue";
+import type { AnalyticsCommerceMetric } from "@/lib/analytics-commerce.utils";
+
+export type { AnalyticsCommerceMetric };
 
 export interface AnalyticsChartMenuProps {
-  value: AnalyticsCommerceMetric | null;
-  onChange(value: AnalyticsCommerceMetric | null): void;
+  value: AnalyticsCommerceMetric[];
+  onChange(value: AnalyticsCommerceMetric[]): void;
+}
+
+export interface AnalyticsBarSeries {
+  key: AnalyticsCommerceMetric;
+  label: string;
+  data: ChartPoint[];
+  color: string;
+  currency?: string;
 }
 
 export interface AnalyticsChartBarsProps {
-  data: ChartPoint[];
-  label: string;
-  currency?: string;
-  color: string;
+  series: AnalyticsBarSeries[];
 }

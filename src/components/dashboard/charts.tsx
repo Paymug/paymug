@@ -69,11 +69,7 @@ export function AreaChart({
   endpointLabelFontSize,
   transparentBackground = false,
   className = "",
-  commerceData,
-  commerceLabel,
-  commerceColor,
-  commerceFormat = "number",
-  commerceCurrency,
+  commerceSeries,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -182,29 +178,28 @@ export function AreaChart({
         '[data-tooltip-role="previous-row"]',
       );
       if (previousRow) previousRow.style.color = comparisonColor;
-      if (commerceData && commerceLabel) {
-        const commercePoint = commerceData[dataIndex];
-        if (commercePoint) {
-          setChartTooltipText(
-            tooltipElement,
-            "commerce-value",
-            `${commerceLabel}: ${formatChartValue(
-              commercePoint.value,
-              commerceFormat,
-              commerceCurrency,
-            )}`,
-          );
-          setChartTooltipText(
-            tooltipElement,
-            "commerce-date",
-            formatChartPointDate(commercePoint, dateFormatter),
-          );
-        }
-        const commerceRow = tooltipElement.querySelector<HTMLElement>(
-          '[data-tooltip-role="commerce-row"]',
+      commerceSeries?.forEach((series, index) => {
+        const commercePoint = series.data[dataIndex];
+        if (!commercePoint) return;
+        setChartTooltipText(
+          tooltipElement,
+          `commerce-value-${index}`,
+          `${series.label}: ${formatChartValue(
+            commercePoint.value,
+            series.format,
+            series.currency,
+          )}`,
         );
-        if (commerceRow && commerceColor) commerceRow.style.color = commerceColor;
-      }
+        setChartTooltipText(
+          tooltipElement,
+          `commerce-date-${index}`,
+          formatChartPointDate(commercePoint, dateFormatter),
+        );
+        const commerceRow = tooltipElement.querySelector<HTMLElement>(
+          `[data-tooltip-role="commerce-row-${index}"]`,
+        );
+        if (commerceRow) commerceRow.style.color = series.color;
+      });
 
       setChartTooltipText(
         tooltipElement,
@@ -238,11 +233,7 @@ export function AreaChart({
     },
     [
       color,
-      commerceColor,
-      commerceCurrency,
-      commerceData,
-      commerceFormat,
-      commerceLabel,
+      commerceSeries,
       comparisonColor,
       comparisonData,
       currency,
@@ -413,22 +404,23 @@ export function AreaChart({
               data-tooltip-role="previous-date"
             />
           </div>
-          {commerceLabel && (
+          {commerceSeries?.map((series, index) => (
             <div
+              key={`${series.label}-${index}`}
               className={styles.tooltipRow}
-              data-tooltip-role="commerce-row"
+              data-tooltip-role={`commerce-row-${index}`}
             >
               <span className={styles.tooltipDot} />
               <span
                 className={styles.tooltipValue}
-                data-tooltip-role="commerce-value"
+                data-tooltip-role={`commerce-value-${index}`}
               />
               <span
                 className={styles.tooltipDate}
-                data-tooltip-role="commerce-date"
+                data-tooltip-role={`commerce-date-${index}`}
               />
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>

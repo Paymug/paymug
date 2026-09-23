@@ -250,6 +250,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               productPrice={checkoutPrice}
               defaultProductPrice={product.price}
               customAmountEnabled={product.customAmountEnabled}
+              allowNote={product.allowNote}
               customAmount={customAmount}
               custom={configuration.custom}
               affiliateRef={ref?.trim() || undefined}

@@ -32,11 +32,15 @@ export interface ChartProps {
   transparentBackground?: boolean;
   className?: string;
   /** Optional secondary series (for example orders/revenue bars) shown in the tooltip. */
-  commerceData?: ChartPoint[];
-  commerceLabel?: string;
-  commerceColor?: string;
-  commerceFormat?: ChartValueFormat;
-  commerceCurrency?: string;
+  commerceSeries?: ChartCommerceSeries[];
+}
+
+export interface ChartCommerceSeries {
+  label: string;
+  color: string;
+  data: ChartPoint[];
+  format: ChartValueFormat;
+  currency?: string;
 }
 
 export interface ChartTooltipContext {

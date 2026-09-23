@@ -22,6 +22,7 @@ export interface DashboardOrderItem {
   customerEmail: string;
   customerName: string;
   customerAvatarUrl?: string;
+  customerNote?: string;
   discountCode?: string;
   discountAmount: number;
   transactionFeeAmount: number;

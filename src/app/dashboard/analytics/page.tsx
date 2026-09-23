@@ -4,6 +4,7 @@ import {
   dashboardButtonBaseClass,
   dashboardPageClass,
 } from "@/components/dashboard/dashboard.styles";
+import { parseAnalyticsCommerceMetrics } from "@/lib/analytics-commerce.utils";
 import { getSessionUser } from "@/lib/auth";
 import { listOrdersByUser, listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
@@ -91,7 +92,9 @@ export default async function AnalyticsPage({
             createdAt,
           }))}
         currency={store.currency}
-        commerceMetric={store.analyticsCommerceMetric ?? null}
+        commerceMetrics={parseAnalyticsCommerceMetrics(
+          store.analyticsCommerceMetric,
+        )}
       />
     </div>
   );

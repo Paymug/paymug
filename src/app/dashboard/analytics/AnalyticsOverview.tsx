@@ -35,10 +35,29 @@ const emptyFilters: AnalyticsDimensionFilters = {
 };
 
 const analyticsLineColor = "#3b82f6";
-const ordersBarColor = "rgba(245, 197, 24, 0.38)";
-const revenueBarColor = "rgba(34, 197, 94, 0.22)";
-const ordersAccentColor = "#b48a00";
-const revenueAccentColor = "#16a34a";
+
+const commerceMetricConfig: Record<
+  AnalyticsCommerceMetric,
+  {
+    label: string;
+    barColor: string;
+    accentColor: string;
+    format: "money" | "number";
+  }
+> = {
+  orders: {
+    label: "Orders",
+    barColor: "rgba(245, 197, 24, 0.38)",
+    accentColor: "#b48a00",
+    format: "number",
+  },
+  revenue: {
+    label: "Revenue",
+    barColor: "rgba(34, 197, 94, 0.22)",
+    accentColor: "#16a34a",
+    format: "money",
+  },
+};
 
 export function AnalyticsOverview({
   startDate,
@@ -51,12 +70,12 @@ export function AnalyticsOverview({
   events,
   orders,
   currency,
-  commerceMetric: initialCommerceMetric,
+  commerceMetrics: initialCommerceMetrics,
 }: AnalyticsOverviewProps) {
   const router = useRouter();
   const [metricKey, setMetricKey] = useState<AnalyticsMetricKey>("visits");
-  const [commerceMetric, setCommerceMetric] =
-    useState<AnalyticsCommerceMetric | null>(initialCommerceMetric);
+  const [commerceMetrics, setCommerceMetrics] =
+    useState<AnalyticsCommerceMetric[]>(initialCommerceMetrics);
   const [filters, setFilters] =
     useState<AnalyticsDimensionFilters>(emptyFilters);
   const summary = useMemo(
@@ -72,30 +91,30 @@ export function AnalyticsOverview({
       }),
     [endDate, events, filters, interval, productId, products, startDate],
   );
-  const commerceData = useMemo(
+  const commerceSeries = useMemo(
     () =>
-      commerceMetric
-        ? buildAnalyticsCommerceSeries({
+      commerceMetrics.map((metric) => {
+        const config = commerceMetricConfig[metric];
+        return {
+          key: metric,
+          label: config.label,
+          barColor: config.barColor,
+          accentColor: config.accentColor,
+          format: config.format,
+          currency: metric === "revenue" ? currency : undefined,
+          data: buildAnalyticsCommerceSeries({
             orders,
             startDate,
             endDate,
             interval,
             productId,
-            metric: commerceMetric,
-          })
-        : [],
-    [commerceMetric, endDate, interval, orders, productId, startDate],
+            metric,
+          }),
+        };
+      }),
+    [commerceMetrics, currency, endDate, interval, orders, productId, startDate],
   );
-  const commerceLabel =
-    commerceMetric === "orders"
-      ? "Orders"
-      : commerceMetric === "revenue"
-        ? "Revenue"
-        : undefined;
-  const commerceBarColor =
-    commerceMetric === "orders" ? ordersBarColor : revenueBarColor;
-  const commerceAccentColor =
-    commerceMetric === "orders" ? ordersAccentColor : revenueAccentColor;
+  const hasCommerce = commerceMetrics.length > 0;
   const selectedFilterCount = Object.values(filters).reduce(
     (total, values) => total + values.length,
     0,
@@ -113,20 +132,20 @@ export function AnalyticsOverview({
     router.refresh();
   }
 
-  async function updateCommerceMetric(
-    nextCommerceMetric: AnalyticsCommerceMetric | null,
+  async function updateCommerceMetrics(
+    nextCommerceMetrics: AnalyticsCommerceMetric[],
   ) {
-    const previousCommerceMetric = commerceMetric;
-    setCommerceMetric(nextCommerceMetric);
+    const previousCommerceMetrics = commerceMetrics;
+    setCommerceMetrics(nextCommerceMetrics);
     try {
       const response = await fetch("/api/analytics/preference", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commerceMetric: nextCommerceMetric }),
+        body: JSON.stringify({ commerceMetrics: nextCommerceMetrics }),
       });
       if (!response.ok) throw new Error("Could not save preference");
     } catch {
-      setCommerceMetric(previousCommerceMetric);
+      setCommerceMetrics(previousCommerceMetrics);
     }
   }
 
@@ -213,8 +232,8 @@ export function AnalyticsOverview({
             Last period
           </span>
           <AnalyticsChartMenu
-            value={commerceMetric}
-            onChange={updateCommerceMetric}
+            value={commerceMetrics}
+            onChange={updateCommerceMetrics}
           />
         </div>
       </div>
@@ -233,26 +252,30 @@ export function AnalyticsOverview({
         </div>
         <p className="mt-2 text-sm text-muted">
           vs. {metric.previousValue.toLocaleString()} last period
-          {commerceMetric && (
+          {commerceSeries.map((series) => (
             <span
+              key={series.key}
               className="ml-4 inline-flex items-center gap-2"
-              style={{ color: commerceAccentColor }}
+              style={{ color: series.accentColor }}
             >
               <span
                 className="h-2.5 w-2.5 rounded-sm"
-                style={{ backgroundColor: commerceBarColor }}
+                style={{ backgroundColor: series.barColor }}
               />
-              {commerceLabel}
+              {series.label}
             </span>
-          )}
+          ))}
         </p>
         <div className="relative mt-7">
-          {commerceMetric && commerceLabel && (
+          {hasCommerce && (
             <AnalyticsChartBars
-              data={commerceData}
-              label={commerceLabel}
-              currency={commerceMetric === "revenue" ? currency : undefined}
-              color={commerceBarColor}
+              series={commerceSeries.map((series) => ({
+                key: series.key,
+                label: series.label,
+                data: series.data,
+                color: series.barColor,
+                currency: series.currency,
+              }))}
             />
           )}
           <AreaChart
@@ -267,14 +290,18 @@ export function AnalyticsOverview({
             emptyLabel=""
             title={metric.label}
             trendPercent={metric.delta}
-            transparentBackground={Boolean(commerceMetric)}
-            className={commerceMetric ? "relative z-10" : ""}
-            commerceData={commerceMetric ? commerceData : undefined}
-            commerceLabel={commerceLabel}
-            commerceColor={commerceAccentColor}
-            commerceFormat={commerceMetric === "revenue" ? "money" : "number"}
-            commerceCurrency={
-              commerceMetric === "revenue" ? currency : undefined
+            transparentBackground={hasCommerce}
+            className={hasCommerce ? "relative z-10" : ""}
+            commerceSeries={
+              hasCommerce
+                ? commerceSeries.map((series) => ({
+                    label: series.label,
+                    data: series.data,
+                    color: series.accentColor,
+                    format: series.format,
+                    currency: series.currency,
+                  }))
+                : undefined
             }
           />
         </div>

@@ -2,9 +2,10 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
 import { updateStore } from "@/lib/stores";
 import { jsonError } from "@/lib/utils";
+import { serializeAnalyticsCommerceMetrics } from "@/lib/analytics-commerce.utils";
 
 const analyticsPreferenceSchema = z.object({
-  commerceMetric: z.enum(["orders", "revenue"]).nullable(),
+  commerceMetrics: z.array(z.enum(["orders", "revenue"])).max(2),
 });
 
 export async function PATCH(request: Request) {
@@ -17,7 +18,9 @@ export async function PATCH(request: Request) {
     return jsonError(parsed.error.issues[0]?.message || "Invalid preference");
   }
   const store = await updateStore(user.activeStoreId, user.id, {
-    analyticsCommerceMetric: parsed.data.commerceMetric,
+    analyticsCommerceMetric: serializeAnalyticsCommerceMetrics(
+      parsed.data.commerceMetrics,
+    ),
   });
   if (!store) return jsonError("Store not found", 404);
   return Response.json({ store });

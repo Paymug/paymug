@@ -158,6 +158,16 @@ function OrderDetailDrawer({
               </p>
             </div>
           </div>
+          {order.customerNote && (
+            <div className="mt-3 rounded-xl border border-[#ececf1] px-4 py-3">
+              <p className="text-sm font-semibold text-[#2a2a33]">
+                Customer note
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[#555563]">
+                {order.customerNote}
+              </p>
+            </div>
+          )}
         </section>
 
         <section>

@@ -65,6 +65,7 @@ const createSchema = z.object({
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().default(1),
   billingType: z.enum(["one_time", "subscription"]).default("one_time"),
   customAmountEnabled: z.boolean().default(false),
+  allowNote: z.boolean().default(false),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
   intervalCount: z.number().int().min(1).max(52).default(1),
   trialDays: z.number().int().min(0).max(365).default(0),
@@ -215,6 +216,7 @@ export async function POST(req: Request) {
       billingType,
       customAmountEnabled:
         billingType === "one_time" && parsed.data.customAmountEnabled,
+      allowNote: parsed.data.allowNote,
       intervalUnit,
       intervalCount,
       trialDays,

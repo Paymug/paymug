@@ -91,9 +91,7 @@ export const stores = sqliteTable(
     })
       .notNull()
       .default(false),
-    analyticsCommerceMetric: text("analytics_commerce_metric", {
-      enum: ["orders", "revenue"],
-    }),
+    analyticsCommerceMetric: text("analytics_commerce_metric"),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -200,9 +198,12 @@ export const products = sqliteTable(
   })
     .notNull()
     .default("one_time"),
-  customAmountEnabled: integer("custom_amount_enabled", { mode: "boolean" })
-    .notNull()
-    .default(false),
+    customAmountEnabled: integer("custom_amount_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    allowNote: integer("allow_note", { mode: "boolean" })
+      .notNull()
+      .default(false),
   intervalUnit: text("interval_unit", {
     enum: ["week", "month", "year"],
   }),

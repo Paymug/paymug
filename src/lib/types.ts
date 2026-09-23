@@ -79,7 +79,8 @@ export interface Store {
   abandonedCheckoutRemindersEnabled: boolean;
   analyticsEnabled: boolean;
   displayPurchasesEnabled: boolean;
-  analyticsCommerceMetric?: "orders" | "revenue";
+  /** Comma-separated analytics overlay metrics (for example "orders,revenue"). */
+  analyticsCommerceMetric?: string;
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
@@ -150,6 +151,8 @@ export interface Product {
   billingType: ProductBillingType;
   /** Allows one-time checkout links to override the default price. */
   customAmountEnabled: boolean;
+  /** Lets buyers leave an optional note with their purchase. */
+  allowNote: boolean;
   /** Billing period unit when billingType is subscription. */
   intervalUnit?: ProductIntervalUnit | null;
   /** Number of interval units per billing period (e.g. 2 weeks). */

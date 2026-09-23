@@ -211,5 +211,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "ALTER TABLE `product_category_products` ADD `sort_order` integer DEFAULT 0 NOT NULL;",
       "UPDATE `product_category_products`\nSET `sort_order` = (\n\tSELECT count(*)\n\tFROM `product_category_products` AS `previous`\n\tWHERE `previous`.`category_id` = `product_category_products`.`category_id`\n\t\tAND (`previous`.`created_at` < `product_category_products`.`created_at`\n\t\t\tOR (`previous`.`created_at` = `product_category_products`.`created_at`\n\t\t\t\tAND `previous`.`product_id` <= `product_category_products`.`product_id`))\n);"
     ]
+  },
+  {
+    "name": "0024_product_allow_note.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `allow_note` integer DEFAULT false NOT NULL;"
+    ]
   }
 ];

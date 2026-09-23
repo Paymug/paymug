@@ -84,6 +84,7 @@ const updateSchema = z.object({
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().optional(),
   billingType: z.enum(["one_time", "subscription"]).optional(),
   customAmountEnabled: z.boolean().optional(),
+  allowNote: z.boolean().optional(),
   intervalUnit: z.enum(["week", "month", "year"]).nullable().optional(),
   intervalCount: z.number().int().min(1).max(52).optional(),
   trialDays: z.number().int().min(0).max(365).optional(),

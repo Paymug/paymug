@@ -169,6 +169,13 @@
       "when": 1788933600000,
       "tag": "0023_category_product_order",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1789020000000,
+      "tag": "0024_product_allow_note",
+      "breakpoints": true
     }
   ]
 }

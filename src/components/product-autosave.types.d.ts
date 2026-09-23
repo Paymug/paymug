@@ -29,6 +29,7 @@ export interface ProductFormSavePayload {
   licenseSeatLimit: number | null;
   billingType: "one_time" | "subscription";
   customAmountEnabled: boolean;
+  allowNote: boolean;
   intervalUnit?: "week" | "month" | "year" | null;
   intervalCount: number;
   trialDays: number;

@@ -25,7 +25,7 @@ export interface UpdateStoreInput {
   abandonedCheckoutRemindersEnabled?: boolean;
   analyticsEnabled?: boolean;
   displayPurchasesEnabled?: boolean;
-  analyticsCommerceMetric?: "orders" | "revenue" | null;
+  analyticsCommerceMetric?: string | null;
   currency?: string;
   transactionFeeType?: "fixed" | "percentage";
   transactionFeeValue?: number;

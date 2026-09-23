@@ -37,6 +37,7 @@ export function CheckoutClient({
   productPrice,
   defaultProductPrice,
   customAmountEnabled,
+  allowNote,
   customAmount,
   custom,
   affiliateRef,
@@ -60,6 +61,15 @@ export function CheckoutClient({
   const configurationKey = JSON.stringify(custom);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [noteVisible, setNoteVisible] = useState(false);
+  const [note, setNote] = useState("");
+  const checkoutCustom = useMemo(
+    () =>
+      allowNote && note.trim()
+        ? { ...custom, note: note.trim().slice(0, 1000) }
+        : custom,
+    [allowNote, custom, note],
+  );
   const appliedAmount = customAmount ?? defaultProductPrice;
   const [amount, setAmount] = useState(
     formatCustomCheckoutAmount(appliedAmount),
@@ -239,7 +249,7 @@ export function CheckoutClient({
       const { order } = await completeFreePurchase({
         productId,
         customAmount,
-        custom,
+        custom: checkoutCustom,
         customerEmail: email.trim(),
         customerName: name.trim() || undefined,
         discountCode:
@@ -264,7 +274,7 @@ export function CheckoutClient({
     try {
       const approvalUrl = await startPayPalSubscriptionCheckout({
         productId,
-        custom,
+        custom: checkoutCustom,
         customerEmail: email.trim(),
         customerName: name.trim() || undefined,
         discountCode:
@@ -314,6 +324,49 @@ export function CheckoutClient({
           onChange={(e) => setName(e.target.value)}
           placeholder="Jane Doe"
         />
+
+        {allowNote && (
+          <div className="space-y-2">
+            {noteVisible ? (
+              <div>
+                <label
+                  htmlFor="checkout-note"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Note
+                </label>
+                <textarea
+                  id="checkout-note"
+                  name="note"
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  maxLength={1000}
+                  rows={3}
+                  placeholder="Add any details for this order"
+                  className="mt-1.5 w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none transition placeholder:text-stone-400 focus:border-accent focus:ring-3 focus:ring-accent/25"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNoteVisible(false);
+                    setNote("");
+                  }}
+                  className="mt-1 w-fit cursor-pointer text-xs text-muted hover:text-foreground"
+                >
+                  Remove note
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setNoteVisible(true)}
+                className="w-fit cursor-pointer text-xs font-medium text-accent-dark hover:underline"
+              >
+                Add a note
+              </button>
+            )}
+          </div>
+        )}
 
         <label className="flex items-start gap-2 text-xs leading-5 text-muted">
           <input
@@ -490,7 +543,7 @@ export function CheckoutClient({
             {stripeEnabled && (
               <StripeCheckoutButton
                 productId={productId}
-                custom={custom}
+                custom={checkoutCustom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={
@@ -538,7 +591,7 @@ export function CheckoutClient({
               <StripeCheckoutButton
                 productId={productId}
                 customAmount={customAmount}
-                custom={custom}
+                custom={checkoutCustom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={
@@ -561,7 +614,7 @@ export function CheckoutClient({
               <PayPalButtons
                 productId={productId}
                 customAmount={customAmount}
-                custom={custom}
+                custom={checkoutCustom}
                 customerEmail={email.trim()}
                 customerName={name.trim() || undefined}
                 discountCode={

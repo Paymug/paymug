@@ -86,6 +86,10 @@ export async function buildDashboardOrderItems(
         email,
         avatarImageUrl: customer?.avatarImageUrl,
       }),
+      customerNote:
+        typeof order.custom.note === "string" && order.custom.note.trim()
+          ? order.custom.note.trim()
+          : undefined,
       discountCode: order.discountCode,
       discountAmount: order.discountAmount,
       transactionFeeAmount: order.transactionFeeAmount,

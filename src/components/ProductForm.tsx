@@ -39,6 +39,45 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
 import { ProductConfigurationEditor } from "./ProductConfigurationEditor";
 
+function FormSwitch({
+  label,
+  description,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onToggle(checked: boolean): void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-[#333]">{label}</p>
+        {description && (
+          <p className="mt-1 text-xs leading-5 text-[#85859d]">{description}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onToggle(!checked)}
+        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition ${
+          checked ? "bg-accent" : "bg-[#d9d9e2]"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+            checked ? "left-5.5" : "left-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
 export function ProductForm({
   product,
   storeCurrency,
@@ -118,6 +157,7 @@ export function ProductForm({
   const [customAmountEnabled, setCustomAmountEnabled] = useState(
     product?.customAmountEnabled || false,
   );
+  const [allowNote, setAllowNote] = useState(product?.allowNote || false);
   const [intervalUnit, setIntervalUnit] = useState<ProductIntervalUnit>(
     product?.intervalUnit || "month",
   );
@@ -226,6 +266,7 @@ export function ProductForm({
     billingType,
     customAmountEnabled:
       billingType === "one_time" && customAmountEnabled,
+    allowNote,
     intervalUnit: billingType === "subscription" ? intervalUnit : null,
     intervalCount:
       billingType === "subscription" ? parsedIntervalCount : 1,
@@ -255,7 +296,8 @@ export function ProductForm({
     transactionFeeValue !== storeTransactionFeeDisplayValue ||
     status !== "draft" ||
     hideFromStorefront ||
-    customAmountEnabled,
+    customAmountEnabled ||
+    allowNote,
   );
   const {
     productId,
@@ -486,23 +528,25 @@ export function ProductForm({
           </button>
         </div>
 
-        <label className="flex items-start gap-3 rounded-xl border border-border bg-[#fafafd] p-4 text-sm text-muted">
-          <input
-            type="checkbox"
-            checked={hideFromStorefront}
-            onChange={(event) => {
-              setHideFromStorefront(event.target.checked);
-              requestAutosave(1);
-            }}
-            className="mt-0.5 h-4 w-4 rounded border-border"
-          />
-          <span>
-            <span className="block font-semibold text-foreground">
-              Hide from storefront
-            </span>
-            Keep the product published and available through its direct link.
-          </span>
-        </label>
+        <FormSwitch
+          label="Hide from storefront"
+          description="Keep the product published and available through its direct link."
+          checked={hideFromStorefront}
+          onToggle={(checked) => {
+            setHideFromStorefront(checked);
+            requestAutosave(1);
+          }}
+        />
+
+        <FormSwitch
+          label="Allow buyers to leave a note"
+          description="Buyers can add an optional note with their purchase at checkout."
+          checked={allowNote}
+          onToggle={(checked) => {
+            setAllowNote(checked);
+            requestAutosave(1);
+          }}
+        />
 
         <Input
           label="Product name"
@@ -604,24 +648,15 @@ export function ProductForm({
         />
 
         {billingType === "one_time" && (
-          <label className="flex items-start gap-3 rounded-xl border border-border bg-[#fafafd] p-4 text-sm text-muted">
-            <input
-              type="checkbox"
-              checked={customAmountEnabled}
-              onChange={(event) => {
-                setCustomAmountEnabled(event.target.checked);
-                requestAutosave(1);
-              }}
-              className="mt-0.5 h-4 w-4 rounded border-border"
-            />
-            <span>
-              <span className="block font-semibold text-foreground">
-                Let buyers pay what they want
-              </span>
-              Buyers can enter their own amount at checkout. The price above is
-              used as the default.
-            </span>
-          </label>
+          <FormSwitch
+            label="Let buyers pay what they want"
+            description="Buyers can enter their own amount at checkout. The price above is used as the default."
+            checked={customAmountEnabled}
+            onToggle={(checked) => {
+              setCustomAmountEnabled(checked);
+              requestAutosave(1);
+            }}
+          />
         )}
 
         {billingType === "subscription" && (

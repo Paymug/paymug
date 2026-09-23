@@ -2,12 +2,15 @@
 
 import { Check, DotsThree } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import type { AnalyticsChartMenuProps } from "./analytics.types";
+import type {
+  AnalyticsChartMenuProps,
+  AnalyticsCommerceMetric,
+} from "./analytics.types";
 
-const options = [
+const options: Array<{ value: AnalyticsCommerceMetric; label: string }> = [
   { value: "orders", label: "Orders" },
   { value: "revenue", label: "Revenue" },
-] as const;
+];
 
 export function AnalyticsChartMenu({ value, onChange }: AnalyticsChartMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -22,6 +25,14 @@ export function AnalyticsChartMenu({ value, onChange }: AnalyticsChartMenuProps)
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, [open]);
+
+  function toggleOption(option: AnalyticsCommerceMetric) {
+    onChange(
+      value.includes(option)
+        ? value.filter((candidate) => candidate !== option)
+        : [...value, option],
+    );
+  }
 
   return (
     <div ref={rootRef} className="relative">
@@ -47,18 +58,18 @@ export function AnalyticsChartMenu({ value, onChange }: AnalyticsChartMenuProps)
           }}
           className="absolute right-0 top-[calc(100%+0.55rem)] z-70 w-48 overflow-hidden rounded-xl border border-[#d7e0ea] bg-white py-2 shadow-[0_20px_45px_rgba(28,39,55,0.18)]"
         >
+          <p className="px-4 pb-1 pt-1 text-xs font-medium text-muted">
+            Overlay metrics
+          </p>
           {options.map((option) => {
-            const selected = value === option.value;
+            const selected = value.includes(option.value);
             return (
               <button
                 key={option.value}
                 type="button"
-                role="menuitemradio"
+                role="menuitemcheckbox"
                 aria-checked={selected}
-                onClick={() => {
-                  onChange(selected ? null : option.value);
-                  setOpen(false);
-                }}
+                onClick={() => toggleOption(option.value)}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[#f7f7f8]"
               >
                 <span className="grid w-4 place-items-center">
