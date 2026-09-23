@@ -18,6 +18,8 @@ import { generateStorefrontMetadata } from "./page.utils";
 import type { StorefrontPageProps } from "./page.types";
 import clsx from "clsx";
 import { hasProFeature } from "@/lib/app-license";
+import { getCategoryProductOrder } from "@/lib/product-category-assignments";
+import { sortProductsByOrder } from "@/lib/product-order.utils";
 import { listProductCategories } from "@/lib/product-categories";
 
 export const generateMetadata = generateStorefrontMetadata;
@@ -67,11 +69,17 @@ export default async function StorefrontPage({
   if (!store) notFound();
   if (!renderPrimaryStore && store.id === primaryStore?.id) redirect("/");
   const storefrontBasePath = getStorefrontBasePath(store, primaryStore);
+  const categoryProductOrder = await getCategoryProductOrder(
+    categories.map((category) => category.id),
+  );
   const categorizedProducts = categories
     .map((category) => ({
       category,
-      products: products.filter((product) =>
-        product.categoryIds.includes(category.id),
+      products: sortProductsByOrder(
+        products.filter((product) =>
+          product.categoryIds.includes(category.id),
+        ),
+        categoryProductOrder.get(category.id),
       ),
     }))
     .filter((section) => section.products.length > 0);

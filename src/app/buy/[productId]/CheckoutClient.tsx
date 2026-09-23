@@ -12,6 +12,10 @@ import {
   startPayPalSubscriptionCheckout,
   trackAffiliateVisit,
 } from "./checkout-client.utils";
+import {
+  getAnalyticsVisitorId,
+  identifyAnalyticsVisitor,
+} from "@/components/visitor-analytics-tracker.utils";
 import { formatProductPageMoney } from "./product-page.utils";
 import type {
   CheckoutClientProps,
@@ -27,6 +31,7 @@ import {
 } from "@/lib/custom-product-amount";
 
 export function CheckoutClient({
+  storeId,
   productId,
   productName,
   productPrice,
@@ -206,6 +211,19 @@ export function CheckoutClient({
     if (!affiliateRef) return;
     void trackAffiliateVisit(productId, affiliateRef);
   }, [productId, affiliateRef]);
+
+  useEffect(() => {
+    if (!emailOk) return;
+    const trimmedEmail = email.trim().toLowerCase();
+    const timeout = window.setTimeout(() => {
+      void identifyAnalyticsVisitor({
+        storeId,
+        visitorId: getAnalyticsVisitorId(storeId),
+        email: trimmedEmail,
+      });
+    }, 800);
+    return () => window.clearTimeout(timeout);
+  }, [email, emailOk, storeId]);
 
   const onSuccess = useCallback(
     (orderId: string) => {

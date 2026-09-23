@@ -1,4 +1,5 @@
 import { findCustomerByEmail } from "@/lib/customer-accounts";
+import { resolveCustomerAvatarUrl } from "@/lib/customer-avatar";
 import { listFeatureRecords } from "@/lib/feature-records";
 import type { Order } from "@/lib/types";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
@@ -81,7 +82,10 @@ export async function buildDashboardOrderItems(
         order.customerName ||
         order.customerEmail.split("@")[0] ||
         order.customerEmail,
-      customerAvatarUrl: customer?.avatarImageUrl,
+      customerAvatarUrl: resolveCustomerAvatarUrl({
+        email,
+        avatarImageUrl: customer?.avatarImageUrl,
+      }),
       discountCode: order.discountCode,
       discountAmount: order.discountAmount,
       transactionFeeAmount: order.transactionFeeAmount,

@@ -18,7 +18,7 @@ import {
   formatProductFileSize,
   getProductFileDownloadUrl,
 } from "@/lib/product-files.utils";
-import { CustomerAvatar } from "./CustomerAvatar";
+import { CustomerAvatar } from "@/components/CustomerAvatar";
 import type {
   DashboardOrderItem,
   OrdersWorkspaceProps,

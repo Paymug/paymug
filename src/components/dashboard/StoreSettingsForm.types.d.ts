@@ -1,7 +1,10 @@
+import type { ReactNode } from "react";
 import type { Store } from "@/lib/types";
 
 export interface StoreSettingsFormProps {
   storeId: string;
+  /** Rendered under the store preview (for example the storefront product layout). */
+  previewContent?: ReactNode;
   initialName: string;
   initialSlug: string;
   initialDomain?: string;

@@ -5,6 +5,7 @@ export function AnalyticsChartBars({
   data,
   label,
   currency,
+  color,
 }: AnalyticsChartBarsProps) {
   const maximum = Math.max(1, ...data.map((point) => point.value));
 
@@ -27,8 +28,11 @@ export function AnalyticsChartBars({
           }`}
         >
           <span
-            className="block w-[70%] min-w-px rounded-t-sm bg-[#8b7cf6]/20"
-            style={{ height: `${(point.value / maximum) * 100}%` }}
+            className="block w-[70%] min-w-px rounded-t-sm"
+            style={{
+              height: `${(point.value / maximum) * 100}%`,
+              backgroundColor: color,
+            }}
           />
         </div>
       ))}

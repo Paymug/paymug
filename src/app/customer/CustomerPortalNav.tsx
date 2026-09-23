@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CustomerAvatar } from "@/components/CustomerAvatar";
 import { AppIcon } from "@/components/dashboard/Icon";
 import { isCustomerPortalNavItemActive } from "./customer-portal.utils";
 import type { CustomerPortalNavProps } from "./CustomerPortalNav.types";
@@ -127,17 +128,12 @@ export function CustomerPortalNav({
             Signed in as
           </p>
           <div className="mt-2 flex items-center gap-2.5">
-            {customer.avatarImageUrl ? (
-              <img
-                src={customer.avatarImageUrl}
-                alt=""
-                className="h-8 w-8 shrink-0 rounded-full object-cover"
-              />
-            ) : (
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#fff6d1] text-xs font-bold text-[#8a6800]">
-                {(customer.name || customer.email).slice(0, 1).toUpperCase()}
-              </span>
-            )}
+            <CustomerAvatar
+              name={customer.name || customer.email}
+              email={customer.email}
+              avatarUrl={customer.avatarImageUrl || customer.gravatarUrl}
+              size="sm"
+            />
             <div className="min-w-0">
               {customer.name && (
                 <p className="truncate text-sm font-semibold text-[#3a3a45]">

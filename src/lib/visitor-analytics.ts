@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { visitorEvents } from "@/db/schema";
 import { getDb } from "@/db";
 import { uid } from "./utils";
@@ -32,6 +32,24 @@ export async function listVisitorEvents(
     ),
     orderBy: [asc(visitorEvents.createdAt)],
   });
+}
+
+export async function listVisitorVisitDays(
+  storeId: string,
+  visitorIds: string[],
+): Promise<Array<{ visitorId: string; day: string }>> {
+  if (visitorIds.length === 0) return [];
+  const db = await getDb();
+  const day = sql<string>`substr(${visitorEvents.createdAt}, 1, 10)`;
+  return db
+    .selectDistinct({ visitorId: visitorEvents.visitorId, day })
+    .from(visitorEvents)
+    .where(
+      and(
+        eq(visitorEvents.storeId, storeId),
+        inArray(visitorEvents.visitorId, visitorIds),
+      ),
+    );
 }
 
 export async function getEarliestVisitorEventDate(storeId: string): Promise<string | undefined> {

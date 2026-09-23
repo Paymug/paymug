@@ -69,6 +69,11 @@ export function AreaChart({
   endpointLabelFontSize,
   transparentBackground = false,
   className = "",
+  commerceData,
+  commerceLabel,
+  commerceColor,
+  commerceFormat = "number",
+  commerceCurrency,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -169,6 +174,38 @@ export function AreaChart({
         date: currentPoint.date,
       };
 
+      const currentRow = tooltipElement.querySelector<HTMLElement>(
+        '[data-tooltip-role="current-row"]',
+      );
+      if (currentRow) currentRow.style.color = color;
+      const previousRow = tooltipElement.querySelector<HTMLElement>(
+        '[data-tooltip-role="previous-row"]',
+      );
+      if (previousRow) previousRow.style.color = comparisonColor;
+      if (commerceData && commerceLabel) {
+        const commercePoint = commerceData[dataIndex];
+        if (commercePoint) {
+          setChartTooltipText(
+            tooltipElement,
+            "commerce-value",
+            `${commerceLabel}: ${formatChartValue(
+              commercePoint.value,
+              commerceFormat,
+              commerceCurrency,
+            )}`,
+          );
+          setChartTooltipText(
+            tooltipElement,
+            "commerce-date",
+            formatChartPointDate(commercePoint, dateFormatter),
+          );
+        }
+        const commerceRow = tooltipElement.querySelector<HTMLElement>(
+          '[data-tooltip-role="commerce-row"]',
+        );
+        if (commerceRow && commerceColor) commerceRow.style.color = commerceColor;
+      }
+
       setChartTooltipText(
         tooltipElement,
         "current-value",
@@ -199,7 +236,20 @@ export function AreaChart({
         tooltip.caretY
       );
     },
-    [comparisonData, currency, data, dateFormatter, valueFormat]
+    [
+      color,
+      commerceColor,
+      commerceCurrency,
+      commerceData,
+      commerceFormat,
+      commerceLabel,
+      comparisonColor,
+      comparisonData,
+      currency,
+      data,
+      dateFormatter,
+      valueFormat,
+    ]
   );
 
   const options = useMemo<ChartOptions<"line">>(
@@ -335,7 +385,10 @@ export function AreaChart({
         <div className={styles.tooltipDivider} />
 
         <div className={styles.tooltipBody}>
-          <div className={`${styles.tooltipRow} ${styles.rowCurrent}`}>
+          <div
+            className={`${styles.tooltipRow} ${styles.rowCurrent}`}
+            data-tooltip-role="current-row"
+          >
             <span className={styles.tooltipDot} />
             <span
               className={styles.tooltipValue}
@@ -346,7 +399,10 @@ export function AreaChart({
               data-tooltip-role="current-date"
             />
           </div>
-          <div className={`${styles.tooltipRow} ${styles.rowPrevious}`}>
+          <div
+            className={`${styles.tooltipRow} ${styles.rowPrevious}`}
+            data-tooltip-role="previous-row"
+          >
             <span className={styles.tooltipDot} />
             <span
               className={styles.tooltipValue}
@@ -357,6 +413,22 @@ export function AreaChart({
               data-tooltip-role="previous-date"
             />
           </div>
+          {commerceLabel && (
+            <div
+              className={styles.tooltipRow}
+              data-tooltip-role="commerce-row"
+            >
+              <span className={styles.tooltipDot} />
+              <span
+                className={styles.tooltipValue}
+                data-tooltip-role="commerce-value"
+              />
+              <span
+                className={styles.tooltipDate}
+                data-tooltip-role="commerce-date"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

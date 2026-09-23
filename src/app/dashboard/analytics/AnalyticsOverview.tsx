@@ -34,6 +34,12 @@ const emptyFilters: AnalyticsDimensionFilters = {
   countries: [],
 };
 
+const analyticsLineColor = "#3b82f6";
+const ordersBarColor = "rgba(245, 197, 24, 0.38)";
+const revenueBarColor = "rgba(34, 197, 94, 0.22)";
+const ordersAccentColor = "#b48a00";
+const revenueAccentColor = "#16a34a";
+
 export function AnalyticsOverview({
   startDate,
   endDate,
@@ -45,11 +51,12 @@ export function AnalyticsOverview({
   events,
   orders,
   currency,
+  commerceMetric: initialCommerceMetric,
 }: AnalyticsOverviewProps) {
   const router = useRouter();
   const [metricKey, setMetricKey] = useState<AnalyticsMetricKey>("visits");
   const [commerceMetric, setCommerceMetric] =
-    useState<AnalyticsCommerceMetric | null>(null);
+    useState<AnalyticsCommerceMetric | null>(initialCommerceMetric);
   const [filters, setFilters] =
     useState<AnalyticsDimensionFilters>(emptyFilters);
   const summary = useMemo(
@@ -79,6 +86,16 @@ export function AnalyticsOverview({
         : [],
     [commerceMetric, endDate, interval, orders, productId, startDate],
   );
+  const commerceLabel =
+    commerceMetric === "orders"
+      ? "Orders"
+      : commerceMetric === "revenue"
+        ? "Revenue"
+        : undefined;
+  const commerceBarColor =
+    commerceMetric === "orders" ? ordersBarColor : revenueBarColor;
+  const commerceAccentColor =
+    commerceMetric === "orders" ? ordersAccentColor : revenueAccentColor;
   const selectedFilterCount = Object.values(filters).reduce(
     (total, values) => total + values.length,
     0,
@@ -94,6 +111,23 @@ export function AnalyticsOverview({
     });
     setFilters(emptyFilters);
     router.refresh();
+  }
+
+  async function updateCommerceMetric(
+    nextCommerceMetric: AnalyticsCommerceMetric | null,
+  ) {
+    const previousCommerceMetric = commerceMetric;
+    setCommerceMetric(nextCommerceMetric);
+    try {
+      const response = await fetch("/api/analytics/preference", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commerceMetric: nextCommerceMetric }),
+      });
+      if (!response.ok) throw new Error("Could not save preference");
+    } catch {
+      setCommerceMetric(previousCommerceMetric);
+    }
   }
 
   function toggleFilter(dimension: AnalyticsDimension, value: string) {
@@ -168,7 +202,10 @@ export function AnalyticsOverview({
         </div>
         <div className="flex items-center gap-5 text-xs text-[#74748f]">
           <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: analyticsLineColor }}
+            />
             Current period
           </span>
           <span className="inline-flex items-center gap-2">
@@ -177,7 +214,7 @@ export function AnalyticsOverview({
           </span>
           <AnalyticsChartMenu
             value={commerceMetric}
-            onChange={setCommerceMetric}
+            onChange={updateCommerceMetric}
           />
         </div>
       </div>
@@ -197,25 +234,32 @@ export function AnalyticsOverview({
         <p className="mt-2 text-sm text-muted">
           vs. {metric.previousValue.toLocaleString()} last period
           {commerceMetric && (
-            <span className="ml-4 inline-flex items-center gap-2 text-[#6f61ca]">
-              <span className="h-2.5 w-2.5 rounded-sm bg-[#8b7cf6]/40" />
-              {commerceMetric === "orders" ? "Orders" : "Revenue"}
+            <span
+              className="ml-4 inline-flex items-center gap-2"
+              style={{ color: commerceAccentColor }}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-sm"
+                style={{ backgroundColor: commerceBarColor }}
+              />
+              {commerceLabel}
             </span>
           )}
         </p>
         <div className="relative mt-7">
-          {commerceMetric && (
+          {commerceMetric && commerceLabel && (
             <AnalyticsChartBars
               data={commerceData}
-              label={commerceMetric === "orders" ? "Orders" : "Revenue"}
+              label={commerceLabel}
               currency={commerceMetric === "revenue" ? currency : undefined}
+              color={commerceBarColor}
             />
           )}
           <AreaChart
             data={metric.data}
             comparisonData={metric.comparisonData}
             height={260}
-            color="#f5c518"
+            color={analyticsLineColor}
             comparisonColor="#a3a3ad"
             fillOpacity={0.025}
             showAxis={false}
@@ -225,6 +269,13 @@ export function AnalyticsOverview({
             trendPercent={metric.delta}
             transparentBackground={Boolean(commerceMetric)}
             className={commerceMetric ? "relative z-10" : ""}
+            commerceData={commerceMetric ? commerceData : undefined}
+            commerceLabel={commerceLabel}
+            commerceColor={commerceAccentColor}
+            commerceFormat={commerceMetric === "revenue" ? "money" : "number"}
+            commerceCurrency={
+              commerceMetric === "revenue" ? currency : undefined
+            }
           />
         </div>
       </section>

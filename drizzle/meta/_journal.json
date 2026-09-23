@@ -148,6 +148,27 @@
       "when": 1788674400000,
       "tag": "0020_hide_products_from_storefront",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788760800000,
+      "tag": "0021_analytics_commerce_metric",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1788847200000,
+      "tag": "0022_analytics_visitor_identities",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1788933600000,
+      "tag": "0023_category_product_order",
+      "breakpoints": true
     }
   ]
 }

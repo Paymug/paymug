@@ -85,6 +85,26 @@ export async function listCustomerStoreEmailPreferences(
   });
 }
 
+export interface StoreCustomerEmailPreference {
+  email: string;
+  marketingEnabled: boolean;
+  updatedAt: string;
+}
+
+export async function listStoreCustomerEmailPreferences(
+  storeId: string,
+): Promise<StoreCustomerEmailPreference[]> {
+  const db = await getDb();
+  const rows = await db.query.customerEmailPreferences.findMany({
+    where: eq(customerEmailPreferences.storeId, storeId),
+  });
+  return rows.map((row) => ({
+    email: normalizeEmail(row.email),
+    marketingEnabled: row.marketingEnabled,
+    updatedAt: row.updatedAt,
+  }));
+}
+
 export async function updateCustomerStoreEmailPreferences(
   email: string,
   input: CustomerEmailPreferencesUpdate,

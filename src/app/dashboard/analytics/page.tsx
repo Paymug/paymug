@@ -91,6 +91,7 @@ export default async function AnalyticsPage({
             createdAt,
           }))}
         currency={store.currency}
+        commerceMetric={store.analyticsCommerceMetric ?? null}
       />
     </div>
   );

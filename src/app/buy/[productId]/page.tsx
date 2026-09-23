@@ -244,6 +244,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
             )}
 
             <CheckoutClient
+              storeId={store.id}
               productId={product.id}
               productName={product.name}
               productPrice={checkoutPrice}

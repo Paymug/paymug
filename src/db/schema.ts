@@ -91,6 +91,9 @@ export const stores = sqliteTable(
     })
       .notNull()
       .default(false),
+    analyticsCommerceMetric: text("analytics_commerce_metric", {
+      enum: ["orders", "revenue"],
+    }),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -231,6 +234,7 @@ export const productCategoryProducts = sqliteTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0),
     createdAt: text("created_at").notNull(),
   },
   (table) => [
@@ -702,6 +706,29 @@ export const visitorEvents = sqliteTable(
     index("visitor_events_store_visitor_idx").on(
       table.storeId,
       table.visitorId,
+    ),
+  ],
+);
+
+export const analyticsVisitorIdentities = sqliteTable(
+  "analytics_visitor_identities",
+  {
+    id: text("id").primaryKey(),
+    storeId: text("store_id")
+      .notNull()
+      .references(() => stores.id, { onDelete: "cascade" }),
+    visitorId: text("visitor_id").notNull(),
+    email: text("email").notNull(),
+    linkedAt: text("linked_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("analytics_visitor_identities_store_visitor_idx").on(
+      table.storeId,
+      table.visitorId,
+    ),
+    index("analytics_visitor_identities_store_email_idx").on(
+      table.storeId,
+      table.email,
     ),
   ],
 );

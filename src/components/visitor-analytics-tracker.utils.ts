@@ -1,6 +1,43 @@
 const visitorStorageKeyPrefix = "paymug_analytics_visitor_id";
 const recentlyTrackedPages = new Set<string>();
 
+export interface AnalyticsVisitorIdentity {
+  storeId: string;
+  visitorId: string;
+}
+
+export function getStoredVisitorIdentities(): AnalyticsVisitorIdentity[] {
+  const identities: AnalyticsVisitorIdentity[] = [];
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index);
+      if (!key || !key.startsWith(`${visitorStorageKeyPrefix}:`)) continue;
+      const storeId = key.slice(visitorStorageKeyPrefix.length + 1);
+      const visitorId = window.localStorage.getItem(key);
+      if (storeId && visitorId) identities.push({ storeId, visitorId });
+    }
+  } catch {
+    return identities;
+  }
+  return identities;
+}
+
+export function identifyAnalyticsVisitor(input: {
+  email?: string;
+  storeId?: string;
+  visitorId?: string;
+  identities?: AnalyticsVisitorIdentity[];
+}): Promise<void> {
+  return fetch("/api/analytics/identify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    keepalive: true,
+  })
+    .then(() => undefined)
+    .catch(() => undefined);
+}
+
 export function getAnalyticsVisitorId(storeId: string): string {
   const visitorId = crypto.randomUUID();
   const visitorStorageKey = `${visitorStorageKeyPrefix}:${storeId}`;

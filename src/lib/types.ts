@@ -79,6 +79,7 @@ export interface Store {
   abandonedCheckoutRemindersEnabled: boolean;
   analyticsEnabled: boolean;
   displayPurchasesEnabled: boolean;
+  analyticsCommerceMetric?: "orders" | "revenue";
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;

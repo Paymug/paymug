@@ -1,6 +1,7 @@
 import type { CheckoutCustomData } from "@/lib/checkout-custom-data.types";
 
 export interface CheckoutClientProps {
+  storeId: string;
   productId: string;
   productName: string;
   productPrice: number;

@@ -31,6 +31,12 @@ export interface ChartProps {
   endpointLabelFontSize?: number;
   transparentBackground?: boolean;
   className?: string;
+  /** Optional secondary series (for example orders/revenue bars) shown in the tooltip. */
+  commerceData?: ChartPoint[];
+  commerceLabel?: string;
+  commerceColor?: string;
+  commerceFormat?: ChartValueFormat;
+  commerceCurrency?: string;
 }
 
 export interface ChartTooltipContext {

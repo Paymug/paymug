@@ -9,6 +9,7 @@ import {
   House,
   Network,
   Plus,
+  SidebarSimple,
   SignOut,
   SlidersHorizontal,
   Storefront,
@@ -26,8 +27,10 @@ import {
 } from "./dashboard-nav.config";
 import {
   getVisibleDashboardNavGroups,
+  isDashboardNavGroupActive,
   isDashboardNavItemActive,
 } from "./dashboard-nav.utils";
+import { useDashboardShell } from "./dashboard/DashboardShell";
 import type { DashboardNavProps } from "./DashboardNav.types";
 import clsx from "clsx";
 import { cardClass } from "./ui.styles";
@@ -46,6 +49,7 @@ export function DashboardNav({
 }: DashboardNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { collapsed, toggle } = useDashboardShell();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [storeSwitching, setStoreSwitching] = useState(false);
   const [showInactiveStores, setShowInactiveStores] = useState(false);
@@ -101,11 +105,137 @@ export function DashboardNav({
 
   return (
     <>
-      <aside className="sticky top-0 col-start-1 row-span-2 hidden h-dvh w-60 flex-col self-start overflow-hidden bg-white lg:flex">
-        <div className="flex h-[5.5rem] shrink-0 items-center px-6">
-          <DashboardLogoMark />
+      <aside className="sticky top-0 col-start-1 row-span-2 hidden h-dvh w-full flex-col self-start bg-white lg:flex">
+        <div
+          className={`flex h-[5.5rem] shrink-0 items-center ${
+            collapsed ? "justify-center" : "justify-between px-6"
+          }`}
+        >
+          {!collapsed && <DashboardLogoMark />}
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={collapsed ? "Expand menu" : "Collapse menu"}
+            aria-expanded={!collapsed}
+            title={collapsed ? "Expand menu" : "Collapse menu"}
+            className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-[#85859d] transition hover:bg-[#f7f7f8] hover:text-foreground"
+          >
+            <SidebarSimple
+              size={19}
+              weight="regular"
+              className={`transition-transform duration-300 ${
+                collapsed ? "rotate-180" : ""
+              }`}
+              aria-hidden
+            />
+          </button>
         </div>
 
+        {collapsed && (
+          <div className="flex min-h-0 flex-1 flex-col items-center gap-1 pb-4">
+            <Link
+              href={dashboardHomeLink.href}
+              aria-label={dashboardHomeLink.label}
+              aria-current={
+                isDashboardNavItemActive(pathname, dashboardHomeLink)
+                  ? "page"
+                  : undefined
+              }
+              className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                isDashboardNavItemActive(pathname, dashboardHomeLink)
+                  ? "bg-[#f7f7f8] text-accent-hover"
+                  : "text-[#333] hover:bg-[#f7f7f8]"
+              }`}
+            >
+              <House size={19} weight="regular" aria-hidden />
+            </Link>
+
+            {visibleNavGroups.map((group) => {
+              const groupActive = isDashboardNavGroupActive(pathname, group);
+              return (
+                <div
+                  key={group.id}
+                  className="group relative flex w-full justify-center"
+                >
+                  <button
+                    type="button"
+                    onClick={toggle}
+                    aria-label={group.label}
+                    className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition ${
+                      groupActive
+                        ? "bg-[#f7f7f8] text-accent-hover"
+                        : "text-[#333] hover:bg-[#f7f7f8]"
+                    }`}
+                  >
+                    {groupIcons[group.id]}
+                  </button>
+                  <div className="pointer-events-none invisible absolute left-full top-0 z-40 pl-3 opacity-0 transition group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100">
+                    <div className="w-48 rounded-xl border border-[#e8e8ee] bg-white py-2 shadow-xl">
+                      <p className="px-3 pb-1 pt-1 text-xs font-medium text-muted">
+                        {group.label}
+                      </p>
+                      {group.items.map((item) => {
+                        const itemActive = isDashboardNavItemActive(
+                          pathname,
+                          item,
+                        );
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            aria-current={itemActive ? "page" : undefined}
+                            className={`mx-1 flex min-h-9 items-center rounded-lg px-2.5 text-sm font-medium transition ${
+                              itemActive
+                                ? "bg-[#f7f7f8] text-[#333]"
+                                : "text-[#74748f] hover:bg-[#f7f7f8] hover:text-[#333]"
+                            }`}
+                          >
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <Link
+              href={dashboardSetupLink.href}
+              aria-label={dashboardSetupLink.label}
+              aria-current={
+                isDashboardNavItemActive(pathname, dashboardSetupLink)
+                  ? "page"
+                  : undefined
+              }
+              className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                isDashboardNavItemActive(pathname, dashboardSetupLink)
+                  ? "bg-[#f7f7f8] text-accent-hover"
+                  : "text-[#333] hover:bg-[#f7f7f8]"
+              }`}
+            >
+              <SlidersHorizontal size={18} weight="regular" aria-hidden />
+            </Link>
+
+            <div className="mt-auto flex justify-center">
+              <button
+                type="button"
+                onClick={toggle}
+                aria-label="Expand menu"
+                title="Expand menu"
+                className="grid h-10 w-10 cursor-pointer place-items-center rounded-xl text-[#85859d] transition hover:bg-[#f7f7f8] hover:text-foreground"
+              >
+                <DotsThree size={20} weight="bold" aria-hidden />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div
+          className={
+            collapsed ? "hidden" : "flex min-h-0 flex-1 flex-col overflow-hidden"
+          }
+        >
         <nav
           className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-1"
           aria-label="Dashboard navigation"
@@ -253,6 +383,7 @@ export function DashboardNav({
           >
             <DotsThree size={20} weight="bold" aria-hidden />
           </button>
+        </div>
         </div>
 
       </aside>

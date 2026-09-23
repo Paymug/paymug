@@ -26,6 +26,7 @@ export interface AnalyticsOverviewProps {
   events: VisitorEvent[];
   orders: AnalyticsOrder[];
   currency: string;
+  commerceMetric: AnalyticsCommerceMetric | null;
 }
 
 export type AnalyticsMetricKey = "visits" | "uniqueVisitors";
@@ -50,4 +51,5 @@ export interface AnalyticsChartBarsProps {
   data: ChartPoint[];
   label: string;
   currency?: string;
+  color: string;
 }

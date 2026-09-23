@@ -53,6 +53,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
       row.abandonedCheckoutRemindersEnabled,
     analyticsEnabled: row.analyticsEnabled,
     displayPurchasesEnabled: row.displayPurchasesEnabled,
+    analyticsCommerceMetric: row.analyticsCommerceMetric ?? undefined,
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
@@ -167,6 +168,7 @@ export async function createStore(
     abandonedCheckoutRemindersEnabled: false,
     analyticsEnabled: false,
     displayPurchasesEnabled: false,
+    analyticsCommerceMetric: undefined,
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
@@ -181,6 +183,7 @@ export async function createStore(
     domain: null,
     emailFrom: null,
     emailReplyTo: null,
+    analyticsCommerceMetric: null,
     paymentCredentialSourceStoreId:
       store.paymentCredentialSourceStoreId ?? null,
     githubCredentialSourceStoreId:
@@ -353,6 +356,9 @@ export async function updateStore(
         : {}),
       ...(input.displayPurchasesEnabled !== undefined
         ? { displayPurchasesEnabled: input.displayPurchasesEnabled }
+        : {}),
+      ...(input.analyticsCommerceMetric !== undefined
+        ? { analyticsCommerceMetric: input.analyticsCommerceMetric }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.transactionFeeType !== undefined

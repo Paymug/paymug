@@ -16,6 +16,37 @@ function parseRecordData(value: string): Record<string, FeatureRecordValue> {
   }
 }
 
+export async function removeStoreLicenseActivation(params: {
+  licenseId: string;
+  userId: string;
+  storeId: string;
+  instanceId: string;
+}): Promise<CustomerLicenseActivationRemovalResult> {
+  const db = await getDb();
+  const record = await db.query.featureRecords.findFirst({
+    where: and(
+      eq(featureRecords.id, params.licenseId),
+      eq(featureRecords.userId, params.userId),
+      eq(featureRecords.feature, "licenses"),
+    ),
+  });
+  if (!record) throw new Error("License not found");
+  const data = parseRecordData(record.data);
+  if (String(data.storeId || "") !== params.storeId) {
+    throw new Error("License not found");
+  }
+  const activations = parseLicenseActivations(data.appActivations);
+  const nextActivations = activations.filter(
+    (activation) => activation.instanceId !== params.instanceId,
+  );
+  if (nextActivations.length !== activations.length) {
+    await updateFeatureRecord(record.id, params.userId, {
+      data: { ...data, appActivations: nextActivations },
+    });
+  }
+  return { activations: nextActivations };
+}
+
 export async function removeCustomerLicenseActivation(
   orderId: string,
   customerEmail: string,

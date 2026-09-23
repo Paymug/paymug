@@ -9,6 +9,8 @@ import { VisitorAnalyticsTracker } from "./VisitorAnalyticsTracker";
 import { hasProFeature } from "@/lib/app-license";
 import { getSessionUser } from "@/lib/auth";
 import { findUserById, listProductsByUser } from "@/lib/db";
+import { getCategoryProductOrder } from "@/lib/product-category-assignments";
+import { sortProductsByOrder } from "@/lib/product-order.utils";
 import { listStorePages } from "@/lib/store-pages";
 import { resolveStorefrontEnvironment } from "@/lib/storefront-environment.utils";
 import { getPrimaryStore } from "@/lib/stores";
@@ -33,15 +35,19 @@ export async function StoreCategoryPage({
     seller.environment,
     viewer?.id,
   );
-  const [allProducts, storePages] = await Promise.all([
+  const [allProducts, storePages, categoryProductOrder] = await Promise.all([
     listProductsByUser(store.userId, store.id, environment),
     listStorePages(store.userId, store.id, environment),
+    getCategoryProductOrder([category.id]),
   ]);
-  const products = allProducts.filter(
-    (product) =>
-      product.status === "published" &&
-      !product.hideFromStorefront &&
-      product.categoryIds.includes(category.id),
+  const products = sortProductsByOrder(
+    allProducts.filter(
+      (product) =>
+        product.status === "published" &&
+        !product.hideFromStorefront &&
+        product.categoryIds.includes(category.id),
+    ),
+    categoryProductOrder.get(category.id),
   );
   const publishedPages = pagesUnlocked
     ? storePages.filter((page) => page.status === "published")

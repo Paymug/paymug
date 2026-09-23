@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageSquare, Trash } from "@phosphor-icons/react";
+import { ImageSquare, PencilSimple, Trash, X } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -28,6 +28,7 @@ export function StoreSettingsForm({
   initialCurrency,
   initialTransactionFeeType,
   initialTransactionFeeValue,
+  previewContent,
 }: StoreSettingsFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -54,6 +55,7 @@ export function StoreSettingsForm({
   const [saving, setSaving] = useState(false);
   const [primarySaving, setPrimarySaving] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -164,16 +166,34 @@ export function StoreSettingsForm({
   return (
     <form
       onSubmit={save}
-      className="mt-6 flex flex-col rounded-2xl border border-[#e8e8ee] divide-[#e8e8ee] lg:flex-row lg:divide-x"
+      className={`mt-6 flex flex-col rounded-2xl border border-[#e8e8ee] lg:flex-row ${
+        editing ? "lg:divide-x lg:divide-[#e8e8ee]" : ""
+      }`}
     >
       <section className="relative min-h-full min-w-0 flex-1 lg:sticky lg:top-0 lg:self-start">
-        <Link
-          href={isPrimary ? "/" : `/s/${slug}`}
-          target="_blank"
-          className="absolute right-4 top-4 z-10 rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-accent-dark shadow-sm backdrop-blur hover:underline"
-        >
-          Open storefront
-        </Link>
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+          <Link
+            href={isPrimary ? "/" : `/s/${slug}`}
+            target="_blank"
+            className="rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-accent-dark shadow-sm backdrop-blur hover:underline"
+          >
+            Open storefront
+          </Link>
+          <button
+            type="button"
+            onClick={() => setEditing((current) => !current)}
+            aria-label={editing ? "Close store editor" : "Edit store details"}
+            aria-expanded={editing}
+            title={editing ? "Close store editor" : "Edit store details"}
+            className={`grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg shadow-sm backdrop-blur transition ${
+              editing
+                ? "bg-accent text-dark"
+                : "bg-white/90 text-foreground hover:bg-white"
+            }`}
+          >
+            {editing ? <X size={17} /> : <PencilSimple size={17} />}
+          </button>
+        </div>
         <div className="relative">
           <label
             htmlFor="store-cover"
@@ -267,15 +287,15 @@ export function StoreSettingsForm({
             {description || "Add a description for your store."}
           </p>
         </div>
-        <div className="p-5">
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="h-20 rounded-xl bg-[#f7f7f8]" />
-            <div className="h-20 rounded-xl bg-[#f7f7f8]" />
-          </div>
-        </div>
+        {previewContent && <div className="p-5">{previewContent}</div>}
       </section>
 
-      <div className="w-full space-y-4 rounded-xl p-5 lg:max-w-82">
+      <div
+        className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${
+          editing ? "max-w-[40rem] lg:max-w-[20.5rem]" : "max-w-0"
+        }`}
+      >
+        <div className="w-full space-y-4 rounded-xl p-5 lg:w-[20.5rem]">
         <Input
           label="Store name"
           name="storeName"
@@ -421,6 +441,7 @@ export function StoreSettingsForm({
           >
             {saving ? "Saving…" : "Update"}
           </Button>
+        </div>
         </div>
       </div>
     </form>

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   customerAccessTokens,
@@ -35,6 +35,18 @@ export async function findCustomerByEmail(
     where: eq(customerAccounts.email, email.trim().toLowerCase()),
   });
   return row ? rowToCustomerAccount(row) : undefined;
+}
+
+export async function listCustomerAccountsByEmails(
+  emails: string[]
+): Promise<CustomerAccount[]> {
+  const normalized = [...new Set(emails.map((email) => email.trim().toLowerCase()))];
+  if (normalized.length === 0) return [];
+  const db = await getDb();
+  const rows = await db.query.customerAccounts.findMany({
+    where: inArray(customerAccounts.email, normalized),
+  });
+  return rows.map(rowToCustomerAccount);
 }
 
 export async function findCustomerById(

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { PencilSimple } from "@phosphor-icons/react";
 import {
   dashboardButtonBaseClass,
   dashboardCardClass,
+  dashboardIconButtonClass,
   dashboardPageCopyClass,
 } from "@/components/dashboard/dashboard.styles";
 import { EnvironmentCopyMenu } from "@/components/dashboard/EnvironmentCopyMenu";
@@ -17,8 +19,18 @@ import type { ProductsWorkspaceProps } from "./ProductsWorkspace.types";
 export function ProductsWorkspace({
   products,
   environment,
+  performance,
+  currency,
 }: ProductsWorkspaceProps) {
   const selection = useRowSelection(products.map((product) => product.id));
+  const stats = [
+    { label: "Products", value: products.length.toLocaleString() },
+    { label: "Sales", value: performance.totals.sales.toLocaleString() },
+    {
+      label: "Revenue",
+      value: formatMoney(performance.totals.revenue, currency),
+    },
+  ];
 
   return (
     <>
@@ -44,6 +56,15 @@ export function ProductsWorkspace({
         </div>
       </div>
 
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <div key={stat.label} className={`${dashboardCardClass} px-5 py-4`}>
+            <p className="text-2xl font-semibold tabular-nums">{stat.value}</p>
+            <p className="mt-1 text-xs text-muted">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
       {products.length === 0 ? (
         <div className={`${dashboardCardClass} mt-6 px-6 py-14 text-center`}>
           <p className="text-sm font-medium">No products yet</p>
@@ -59,7 +80,7 @@ export function ProductsWorkspace({
         </div>
       ) : (
         <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
               <tr className="border-b border-border text-sm text-muted">
                 <th className="w-20 px-4 py-3 font-medium" aria-label="Product image">
@@ -76,7 +97,8 @@ export function ProductsWorkspace({
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Price</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Checkout</th>
+                <th className="px-4 py-3 font-medium">Sales</th>
+                <th className="px-4 py-3 font-medium">Revenue</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
             </thead>
@@ -148,27 +170,41 @@ export function ProductsWorkspace({
                       {product.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`${getProductPublicPath(product)}${
-                        product.status === "published" &&
-                        product.environment === "live"
-                          ? ""
-                          : "?preview"
-                      }`}
-                      target="_blank"
-                      className="font-mono text-xs text-muted hover:text-foreground hover:underline"
-                    >
-                      {getProductPublicPath(product)}
-                    </Link>
+                  <td className="px-4 py-3 tabular-nums">
+                    {(performance.byProduct[product.id]?.sales ?? 0) > 0
+                      ? (performance.byProduct[product.id]?.sales ?? 0).toLocaleString()
+                      : ""}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="px-4 py-3 tabular-nums">
+                    {(performance.byProduct[product.id]?.revenue ?? 0) > 0
+                      ? formatMoney(
+                          performance.byProduct[product.id]?.revenue ?? 0,
+                          product.currency,
+                        )
+                      : ""}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`${getProductPublicPath(product)}${
+                          product.status === "published" &&
+                          product.environment === "live"
+                            ? ""
+                            : "?preview"
+                        }`}
+                        target="_blank"
+                        title={getProductPublicPath(product)}
+                        className="mr-1 inline-block max-w-40 truncate align-middle font-mono text-xs text-muted hover:text-foreground hover:underline"
+                      >
+                        {getProductPublicPath(product)}
+                      </Link>
                       <Link
                         href={`/dashboard/products/${product.id}`}
-                        className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[#dddde7] bg-white px-3 py-1.5 text-sm font-semibold text-[#555568] transition hover:border-accent/50 hover:bg-accent-soft hover:text-accent-hover"
+                        aria-label={`Edit ${product.name}`}
+                        title="Edit"
+                        className={dashboardIconButtonClass}
                       >
-                        Edit
+                        <PencilSimple size={18} aria-hidden />
                       </Link>
                       <ProductActionsMenu
                         id={product.id}

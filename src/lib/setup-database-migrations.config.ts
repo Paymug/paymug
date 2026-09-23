@@ -190,5 +190,26 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `hide_from_storefront` integer DEFAULT 0 NOT NULL;"
     ]
+  },
+  {
+    "name": "0021_analytics_commerce_metric.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `analytics_commerce_metric` text;"
+    ]
+  },
+  {
+    "name": "0022_analytics_visitor_identities.sql",
+    "statements": [
+      "CREATE TABLE `analytics_visitor_identities` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`store_id` text NOT NULL,\n\t`visitor_id` text NOT NULL,\n\t`email` text NOT NULL,\n\t`linked_at` text NOT NULL,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE UNIQUE INDEX `analytics_visitor_identities_store_visitor_idx` ON `analytics_visitor_identities` (`store_id`,`visitor_id`);",
+      "CREATE INDEX `analytics_visitor_identities_store_email_idx` ON `analytics_visitor_identities` (`store_id`,`email`);"
+    ]
+  },
+  {
+    "name": "0023_category_product_order.sql",
+    "statements": [
+      "ALTER TABLE `product_category_products` ADD `sort_order` integer DEFAULT 0 NOT NULL;",
+      "UPDATE `product_category_products`\nSET `sort_order` = (\n\tSELECT count(*)\n\tFROM `product_category_products` AS `previous`\n\tWHERE `previous`.`category_id` = `product_category_products`.`category_id`\n\t\tAND (`previous`.`created_at` < `product_category_products`.`created_at`\n\t\t\tOR (`previous`.`created_at` = `product_category_products`.`created_at`\n\t\t\t\tAND `previous`.`product_id` <= `product_category_products`.`product_id`))\n);"
+    ]
   }
 ];

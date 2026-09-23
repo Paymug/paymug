@@ -2,7 +2,7 @@
 
 import { Camera, Trash, UserCircle } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Button, Input } from '@/components/ui';
 import { readCustomerAvatarFile } from '../customer-avatar.utils';
 import type {
@@ -21,6 +21,11 @@ export function CustomerProfileDetails({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarImageUrl]);
 
   async function selectAvatar(file: File | undefined) {
     if (!file) return;
@@ -73,10 +78,11 @@ export function CustomerProfileDetails({
               className="group relative grid h-20 w-20 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-[#d8d8e0] bg-[#f7f7f8] text-[#9a9aaa]"
               aria-label={avatarImageUrl ? 'Replace profile image' : 'Upload profile image'}
             >
-              {avatarImageUrl ? (
+              {!avatarError && (avatarImageUrl || customer.gravatarUrl) ? (
                 <img
-                  src={avatarImageUrl}
+                  src={avatarImageUrl || customer.gravatarUrl}
                   alt="Profile preview"
+                  onError={() => setAvatarError(true)}
                   className="h-full w-full object-cover"
                 />
               ) : (

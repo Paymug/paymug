@@ -3,6 +3,7 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { findCustomerById } from "./customer-accounts";
+import { getGravatarUrl } from "./customer-avatar";
 import { getRequiredRuntimeEnvValue } from "./runtime-env";
 import type {
   CustomerAccount,
@@ -24,6 +25,7 @@ export function toPublicCustomer(
     email: customer.email,
     name: customer.name,
     avatarImageUrl: customer.avatarImageUrl,
+    gravatarUrl: getGravatarUrl(customer.email),
     hasPassword: Boolean(customer.passwordHash),
   };
 }
