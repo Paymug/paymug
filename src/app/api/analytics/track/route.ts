@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const userAgent = request.headers.get("user-agent") || "";
-  const location = getAnalyticsLocation(request as CloudflareAnalyticsRequest);
+  const location = await getAnalyticsLocation(request as CloudflareAnalyticsRequest);
   await recordVisitorEvent({
     storeId: store.id,
     visitorId: parsed.data.visitorId,

@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { CloudflareAnalyticsRequest } from "./analytics-track.types";
 
 export function getAnalyticsSource(referrer: string, requestUrl: string): string {
@@ -28,9 +29,11 @@ export function getAnalyticsOperatingSystem(userAgent: string): string {
   return "Other";
 }
 
-export function getAnalyticsLocation(request: CloudflareAnalyticsRequest) {
-  const city = typeof request.cf?.city === "string" ? request.cf.city : "Unknown";
+export async function getAnalyticsLocation(request: CloudflareAnalyticsRequest) {
+  const { cf } = await getCloudflareContext({ async: true });
+  const cityFromRequest = typeof request.cf?.city === "string" ? request.cf.city : undefined;
+  const city = cf?.city || cityFromRequest || request.headers.get("cf-ipcity") || "Unknown";
   const countryFromRequest = typeof request.cf?.country === "string" ? request.cf.country : undefined;
-  const country = countryFromRequest || request.headers.get("cf-ipcountry") || "Unknown";
+  const country = cf?.country || countryFromRequest || request.headers.get("cf-ipcountry") || "Unknown";
   return { city, country };
 }
