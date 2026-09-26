@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
 import { getSessionUser } from "@/lib/auth";
 import {
-  hasUnreadNotifications,
+  countUnreadNotifications,
   listNotifications,
 } from "@/lib/notifications";
 import { getPayPalEnvironmentState } from "@/lib/paypal-environment";
@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   const [
     environmentState,
     notifications,
-    hasUnread,
+    unreadCount,
     setupChecklist,
     license,
   ] =
@@ -42,7 +42,7 @@ export default async function DashboardLayout({
         user.activeStoreId
       ),
       listNotifications(user.id, 12, user.environment),
-      hasUnreadNotifications(user.id, user.environment),
+      countUnreadNotifications(user.id, user.environment),
       getSetupChecklist(
         user.id,
         user.storeName,
@@ -72,7 +72,8 @@ export default async function DashboardLayout({
       topbar={
         <DashboardTopbar
           initialNotifications={notifications}
-          initialHasUnread={hasUnread}
+          initialHasUnread={unreadCount > 0}
+          initialUnreadCount={unreadCount}
         />
       }
     >

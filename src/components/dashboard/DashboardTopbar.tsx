@@ -13,6 +13,7 @@ import type { DashboardTopbarProps } from "./DashboardNotifications.types";
 export function DashboardTopbar({
   initialNotifications,
   initialHasUnread,
+  initialUnreadCount,
 }: DashboardTopbarProps) {
   const pathname = usePathname();
   const title = getDashboardTopbarTitle(pathname);
@@ -33,6 +34,7 @@ export function DashboardTopbar({
         <DashboardNotifications
           initialNotifications={initialNotifications}
           initialHasUnread={initialHasUnread}
+          initialUnreadCount={initialUnreadCount}
         />
         <Link
           href="/dashboard/products/new"

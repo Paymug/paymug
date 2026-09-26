@@ -14,6 +14,7 @@ export function DashboardNotifications({
   initialNotifications,
   initialHasUnread,
   initialUnreadCount,
+  buttonClassName,
 }: DashboardNotificationsProps) {
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(initialHasUnread);
@@ -41,7 +42,7 @@ export function DashboardNotifications({
       <button
         type="button"
         onClick={toggleNotifications}
-        className="relative grid h-9 w-9 place-items-center text-[#8b8ba3] transition hover:text-accent-hover"
+        className={`relative grid place-items-center text-[#8b8ba3] transition hover:text-accent-hover ${buttonClassName || "h-9 w-9"}`}
         aria-label={
           unreadCount ? `Notifications, ${unreadCount} unread` : "Notifications"
         }
@@ -50,7 +51,7 @@ export function DashboardNotifications({
         <BellSimple size={20} weight="regular" aria-hidden />
         {hasUnread &&
           (unreadCount !== undefined ? (
-            <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#f14e76] px-1 text-[10px] font-semibold leading-none text-white">
+            <span className="absolute -right-2 -top-2 flex min-h-6 min-w-6 items-center justify-center rounded-full bg-[#f14e76] px-1.5 text-xs font-semibold leading-none text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           ) : (

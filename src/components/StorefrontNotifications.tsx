@@ -19,6 +19,7 @@ export async function StorefrontNotifications({
         initialNotifications={notifications}
         initialHasUnread={unreadCount > 0}
         initialUnreadCount={unreadCount}
+        buttonClassName="h-12 w-12 rounded-full border border-border/60 bg-white/80 backdrop-blur-xl"
       />
     </div>
   );
