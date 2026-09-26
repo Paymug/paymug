@@ -1,25 +1,14 @@
 import Link from "next/link";
 import type { StorefrontNavigationProps } from "./StorefrontMenus.types";
 import clsx from "clsx";
-import { DashboardNotifications } from "./dashboard/DashboardNotifications";
-import { getSessionUser } from "@/lib/auth";
-import { countUnreadNotifications, listNotifications } from "@/lib/notifications";
 
-export async function StorefrontNavigation({
+export function StorefrontNavigation({
   pages,
   affiliatesEnabled,
   showDashboard = false,
   className = "",
   basePath = "",
 }: StorefrontNavigationProps) {
-  const viewer = showDashboard ? await getSessionUser() : null;
-  const [notifications, unreadCount] = viewer
-    ? await Promise.all([
-        listNotifications(viewer.id, 12, viewer.environment),
-        countUnreadNotifications(viewer.id, viewer.environment),
-      ])
-    : [[], 0];
-
   return (
     <nav
       className={clsx("flex flex-wrap items-center *:p-4", className)}
@@ -59,15 +48,6 @@ export async function StorefrontNavigation({
       >
         My Orders
       </Link>
-      {showDashboard && viewer && (
-        <div className="flex items-center justify-center">
-          <DashboardNotifications
-            initialNotifications={notifications}
-            initialHasUnread={unreadCount > 0}
-            initialUnreadCount={unreadCount}
-          />
-        </div>
-      )}
     </nav>
   );
 }

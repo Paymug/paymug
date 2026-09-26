@@ -4,6 +4,7 @@ import { AppIcon } from "@/components/dashboard/Icon";
 import { StoreSubscribeForm } from "@/components/StoreSubscribeForm";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StorefrontNavigation } from "@/components/StorefrontNavigation";
+import { StorefrontNotifications } from "@/components/StorefrontNotifications";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { StorefrontProductGrid } from "@/components/StorefrontProductGrid";
@@ -98,15 +99,24 @@ export default async function StorefrontPage({
       />
       {isTestMode && <StoreTestModeRibbon />}
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-12">
-        <StorefrontNavigation
-          pages={topPages}
-          basePath={storefrontBasePath}
-          affiliatesEnabled={
-            affiliatesUnlocked && store.affiliatesEnabled
-          }
-          showDashboard={viewer?.id === seller.id}
-          className="mb-4 border border-border/60 rounded-full sticky top-4 bg-white/80 z-10 justify-center w-fit mx-auto px-4 backdrop-blur-xl"
-        />
+        <div className="sticky top-4 z-10 mb-4 flex w-full items-center justify-center">
+          <StorefrontNavigation
+            pages={topPages}
+            basePath={storefrontBasePath}
+            affiliatesEnabled={
+              affiliatesUnlocked && store.affiliatesEnabled
+            }
+            showDashboard={viewer?.id === seller.id}
+            className="border border-border/60 rounded-full bg-white/80 justify-center w-fit px-4 backdrop-blur-xl"
+          />
+          {viewer?.id === seller.id && (
+            <StorefrontNotifications
+              userId={viewer.id}
+              environment={viewer.environment}
+              className="absolute right-0 top-1/2 -translate-y-1/2"
+            />
+          )}
+        </div>
 
         <header
           className={clsx(

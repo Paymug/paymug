@@ -4,6 +4,7 @@ import { ProductDescription } from "@/components/ProductDescription";
 import { AppIcon } from "@/components/dashboard/Icon";
 import { StorefrontFooter } from "@/components/StorefrontFooter";
 import { StorefrontNavigation } from "@/components/StorefrontNavigation";
+import { StorefrontNotifications } from "@/components/StorefrontNotifications";
 import { StoreTestModeRibbon } from "@/components/StoreTestModeRibbon";
 import { VisitorAnalyticsTracker } from "@/components/VisitorAnalyticsTracker";
 import { hasProFeature } from "@/lib/app-license";
@@ -76,12 +77,20 @@ export default async function ScopedPublicStorePage({
           )}
           <span className="text-lg font-bold tracking-tight">{store.name}</span>
         </Link>
-        <StorefrontNavigation
-          pages={topPages}
-          basePath={basePath}
-          affiliatesEnabled={affiliatesUnlocked && store.affiliatesEnabled}
-          showDashboard={viewer?.id === store.userId}
-        />
+        <div className="flex items-center gap-2">
+          <StorefrontNavigation
+            pages={topPages}
+            basePath={basePath}
+            affiliatesEnabled={affiliatesUnlocked && store.affiliatesEnabled}
+            showDashboard={viewer?.id === store.userId}
+          />
+          {viewer?.id === store.userId && (
+            <StorefrontNotifications
+              userId={viewer.id}
+              environment={viewer.environment}
+            />
+          )}
+        </div>
       </header>
       <main className="flex-1 px-4 pb-24">
         <article className="mx-auto max-w-4xl">
