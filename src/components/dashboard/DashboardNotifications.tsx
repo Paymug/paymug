@@ -13,9 +13,11 @@ import type { DashboardNotificationsProps } from "./DashboardNotifications.types
 export function DashboardNotifications({
   initialNotifications,
   initialHasUnread,
+  initialUnreadCount,
 }: DashboardNotificationsProps) {
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(initialHasUnread);
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [notifications, setNotifications] = useState(initialNotifications);
 
   async function toggleNotifications() {
@@ -23,6 +25,7 @@ export function DashboardNotifications({
     setOpen(nextOpen);
     if (nextOpen && hasUnread && (await markNotificationsRead())) {
       setHasUnread(false);
+      setUnreadCount(0);
       const readAt = new Date().toISOString();
       setNotifications((current) =>
         current.map((notification) => ({
@@ -39,13 +42,20 @@ export function DashboardNotifications({
         type="button"
         onClick={toggleNotifications}
         className="relative grid h-9 w-9 place-items-center text-[#8b8ba3] transition hover:text-accent-hover"
-        aria-label="Notifications"
+        aria-label={
+          unreadCount ? `Notifications, ${unreadCount} unread` : "Notifications"
+        }
         aria-expanded={open}
       >
         <BellSimple size={20} weight="regular" aria-hidden />
-        {hasUnread && (
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-[#f14e76]" />
-        )}
+        {hasUnread &&
+          (unreadCount !== undefined ? (
+            <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#f14e76] px-1 text-[10px] font-semibold leading-none text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          ) : (
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-[#f14e76]" />
+          ))}
       </button>
 
       {open && (

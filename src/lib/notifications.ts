@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   notifications as notificationsTable,
@@ -65,6 +65,26 @@ export async function hasUnreadNotifications(
     ),
   });
   return Boolean(row);
+}
+
+export async function countUnreadNotifications(
+  userId: string,
+  environment?: NotificationRecord["environment"]
+) {
+  const db = await getDb();
+  const [row] = await db
+    .select({ total: count() })
+    .from(notificationsTable)
+    .where(
+      and(
+        eq(notificationsTable.userId, userId),
+        ...(environment
+          ? [eq(notificationsTable.environment, environment)]
+          : []),
+        isNull(notificationsTable.readAt)
+      )
+    );
+  return row?.total ?? 0;
 }
 
 export async function createNotification(
