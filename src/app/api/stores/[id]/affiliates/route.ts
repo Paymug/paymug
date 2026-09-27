@@ -61,7 +61,7 @@ export async function POST(
     )
   );
   const code = createUniqueAffiliateCode(email.split("@")[0], usedCodes);
-  const signupMetadata = getAffiliateSignupMetadata(request);
+  const signupMetadata = await getAffiliateSignupMetadata(request);
   const applicationInput = {
     environment,
     title: parsed.data.name,
