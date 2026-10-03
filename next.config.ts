@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
 		root: process.cwd(),
 	},
 	allowedDevOrigins: ['paymug.dev'],
+	async rewrites() {
+		return [
+			{
+				source: "/buy/:id",
+				destination: "/p/:id",
+			},
+		];
+	},
 	async redirects() {
 		return [
 			{
