@@ -143,7 +143,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       )}
       {isSandbox && <StoreTestModeRibbon />}
 
-      <main className="mx-auto flex lg:flex-row max-w-5xl px-4 pb-10 pt-5 gap-8 lg:gap-14">
+      <main className="mx-auto flex flex-col lg:flex-row max-w-5xl px-4 pb-10 pt-5 gap-8 lg:gap-14">
         <div className="flex flex-col gap-6 flex-1 min-h-0 min-w-0 lg:sticky lg:top-6">
           <div className="flex-1">
             <header className="mx-auto flex w-full max-w-5xl items-center justify-between pb-4 mb-4 border-b border-border">
@@ -165,7 +165,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               </div>
             </header>
 
-            <div className="mb-6 flex items-start justify-between gap-6">
+            <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:gap-6">
               <div className="min-w-0">
                 <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                   {product.name}
@@ -176,8 +176,8 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   </p>
                 ) : null}
               </div>
-              <div className="shrink-0 text-right">
-                <div className="flex items-center justify-end gap-2">
+              <div className="shrink-0 sm:text-right">
+                <div className="flex items-center sm:justify-end gap-2">
                   <p className="text-2xl font-bold sm:text-3xl">
                     {formatProductPageMoney(checkoutPrice, product.currency)}
                     {priceSuffix}
@@ -228,11 +228,13 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
             )}
           </div>
 
-          <Powered />
+          <div className="hidden lg:block">
+            <Powered />
+          </div>
         </div>
 
-        <div className="w-86">
-          <div className={`${cardClass} sticky top-6 overflow-hidden`}>
+        <div className="w-full lg:w-86 lg:shrink-0">
+          <div className={`${cardClass} lg:sticky lg:top-6 overflow-hidden`}>
             {/* <h2 className="font-semibold px-6 py-3 border-b border-border">
               Checkout
             </h2> */}
@@ -269,6 +271,10 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
               priceSuffix={priceSuffix}
             />
           </div>
+        </div>
+
+        <div className="lg:hidden">
+          <Powered />
         </div>
       </main>
     </div>
