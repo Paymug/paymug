@@ -19,6 +19,8 @@ export interface DashboardOrderTimelineEntry {
   amount: number;
   currency: string;
   gateway: OrderGateway;
+  /** Origin website the customer arrived from. */
+  source?: string;
   paymentFailureDetails?: string;
 }
 

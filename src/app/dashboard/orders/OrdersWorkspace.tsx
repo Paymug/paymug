@@ -168,7 +168,7 @@ function OrderDetailDrawer({
           </div>
           <dl className="mt-3 rounded-xl border border-[#ececf1] px-4 py-3 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-[#8b8ba3]">Source site</dt>
+              <dt className="text-[#8b8ba3]">Source</dt>
               <dd className="min-w-0 truncate text-right font-medium" title={order.source}>{order.source ?? "Unknown"}</dd>
             </div>
             <div className="mt-2 flex justify-between gap-3">
@@ -322,6 +322,7 @@ function OrderDetailDrawer({
                   </div>
                   <p className="mt-1 text-xs text-[#8b8ba3]">
                     {formatMoney(entry.amount, entry.currency)} · {entry.gateway}
+                    {entry.source ? ` · from ${entry.source}` : ""}
                   </p>
                   {entry.paymentFailureDetails && (
                     <p className="mt-1 line-clamp-2 text-xs text-red-600">

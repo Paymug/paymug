@@ -55,6 +55,7 @@ function groupOrders(items: DashboardOrderItem[]): DashboardOrderItem[] {
         amount: order.amount,
         currency: order.currency,
         gateway: order.gateway,
+        source: order.source,
         paymentFailureDetails: order.paymentFailureDetails,
       }));
       merged.push({ ...representative, orderCount: current.length, timeline });
