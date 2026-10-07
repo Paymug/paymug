@@ -190,11 +190,7 @@ export function AreaChart({
         setChartTooltipText(
           tooltipElement,
           `commerce-value-${index}`,
-          `${series.label}: ${formatChartValue(
-            commercePoint.value,
-            series.format,
-            series.currency,
-          )}`,
+          `${formatChartValue(commercePoint.value, series.format, series.currency)} ${series.label}`,
         );
         setChartTooltipText(
           tooltipElement,
@@ -210,12 +206,12 @@ export function AreaChart({
       setChartTooltipText(
         tooltipElement,
         "current-value",
-        `${currentLabel}: ${formatChartValue(currentPoint.value, valueFormat, currency)}`
+        `${formatChartValue(currentPoint.value, valueFormat, currency)} ${currentLabel}`
       );
       setChartTooltipText(
         tooltipElement,
         "previous-value",
-        `${previousLabel}: ${formatChartValue(previousPoint.value, valueFormat, currency)}`
+        `${formatChartValue(previousPoint.value, valueFormat, currency)} ${previousLabel}`
       );
       setChartTooltipText(
         tooltipElement,
