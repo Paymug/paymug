@@ -144,7 +144,7 @@ export default function PaymentSheet({
         aria-modal="true"
         aria-label="Payment"
         className={`fixed inset-x-0 bottom-0 top-10 z-50 flex flex-col rounded-t-3xl bg-white will-change-transform lg:contents ${
-          shown ? "visible" : "invisible"
+          shown ? "visible" : "max-lg:invisible"
         }`}
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-6 py-4 lg:hidden">
