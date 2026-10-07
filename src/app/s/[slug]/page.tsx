@@ -73,7 +73,10 @@ export default async function StorefrontPage({
   const categoryProductOrder = await getCategoryProductOrder(
     categories.map((category) => category.id),
   );
-  const categorizedProducts = categories
+  const visibleCategories = categories.filter(
+    (category) => category.visibleOnStorefront,
+  );
+  const categorizedProducts = visibleCategories
     .map((category) => ({
       category,
       products: sortProductsByOrder(

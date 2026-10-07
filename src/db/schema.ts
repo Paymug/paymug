@@ -132,6 +132,9 @@ export const productCategories = sqliteTable(
     slug: text("slug").notNull(),
     description: text("description").notNull().default(""),
     sortOrder: integer("sort_order").notNull().default(0),
+    visibleOnStorefront: integer("visible_on_storefront", { mode: "boolean" })
+      .notNull()
+      .default(true),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },

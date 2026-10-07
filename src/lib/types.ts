@@ -178,6 +178,7 @@ export interface ProductCategory {
   slug: string;
   description: string;
   sortOrder: number;
+  visibleOnStorefront: boolean;
   createdAt: string;
   updatedAt: string;
 }

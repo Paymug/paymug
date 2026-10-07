@@ -68,6 +68,7 @@ export async function createProductCategory(
     sortOrder:
       Math.max(-1, ...existingCategories.map((category) => category.sortOrder)) +
       1,
+    visibleOnStorefront: input.visibleOnStorefront ?? true,
     createdAt: now,
     updatedAt: now,
   };
@@ -135,6 +136,9 @@ export async function updateProductCategory(
       name: input.name.trim(),
       slug: slugify(input.slug),
       description: input.description?.trim() || "",
+      ...(input.visibleOnStorefront !== undefined
+        ? { visibleOnStorefront: input.visibleOnStorefront }
+        : {}),
       updatedAt: new Date().toISOString(),
     })
     .where(

@@ -4,6 +4,7 @@ import { X } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input, Textarea } from "@/components/ui";
+import { FormSwitch } from "@/components/FormSwitch";
 import { MultiSelectDropdown } from "@/components/MultiSelectDropdown";
 import { slugify } from "@/lib/format";
 import type {
@@ -27,6 +28,9 @@ export function CategoryModal({
           .map((product) => product.id)
       : [],
   );
+  const [visibleOnStorefront, setVisibleOnStorefront] = useState(
+    category?.visibleOnStorefront ?? true,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +43,13 @@ export function CategoryModal({
       {
         method: category ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, slug, description, productIds }),
+        body: JSON.stringify({
+          name,
+          slug,
+          description,
+          productIds,
+          visibleOnStorefront,
+        }),
       },
     );
     const data = (await response.json()) as CategoryApiResponse;
@@ -119,6 +129,12 @@ export function CategoryModal({
             }))}
             placeholder="No products selected"
             onChange={setProductIds}
+          />
+          <FormSwitch
+            label="Visible on storefront"
+            description="When off, this category and its products are hidden from the storefront home page."
+            checked={visibleOnStorefront}
+            onToggle={setVisibleOnStorefront}
           />
           {error && <Alert>{error}</Alert>}
           <div className="flex justify-end gap-2 border-t border-[#e8e8ee] pt-5">

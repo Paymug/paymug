@@ -235,5 +235,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "CREATE TABLE `app_meta` (\n\t`key` text PRIMARY KEY NOT NULL,\n\t`value` text NOT NULL,\n\t`updated_at` text NOT NULL\n);"
     ]
+  },
+  {
+    "name": "0028_category_storefront_visibility.sql",
+    "statements": [
+      "ALTER TABLE `product_categories` ADD `visible_on_storefront` integer DEFAULT true NOT NULL;"
+    ]
   }
 ];

@@ -3,4 +3,5 @@ export interface ProductCategoryInput {
   slug: string;
   description?: string;
   productIds?: string[];
+  visibleOnStorefront?: boolean;
 }
