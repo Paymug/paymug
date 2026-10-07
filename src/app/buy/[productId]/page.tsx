@@ -41,6 +41,7 @@ import {
 import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
 import { ProductConfigurationPicker } from "@/components/ProductConfigurationPicker";
 import { resolveProductConfiguration } from "@/lib/product-configurations";
+import PaymentSheet from "./PaymentSheet";
 
 export const generateMetadata = generateProductMetadata;
 
@@ -131,7 +132,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-dvh overflow-y-auto bg-white lg:h-auto lg:min-h-screen lg:overflow-visible">
       <VisitorAnalyticsTracker
         storeId={store.id}
         enabled={store.analyticsEnabled && !isSandbox && !isPreview}
@@ -143,138 +144,177 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
       )}
       {isSandbox && <StoreTestModeRibbon />}
 
-      <main className="mx-auto flex flex-col lg:flex-row max-w-5xl px-4 pb-10 pt-5 gap-8 lg:gap-14">
-        <div className="flex flex-col gap-6 flex-1 min-h-0 min-w-0 lg:sticky lg:top-6">
-          <div className="flex-1">
-            <header className="mx-auto flex w-full max-w-5xl items-center justify-between pb-4 mb-4 border-b border-border">
-              <div className="flex h-8 items-center">
-                <Link
-                  className="flex flex-row items-end gap-2"
-                  href={`/s/${store.slug}`}
-                  aria-label={`${store.name} store`}
-                >
-                  {store.logoImageUrl && (
-                    <img
-                      src={store.logoImageUrl}
-                      alt={`${store.name} logo`}
-                      className="h-6 w-6 rounded-lg object-cover"
-                    />
-                  )}
-                  {store.name}
-                </Link>
-              </div>
-            </header>
+      <nav
+        aria-label="Store"
+        className="sticky top-0 z-20 flex items-center bg-white/80 px-4 py-3 backdrop-blur-md lg:hidden"
+      >
+        <Link
+          className="flex min-w-0 items-center gap-2 text-sm font-medium"
+          href={`/s/${store.slug}`}
+          aria-label={`${store.name} store`}
+        >
+          {store.logoImageUrl ? (
+            <img
+              src={store.logoImageUrl}
+              alt={`${store.name} logo`}
+              className="h-6 w-6 rounded-lg object-cover"
+            />
+          ) : null}
+          <span className="truncate">{store.name}</span>
+        </Link>
+      </nav>
 
-            <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:gap-6">
-              <div className="min-w-0">
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  {product.name}
-                </h1>
-                {store.displayPurchasesEnabled && product.purchaseCount > 0 ? (
-                  <p className="mt-2 text-sm text-muted">
-                    {product.purchaseCount.toLocaleString()} purchased
-                  </p>
-                ) : null}
-              </div>
-              <div className="shrink-0 sm:text-right">
-                <div className="flex items-center sm:justify-end gap-2">
-                  <p className="text-2xl font-bold sm:text-3xl">
-                    {formatProductPageMoney(checkoutPrice, product.currency)}
-                    {priceSuffix}
-                  </p>
-                  {product.customAmountEnabled && (
-                    <PayWhatYouWantBadge />
-                  )}
+      <main className="bg-white">
+        <div className="mx-auto flex flex-col lg:flex-row max-w-5xl px-4 pb-28 pt-5 gap-8 lg:gap-14 lg:pb-10">
+          <div
+            id="details"
+            className="flex flex-col gap-6 flex-1 min-h-0 min-w-0 lg:sticky lg:top-6"
+          >
+            <div className="flex-1">
+              <header className="mx-auto hidden w-full max-w-5xl items-center justify-between pb-4 mb-4 border-b border-border lg:flex">
+                <div className="flex h-8 items-center">
+                  <Link
+                    className="flex flex-row items-end gap-2"
+                    href={`/s/${store.slug}`}
+                    aria-label={`${store.name} store`}
+                  >
+                    {store.logoImageUrl && (
+                      <img
+                        src={store.logoImageUrl}
+                        alt={`${store.name} logo`}
+                        className="h-6 w-6 rounded-lg object-cover"
+                      />
+                    )}
+                    {store.name}
+                  </Link>
                 </div>
-                {perpetualUpdateSummary ? (
-                  <p className="mt-1 max-w-56 text-xs leading-5 text-muted">
-                    {perpetualUpdateSummary}
-                  </p>
-                ) : billingSummary ? (
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    {billingSummary}
-                  </p>
-                ) : null}
+              </header>
+
+              <div className="mb-6 flex items-start justify-between gap-4 sm:gap-6">
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                    {product.name}
+                  </h1>
+                  {store.displayPurchasesEnabled &&
+                  product.purchaseCount > 0 ? (
+                    <p className="mt-2 text-sm text-muted">
+                      {product.purchaseCount.toLocaleString()} purchased
+                    </p>
+                  ) : null}
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <p className="text-xl font-bold sm:text-3xl">
+                      {formatProductPageMoney(checkoutPrice, product.currency)}
+                      {priceSuffix}
+                    </p>
+                    {product.customAmountEnabled && <PayWhatYouWantBadge />}
+                  </div>
+                  {perpetualUpdateSummary ? (
+                    <p className="mt-1 hidden max-w-56 sm:block text-xs leading-5 text-muted">
+                      {perpetualUpdateSummary}
+                    </p>
+                  ) : billingSummary ? (
+                    <p className="mt-1 hidden text-xs sm:block leading-5 text-muted">
+                      {billingSummary}
+                    </p>
+                  ) : null}
+                </div>
               </div>
+              {perpetualUpdateSummary || billingSummary ? (
+                <p className="-mt-4 mb-6 text-xs leading-5 text-muted sm:hidden">
+                  {perpetualUpdateSummary || billingSummary}
+                </p>
+              ) : null}
+
+              <ProductConfigurationPicker
+                options={product.options}
+                bundles={product.bundles}
+                selectedOptionId={configuration.selectedOption?.id}
+                selectedBundleChoiceIds={Object.fromEntries(
+                  product.bundles.map((bundle) => [
+                    bundle.id,
+                    configuration.selectedBundleChoices
+                      .filter((selection) => selection.bundle.id === bundle.id)
+                      .map((selection) => selection.choice.id),
+                  ]),
+                )}
+                currency={product.currency}
+              />
+
+              {product.imageUrl && (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="aspect-video w-full object-cover rounded-xl mb-6"
+                />
+              )}
+              {product.description && (
+                <ProductDescription
+                  value={product.description}
+                  className="mt-6"
+                />
+              )}
             </div>
 
-            <ProductConfigurationPicker
-              options={product.options}
-              bundles={product.bundles}
-              selectedOptionId={configuration.selectedOption?.id}
-              selectedBundleChoiceIds={Object.fromEntries(
-                product.bundles.map((bundle) => [
-                  bundle.id,
-                  configuration.selectedBundleChoices
-                    .filter((selection) => selection.bundle.id === bundle.id)
-                    .map((selection) => selection.choice.id),
-                ]),
-              )}
-              currency={product.currency}
-            />
-
-            {product.imageUrl && (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="aspect-video w-full object-cover rounded-xl mb-6"
-              />
-            )}
-            {product.description && (
-              <ProductDescription
-                value={product.description}
-                className="mt-6"
-              />
-            )}
+            <div className="hidden lg:block">
+              <Powered />
+            </div>
           </div>
 
-          <div className="hidden lg:block">
-            <Powered />
-          </div>
-        </div>
-
-        <div className="w-full lg:w-86 lg:shrink-0">
-          <div className={`${cardClass} lg:sticky lg:top-6 overflow-hidden`}>
-            {/* <h2 className="font-semibold px-6 py-3 border-b border-border">
+          <PaymentSheet
+            title={product.name}
+            buttonLabel={`Buy now · ${formatProductPageMoney(checkoutPrice, product.currency)}${priceSuffix}`}
+            defaultOpen={Boolean(cancelled)}
+          >
+            <div id="payment" className="w-full lg:w-86 lg:shrink-0">
+              <div
+                className={`${cardClass} max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:shadow-none lg:sticky lg:top-6 overflow-hidden`}
+              >
+                {/* <h2 className="font-semibold px-6 py-3 border-b border-border">
               Checkout
             </h2> */}
 
-            {cancelled && (
-              <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                Payment was cancelled. You can try again below.
-              </p>
-            )}
+                {cancelled && (
+                  <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                    Payment was cancelled. You can try again below.
+                  </p>
+                )}
 
-            <CheckoutClient
-              storeId={store.id}
-              productId={product.id}
-              productName={product.name}
-              productPrice={checkoutPrice}
-              defaultProductPrice={product.price}
-              customAmountEnabled={product.customAmountEnabled}
-              allowNote={product.allowNote}
-              notePlaceholder={product.notePlaceholder}
-              abandonmentEnabled={store.abandonmentPopupEnabled}
-              abandonmentQuestion={store.abandonmentQuestion}
-              abandonmentOptions={store.abandonmentOptions}
-              customAmount={customAmount}
-              custom={configuration.custom}
-              affiliateRef={ref?.trim() || undefined}
-              initialDiscountCode={discount?.trim() || undefined}
-              initialTransactionFeeAmount={initialPricing.transactionFeeAmount}
-              paypalClientId={paypal?.clientId}
-              stripeEnabled={Boolean(stripe)}
-              mode={paypal?.mode || stripe?.mode || "sandbox"}
-              currency={product.currency}
-              isSubscription={isSubscriptionProduct(product)}
-              billingSummary={billingSummary}
-              priceSuffix={priceSuffix}
-            />
+                <CheckoutClient
+                  storeId={store.id}
+                  productId={product.id}
+                  productName={product.name}
+                  productPrice={checkoutPrice}
+                  defaultProductPrice={product.price}
+                  customAmountEnabled={product.customAmountEnabled}
+                  allowNote={product.allowNote}
+                  notePlaceholder={product.notePlaceholder}
+                  abandonmentEnabled={store.abandonmentPopupEnabled}
+                  abandonmentQuestion={store.abandonmentQuestion}
+                  abandonmentOptions={store.abandonmentOptions}
+                  customAmount={customAmount}
+                  custom={configuration.custom}
+                  affiliateRef={ref?.trim() || undefined}
+                  initialDiscountCode={discount?.trim() || undefined}
+                  initialTransactionFeeAmount={
+                    initialPricing.transactionFeeAmount
+                  }
+                  paypalClientId={paypal?.clientId}
+                  stripeEnabled={Boolean(stripe)}
+                  mode={paypal?.mode || stripe?.mode || "sandbox"}
+                  currency={product.currency}
+                  isSubscription={isSubscriptionProduct(product)}
+                  billingSummary={billingSummary}
+                  priceSuffix={priceSuffix}
+                />
+              </div>
+            </div>
+          </PaymentSheet>
+
+          <div className="lg:hidden">
+            <Powered />
           </div>
-        </div>
-
-        <div className="lg:hidden">
-          <Powered />
         </div>
       </main>
     </div>
