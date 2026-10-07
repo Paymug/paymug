@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  DataTableColgroup,
+  DataTableHeadCell,
+  DataTableSettingsCell,
+  DataTableSettingsHeadCell,
+} from "@/components/dashboard/data-table/DataTableParts";
+import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
+import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
 import { useState } from "react";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
 import {
@@ -19,11 +27,25 @@ import type {
   CustomersWorkspaceProps,
 } from "./customers.types";
 
+const customerColumns: DataTableColumn[] = [
+  { id: "firstSeen", label: "First seen", width: 130 },
+  { id: "name", label: "Name", width: 200 },
+  { id: "source", label: "Source", width: 160 },
+  { id: "city", label: "City", width: 130 },
+  { id: "country", label: "Country", width: 130 },
+  { id: "status", label: "Status", width: 120 },
+  { id: "subscriptions", label: "Subscriptions", width: 140 },
+  { id: "orders", label: "Orders", width: 90 },
+  { id: "mrr", label: "MRR", width: 110 },
+  { id: "revenue", label: "Revenue", width: 120 },
+];
+
 export function CustomersWorkspace({
   customers,
   range,
 }: CustomersWorkspaceProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerSummary>();
+  const table = useDataTable("customers", customerColumns);
   const totalCustomers = customers.length;
   const newCustomers = customers.filter((customer) => {
     const firstSeen = customer.firstSeen.slice(0, 10);
@@ -72,33 +94,34 @@ export function CustomersWorkspace({
         </div>
       ) : (
         <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-          <table className="w-full min-w-[1160px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-sm text-muted">
-                <th className="px-4 py-3 font-medium">First seen</th>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Source site</th>
-                <th className="px-4 py-3 font-medium">City</th>
-                <th className="px-4 py-3 font-medium">Country</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Subscriptions</th>
-                <th className="px-4 py-3 font-medium">Orders</th>
-                <th className="px-4 py-3 font-medium">MRR</th>
-                <th className="px-4 py-3 font-medium">Revenue</th>
-                <th className="w-16 px-4 py-3 font-medium" />
-              </tr>
-            </thead>
+          <table className="text-left text-sm" style={table.tableStyle}>
+          <DataTableColgroup table={table} />
+          <thead>
+            <tr className="border-b border-border text-sm text-muted">
+              {table.visibleColumns.map((column) => (
+                <DataTableHeadCell
+                  key={column.id}
+                  table={table}
+                  column={column}
+                />
+              ))}
+              <DataTableSettingsHeadCell table={table} />
+            </tr>
+          </thead>
             <tbody>
               {customers.map((customer) => (
                 <tr
                   key={customer.email}
                   onClick={() => setSelectedCustomer(customer)}
-                  className="cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
+                  className="group/row cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 tabular-nums text-muted">
+                  {table.isVisible("firstSeen") && (
+                  <td className="truncate px-4 py-3 tabular-nums text-muted">
                     {formatCustomerDate(customer.firstSeen)}
                   </td>
-                  <td className="px-4 py-3">
+                  )}
+                  {table.isVisible("name") && (
+                  <td className="overflow-hidden px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <CustomerAvatar
                         name={customer.name}
@@ -114,15 +137,23 @@ export function CustomersWorkspace({
                       </div>
                     </div>
                   </td>
-                  <td className="max-w-[12rem] truncate px-4 py-3" title={customer.source}>
+                  )}
+                  {table.isVisible("source") && (
+                  <td className="truncate px-4 py-3" title={customer.source}>
                     {customer.source ?? "—"}
                   </td>
-                  <td className="max-w-[9rem] truncate px-4 py-3" title={customer.city}>
+                  )}
+                  {table.isVisible("city") && (
+                  <td className="truncate px-4 py-3" title={customer.city}>
                     {customer.city ?? "—"}
                   </td>
-                  <td className="max-w-[9rem] truncate px-4 py-3" title={customer.country}>
+                  )}
+                  {table.isVisible("country") && (
+                  <td className="truncate px-4 py-3" title={customer.country}>
                     {customer.country ?? "—"}
                   </td>
+                  )}
+                  {table.isVisible("status") && (
                   <td className="px-4 py-3">
                     <span
                       className={`${badgeBaseClass} ${
@@ -134,27 +165,38 @@ export function CustomersWorkspace({
                       {customer.emailStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("subscriptions") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {customer.subscriptionsCount.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("orders") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {customer.ordersCount.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("mrr") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {formatMoney(customer.mrr, customer.currency)}
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("revenue") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {formatMoney(customer.revenue, customer.currency)}
                   </td>
-                  <td
-                    className="px-4 py-3 text-right"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <CustomerActionsMenu
-                      customer={customer}
-                      onView={() => setSelectedCustomer(customer)}
-                    />
-                  </td>
+                  )}
+                  <DataTableSettingsCell>
+                    <span
+                      className="inline-block"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <CustomerActionsMenu
+                        customer={customer}
+                        onView={() => setSelectedCustomer(customer)}
+                      />
+                    </span>
+                  </DataTableSettingsCell>
                 </tr>
               ))}
             </tbody>

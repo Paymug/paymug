@@ -131,6 +131,22 @@ export function parseChartDate(value: string) {
   return new Date(value);
 }
 
+export function getChartPeriodLabels(data: ChartPoint[]): [string, string] {
+  const first = data[0]?.date;
+  const last = data[data.length - 1]?.date;
+  if (!first || !last) return ["Current", "Previous"];
+  if (first.includes("T")) return ["Today", "Yesterday"];
+  const days =
+    Math.round(
+      (parseChartDate(last).getTime() - parseChartDate(first).getTime()) /
+        86400000
+    ) + 1;
+  const daily = data.length === days;
+  if (daily && days > 1) return [`Last ${days} days`, "Previous period"];
+  if (daily) return ["Today", "Yesterday"];
+  return ["This period", "Previous period"];
+}
+
 export function formatChartPointDate(
   point: ChartPoint,
   formatter: Intl.DateTimeFormat

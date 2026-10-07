@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  DataTableColgroup,
+  DataTableHeadCell,
+  DataTableSettingsCell,
+  DataTableSettingsHeadCell,
+} from "@/components/dashboard/data-table/DataTableParts";
+import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
+import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
 import { useState } from "react";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
 import { dashboardCardClass } from "@/components/dashboard/dashboard.styles";
@@ -19,12 +27,21 @@ function statusVariant(
   return "muted";
 }
 
+const licenseColumns: DataTableColumn[] = [
+  { id: "license", label: "License", width: 200 },
+  { id: "status", label: "Status", width: 170, minWidth: 150 },
+  { id: "expiry", label: "Expiry", width: 130 },
+  { id: "customer", label: "Customer", width: 200 },
+  { id: "product", label: "Product", width: 200 },
+];
+
 export function LicensesWorkspace({
   licenses,
   summary,
 }: LicensesWorkspaceProps) {
   const [rows, setRows] = useState(licenses);
   const [selected, setSelected] = useState<LicenseRow>();
+  const table = useDataTable("licenses", licenseColumns);
 
   const stats = [
     { label: "Total licenses", value: summary.totalLicenses.toLocaleString() },
@@ -65,60 +82,80 @@ export function LicensesWorkspace({
         </div>
       ) : (
         <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-sm text-muted">
-                <th className="px-4 py-3 font-medium">License</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Expiry</th>
-                <th className="px-4 py-3 font-medium">Customer</th>
-                <th className="px-4 py-3 font-medium">Product</th>
-              </tr>
-            </thead>
+          <table className="text-left text-sm" style={table.tableStyle}>
+          <DataTableColgroup table={table} />
+          <thead>
+            <tr className="border-b border-border text-sm text-muted">
+              {table.visibleColumns.map((column) => (
+                <DataTableHeadCell
+                  key={column.id}
+                  table={table}
+                  column={column}
+                />
+              ))}
+              <DataTableSettingsHeadCell table={table} />
+            </tr>
+          </thead>
             <tbody>
               {rows.map((license) => (
                 <tr
                   key={license.id}
                   onClick={() => setSelected(license)}
-                  className="cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
+                  className="group/row cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
                 >
-                  <td className="px-4 py-3 font-mono text-xs">
-                    {license.maskedKey}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`${badgeBaseClass} capitalize ${
-                        badgeVariantClasses[statusVariant(license.status)]
-                      }`}
+                  {table.isVisible("license") && (
+                    <td
+                      className="truncate px-4 py-3 font-mono text-xs"
+                      title={license.maskedKey}
                     >
-                      {license.status} ({license.activeSeats}/
-                      {license.seatLimit ?? "∞"})
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 tabular-nums">
-                    {license.expiry
-                      ? formatCustomerDate(license.expiry)
-                      : "Never"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <CustomerAvatar
-                        name={license.customerName}
-                        email={license.customerEmail}
-                        avatarUrl={license.customerAvatarUrl}
-                        size="sm"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">
-                          {license.customerName}
-                        </p>
-                        <p className="truncate text-xs text-muted">
-                          {license.customerEmail}
-                        </p>
+                      {license.maskedKey}
+                    </td>
+                  )}
+                  {table.isVisible("status") && (
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <span
+                        className={`${badgeBaseClass} whitespace-nowrap capitalize ${
+                          badgeVariantClasses[statusVariant(license.status)]
+                        }`}
+                      >
+                        {license.status} ({license.activeSeats}/
+                        {license.seatLimit ?? "∞"})
+                      </span>
+                    </td>
+                  )}
+                  {table.isVisible("expiry") && (
+                    <td className="truncate px-4 py-3 tabular-nums">
+                      {license.expiry
+                        ? formatCustomerDate(license.expiry)
+                        : "Never"}
+                    </td>
+                  )}
+                  {table.isVisible("customer") && (
+                    <td className="overflow-hidden px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <CustomerAvatar
+                          name={license.customerName}
+                          email={license.customerEmail}
+                          avatarUrl={license.customerAvatarUrl}
+                          size="sm"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">
+                            {license.customerName}
+                          </p>
+                          <p className="truncate text-xs text-muted">
+                            {license.customerEmail}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{license.product}</td>
+                    </td>
+                  )}
+                  {table.isVisible("product") && (
+                    <td className="truncate px-4 py-3" title={license.product}>
+                      {license.product}
+                    </td>
+                  )}
+                  <DataTableSettingsCell />
                 </tr>
               ))}
             </tbody>

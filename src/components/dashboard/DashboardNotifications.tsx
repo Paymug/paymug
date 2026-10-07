@@ -1,6 +1,5 @@
 "use client";
 
-import { BellSimple } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -48,14 +47,13 @@ export function DashboardNotifications({
         }
         aria-expanded={open}
       >
-        <BellSimple size={20} weight="regular" aria-hidden />
         {hasUnread &&
           (unreadCount !== undefined ? (
-            <span className="absolute -right-2 -top-2 flex min-h-6 min-w-6 items-center justify-center rounded-full bg-[#f14e76] px-1.5 text-xs font-semibold leading-none text-white">
+            <span className="flex min-h-6 min-w-6 items-center justify-center rounded-full bg-[#f14e76] px-1.5 text-xs font-semibold leading-none text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           ) : (
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-[#f14e76]" />
+            <span className="h-3 w-3 rounded-full bg-[#f14e76]" />
           ))}
       </button>
 

@@ -1,6 +1,14 @@
 "use client";
 
 import {
+  DataTableColgroup,
+  DataTableHeadCell,
+  DataTableSettingsCell,
+  DataTableSettingsHeadCell,
+} from "@/components/dashboard/data-table/DataTableParts";
+import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
+import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
+import {
   DownloadSimple,
   GithubLogo,
   Key,
@@ -330,8 +338,20 @@ function OrderDetailDrawer({
   );
 }
 
+const orderColumns: DataTableColumn[] = [
+  { id: "date", label: "Date", width: 150 },
+  { id: "status", label: "Status", width: 120 },
+  { id: "customer", label: "Customer", width: 200 },
+  { id: "source", label: "Source", width: 160 },
+  { id: "city", label: "City", width: 130 },
+  { id: "country", label: "Country", width: 130 },
+  { id: "product", label: "Product", width: 220 },
+  { id: "revenue", label: "Revenue", width: 120, align: "right" },
+];
+
 export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const table = useDataTable("orders", orderColumns);
   const selected = orders.find((order) => order.id === selectedId) || null;
 
   if (orders.length === 0) {
@@ -347,24 +367,25 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
   return (
     <>
       <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-        <table className="w-full min-w-[1040px] text-left text-sm">
+        <table className="text-left text-sm" style={table.tableStyle}>
+          <DataTableColgroup table={table} />
           <thead>
             <tr className="border-b border-border text-sm text-muted">
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Source site</th>
-              <th className="px-4 py-3 font-medium">City</th>
-              <th className="px-4 py-3 font-medium">Country</th>
-              <th className="px-4 py-3 font-medium">Product</th>
-              <th className="px-4 py-3 text-right font-medium">Revenue</th>
+              {table.visibleColumns.map((column) => (
+                <DataTableHeadCell
+                  key={column.id}
+                  table={table}
+                  column={column}
+                />
+              ))}
+              <DataTableSettingsHeadCell table={table} />
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
+                className="group/row cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
                 onClick={() => setSelectedId(order.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -374,40 +395,57 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
                 }}
                 tabIndex={0}
               >
-                <td className="whitespace-nowrap px-4 py-3 text-muted">
-                  {formatOrderListDate(order.createdAt)}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={order.status} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <CustomerAvatar
-                      name={order.customerName}
-                      email={order.customerEmail}
-                      avatarUrl={order.customerAvatarUrl}
-                      size="xs"
-                    />
-                    <span className="truncate font-medium text-[#2a2a33]">
-                      {order.customerName}
-                    </span>
-                  </div>
-                </td>
-                <td className="max-w-[12rem] truncate px-4 py-3" title={order.source}>
-                  {order.source ?? "—"}
-                </td>
-                <td className="max-w-[9rem] truncate px-4 py-3" title={order.city}>
-                  {order.city ?? "—"}
-                </td>
-                <td className="max-w-[9rem] truncate px-4 py-3" title={order.country}>
-                  {order.country ?? "—"}
-                </td>
-                <td className="max-w-[14rem] truncate px-4 py-3">
-                  {order.productName}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums font-medium">
-                  {formatMoney(order.amount, order.currency)}
-                </td>
+                {table.isVisible("date") && (
+                  <td className="truncate px-4 py-3 text-muted">
+                    {formatOrderListDate(order.createdAt)}
+                  </td>
+                )}
+                {table.isVisible("status") && (
+                  <td className="px-4 py-3">
+                    <StatusBadge status={order.status} />
+                  </td>
+                )}
+                {table.isVisible("customer") && (
+                  <td className="overflow-hidden px-4 py-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <CustomerAvatar
+                        name={order.customerName}
+                        email={order.customerEmail}
+                        avatarUrl={order.customerAvatarUrl}
+                        size="xs"
+                      />
+                      <span className="truncate font-medium text-[#2a2a33]">
+                        {order.customerName}
+                      </span>
+                    </div>
+                  </td>
+                )}
+                {table.isVisible("source") && (
+                  <td className="truncate px-4 py-3" title={order.source}>
+                    {order.source ?? "—"}
+                  </td>
+                )}
+                {table.isVisible("city") && (
+                  <td className="truncate px-4 py-3" title={order.city}>
+                    {order.city ?? "—"}
+                  </td>
+                )}
+                {table.isVisible("country") && (
+                  <td className="truncate px-4 py-3" title={order.country}>
+                    {order.country ?? "—"}
+                  </td>
+                )}
+                {table.isVisible("product") && (
+                  <td className="truncate px-4 py-3" title={order.productName}>
+                    {order.productName}
+                  </td>
+                )}
+                {table.isVisible("revenue") && (
+                  <td className="truncate px-4 py-3 text-right tabular-nums font-medium">
+                    {formatMoney(order.amount, order.currency)}
+                  </td>
+                )}
+                <DataTableSettingsCell />
               </tr>
             ))}
           </tbody>

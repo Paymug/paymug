@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  DataTableColgroup,
+  DataTableHeadCell,
+  DataTableSettingsCell,
+  DataTableSettingsHeadCell,
+} from "@/components/dashboard/data-table/DataTableParts";
+import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
+import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
 import Link from "next/link";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import {
@@ -21,12 +29,25 @@ function formatConversion(conversion: number | null | undefined): string {
   return `${(conversion * 100).toFixed(1)}%`;
 }
 
+const productColumns: DataTableColumn[] = [
+  { id: "name", label: "Name", width: 260 },
+  { id: "price", label: "Price", width: 120 },
+  { id: "status", label: "Status", width: 130 },
+  { id: "sales", label: "Sales", width: 100 },
+  { id: "revenue", label: "Revenue", width: 130 },
+  { id: "conversion", label: "Conversion", width: 130 },
+];
+
 export function ProductsWorkspace({
   products,
   environment,
   performance,
   currency,
 }: ProductsWorkspaceProps) {
+  const table = useDataTable("products", productColumns, {
+    leadingWidth: 80,
+    trailingWidth: 96,
+  });
   const selection = useRowSelection(products.map((product) => product.id));
   const stats = [
     { label: "Products", value: products.length.toLocaleString() },
@@ -91,7 +112,8 @@ export function ProductsWorkspace({
         </div>
       ) : (
         <div className={`${dashboardCardClass} mt-6 overflow-x-auto`}>
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="text-left text-sm" style={table.tableStyle}>
+            <DataTableColgroup table={table} />
             <thead>
               <tr className="border-b border-border text-sm text-muted">
                 <th className="w-20 px-4 py-3 font-medium" aria-label="Product image">
@@ -105,20 +127,21 @@ export function ProductsWorkspace({
                     onChange={selection.toggleAll}
                   />
                 </th>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Sales</th>
-                <th className="px-4 py-3 font-medium">Revenue</th>
-                <th className="px-4 py-3 font-medium">Conversion</th>
-                <th className="px-4 py-3 font-medium" />
+                {table.visibleColumns.map((column) => (
+                  <DataTableHeadCell
+                    key={column.id}
+                    table={table}
+                    column={column}
+                  />
+                ))}
+                <DataTableSettingsHeadCell table={table} />
               </tr>
             </thead>
             <tbody>
               {products.map((product, index) => (
                 <tr
                   key={product.id}
-                  className={`group border-b border-border last:border-0 ${
+                  className={`group group/row border-b border-border last:border-0 ${
                     selection.isSelected(product.id) ? "bg-accent-soft/40" : ""
                   }`}
                   onMouseEnter={() => selection.enterDrag(product.id)}
@@ -160,7 +183,8 @@ export function ProductsWorkspace({
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  {table.isVisible("name") && (
+                  <td className="truncate px-4 py-3">
                     <Link
                       href={`/dashboard/products/${product.id}`}
                       className="font-medium hover:underline"
@@ -168,9 +192,13 @@ export function ProductsWorkspace({
                       {product.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("price") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {formatMoney(product.price, product.currency)}
                   </td>
+                  )}
+                  {table.isVisible("status") && (
                   <td className="px-4 py-3 capitalize">
                     <span
                       className={`${badgeBaseClass} ${
@@ -182,12 +210,16 @@ export function ProductsWorkspace({
                       {product.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("sales") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {(performance.byProduct[product.id]?.sales ?? 0) > 0
                       ? (performance.byProduct[product.id]?.sales ?? 0).toLocaleString()
                       : ""}
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("revenue") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {(performance.byProduct[product.id]?.revenue ?? 0) > 0
                       ? formatMoney(
                           performance.byProduct[product.id]?.revenue ?? 0,
@@ -195,12 +227,15 @@ export function ProductsWorkspace({
                         )
                       : ""}
                   </td>
-                  <td className="px-4 py-3 tabular-nums">
+                  )}
+                  {table.isVisible("conversion") && (
+                  <td className="truncate px-4 py-3 tabular-nums">
                     {formatConversion(
                       performance.byProduct[product.id]?.conversion,
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  )}
+                  <DataTableSettingsCell>
                     <div className="flex items-center justify-end gap-1">
                       <Link
                         href={`${getProductPublicPath(product)}${
@@ -222,7 +257,7 @@ export function ProductsWorkspace({
                         status={product.status}
                       />
                     </div>
-                  </td>
+                  </DataTableSettingsCell>
                 </tr>
               ))}
             </tbody>

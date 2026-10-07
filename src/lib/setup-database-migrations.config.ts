@@ -165,18 +165,13 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
   {
     "name": "0017_category_order_and_memberships.sql",
     "statements": [
-      "ALTER TABLE `product_categories` ADD `sort_order` integer DEFAULT 0 NOT NULL;",
-      "UPDATE `product_categories`\nSET `sort_order` = (\n\tSELECT count(*) - 1\n\tFROM `product_categories` AS `previous`\n\tWHERE `previous`.`store_id` = `product_categories`.`store_id`\n\t\tAND (`previous`.`created_at` < `product_categories`.`created_at`\n\t\t\tOR (`previous`.`created_at` = `product_categories`.`created_at`\n\t\t\t\tAND `previous`.`id` <= `product_categories`.`id`))\n);",
-      "CREATE TABLE `product_category_products` (\n\t`category_id` text NOT NULL,\n\t`product_id` text NOT NULL,\n\t`created_at` text NOT NULL,\n\tPRIMARY KEY(`category_id`, `product_id`),\n\tFOREIGN KEY (`category_id`) REFERENCES `product_categories`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON UPDATE no action ON DELETE cascade\n);",
-      "INSERT INTO `product_category_products` (`category_id`, `product_id`, `created_at`)\nSELECT `category_id`, `id`, `updated_at`\nFROM `products`\nWHERE `category_id` IS NOT NULL;",
-      "CREATE INDEX `product_category_products_product_idx` ON `product_category_products` (`product_id`);"
+      "ALTER TABLE `product_categories` ADD `sort_order` integer DEFAULT 0 NOT NULL;\n\nUPDATE `product_categories`\nSET `sort_order` = (\n\tSELECT count(*) - 1\n\tFROM `product_categories` AS `previous`\n\tWHERE `previous`.`store_id` = `product_categories`.`store_id`\n\t\tAND (`previous`.`created_at` < `product_categories`.`created_at`\n\t\t\tOR (`previous`.`created_at` = `product_categories`.`created_at`\n\t\t\t\tAND `previous`.`id` <= `product_categories`.`id`))\n);\n\nCREATE TABLE `product_category_products` (\n\t`category_id` text NOT NULL,\n\t`product_id` text NOT NULL,\n\t`created_at` text NOT NULL,\n\tPRIMARY KEY(`category_id`, `product_id`),\n\tFOREIGN KEY (`category_id`) REFERENCES `product_categories`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON UPDATE no action ON DELETE cascade\n);\n\nINSERT INTO `product_category_products` (`category_id`, `product_id`, `created_at`)\nSELECT `category_id`, `id`, `updated_at`\nFROM `products`\nWHERE `category_id` IS NOT NULL;\n\nCREATE INDEX `product_category_products_product_idx` ON `product_category_products` (`product_id`);"
     ]
   },
   {
     "name": "0018_product_options_and_bundles.sql",
     "statements": [
-      "ALTER TABLE `products` ADD `options` text DEFAULT '[]' NOT NULL;",
-      "ALTER TABLE `products` ADD `bundles` text DEFAULT '[]' NOT NULL;"
+      "ALTER TABLE `products` ADD `options` text DEFAULT '[]' NOT NULL;\nALTER TABLE `products` ADD `bundles` text DEFAULT '[]' NOT NULL;"
     ]
   },
   {
@@ -233,6 +228,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "CREATE TABLE `abandonment_responses` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`store_id` text NOT NULL,\n\t`user_id` text NOT NULL,\n\t`product_id` text,\n\t`email` text,\n\t`question` text NOT NULL,\n\t`answer` text,\n\t`marketing_opt_in` integer DEFAULT false NOT NULL,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`created_at` text NOT NULL,\n\tFOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade\n);",
       "CREATE INDEX `abandonment_responses_store_created_idx` ON `abandonment_responses` (`store_id`,`created_at`);",
       "CREATE INDEX `abandonment_responses_user_created_idx` ON `abandonment_responses` (`user_id`,`created_at`);"
+    ]
+  },
+  {
+    "name": "0027_app_meta.sql",
+    "statements": [
+      "CREATE TABLE `app_meta` (\n\t`key` text PRIMARY KEY NOT NULL,\n\t`value` text NOT NULL,\n\t`updated_at` text NOT NULL\n);"
     ]
   }
 ];

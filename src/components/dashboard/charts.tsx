@@ -30,6 +30,7 @@ import {
   createDashedGridPlugin,
   createEndpointLabelsPlugin,
   formatChartPointDate,
+  getChartPeriodLabels,
   formatChartValue,
   getChartGridStep,
   getChartTrendArrow,
@@ -81,6 +82,10 @@ export function AreaChart({
     trendPercent ?? calculateChartTrend(data, comparisonData);
   const trendDirection = getChartTrendDirection(trend);
   const trendArrow = getChartTrendArrow(trend);
+  const [currentLabel, previousLabel] = useMemo(
+    () => getChartPeriodLabels(data),
+    [data]
+  );
 
   const dateFormatter = useMemo(
     () =>
@@ -205,12 +210,12 @@ export function AreaChart({
       setChartTooltipText(
         tooltipElement,
         "current-value",
-        formatChartValue(currentPoint.value, valueFormat, currency)
+        `${currentLabel}: ${formatChartValue(currentPoint.value, valueFormat, currency)}`
       );
       setChartTooltipText(
         tooltipElement,
         "previous-value",
-        formatChartValue(previousPoint.value, valueFormat, currency)
+        `${previousLabel}: ${formatChartValue(previousPoint.value, valueFormat, currency)}`
       );
       setChartTooltipText(
         tooltipElement,
@@ -238,8 +243,10 @@ export function AreaChart({
       comparisonColor,
       comparisonData,
       currency,
+      currentLabel,
       data,
       dateFormatter,
+      previousLabel,
       valueFormat,
     ]
   );
