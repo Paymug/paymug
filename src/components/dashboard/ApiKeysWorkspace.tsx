@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDateTimeInTimeZone } from "@/lib/timezone";
+import { useTimeZone } from "./TimeZoneProvider";
 import { Copy, Key, Plus, Prohibit } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Input, Spinner } from "@/components/ui";
@@ -15,6 +17,7 @@ import {
 } from "./dashboard.styles";
 
 export function ApiKeysWorkspace() {
+  const timeZone = useTimeZone();
   const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
   const [name, setName] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
@@ -199,7 +202,7 @@ export function ApiKeysWorkspace() {
                     <td className="px-4 py-3 font-medium">{key.name}</td>
                     <td className="px-4 py-3 font-mono">{key.keyPrefix}</td>
                     <td className="px-4 py-3 text-muted">
-                      {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : "Never"}
+                      {key.lastUsedAt ? formatDateTimeInTimeZone(key.lastUsedAt, timeZone) : "Never"}
                     </td>
                     <td className="px-4 py-3">
                       <span

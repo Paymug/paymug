@@ -20,6 +20,7 @@ import type {
   StripeConnection,
   User,
 } from "./types";
+import { resolveTimeZone } from "./timezone";
 import {
   parseExtraSeatTiers,
   serializeExtraSeatTiers,
@@ -105,6 +106,7 @@ function rowToUser(row: typeof usersTable.$inferSelect): User {
         : row.activeStoreId || row.id,
     environment: row.environment,
     githubOAuthHostname: getStoredGitHubHostname(row.githubOAuthHostname),
+    timezone: resolveTimeZone(row.timezone),
     createdAt: row.createdAt,
   };
 }
@@ -275,6 +277,7 @@ export async function createUser(user: CreateUserInput): Promise<User> {
       activeStoreId: storeId,
       primaryStoreId: storeId,
       githubOAuthHostname: user.githubOAuthHostname ?? null,
+      timezone: resolveTimeZone(user.timezone),
       createdAt: user.createdAt,
     });
     await db.insert(storesTable).values({
@@ -299,6 +302,7 @@ export async function createUser(user: CreateUserInput): Promise<User> {
     email,
     activeStoreId: storeId,
     primaryStoreId: storeId,
+    timezone: resolveTimeZone(user.timezone),
   };
 }
 
@@ -348,7 +352,9 @@ export async function findUserByStoreSlug(slug: string): Promise<User | undefine
 
 export async function updateUser(
   id: string,
-  patch: Partial<Pick<User, "name" | "storeName" | "storeSlug" | "environment">>
+  patch: Partial<
+    Pick<User, "name" | "storeName" | "storeSlug" | "environment" | "timezone">
+  >
 ): Promise<User | undefined> {
   const db = await getDb();
   try {

@@ -3,7 +3,9 @@
 import { Check, X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
+import { formatDateTimeInTimeZone } from "@/lib/timezone";
 import { Alert, Button, Textarea } from "@/components/ui";
+import { useTimeZone } from "./TimeZoneProvider";
 import type {
   AffiliateDetailsDrawerProps,
   AffiliateDetailsResponse,
@@ -14,6 +16,7 @@ export function AffiliateDetailsDrawer({
   onClose,
   onUpdated,
 }: AffiliateDetailsDrawerProps) {
+  const timeZone = useTimeZone();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -96,7 +99,10 @@ export function AffiliateDetailsDrawer({
     ["Website", String(affiliate.data.websites || "Not provided")],
     ["Social profile", String(affiliate.data.socialLinks || "Not provided")],
     ["Location", [affiliate.data.city, affiliate.data.country].filter(Boolean).join(", ") || "Not provided"],
-    ["Applied", new Date(String(affiliate.data.appliedAt || affiliate.createdAt)).toLocaleString()],
+    ["Applied", formatDateTimeInTimeZone(
+        String(affiliate.data.appliedAt || affiliate.createdAt),
+        timeZone,
+      )],
     ["Clicks", String(affiliate.data.clicksCount || 0)],
     ["Referrals", String(affiliate.data.referralsCount || 0)],
   ];

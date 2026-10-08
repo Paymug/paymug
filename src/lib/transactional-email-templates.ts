@@ -328,7 +328,10 @@ export function buildSubscriptionStatusEmail(
         ? [
             {
               label: "Trial ends",
-              value: new Date(trialEndsAt).toLocaleDateString(),
+              value: new Date(trialEndsAt).toLocaleDateString("en-US", {
+                dateStyle: "medium",
+                timeZone: "UTC",
+              }),
             },
           ]
         : []),

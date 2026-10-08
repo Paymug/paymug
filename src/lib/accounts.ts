@@ -3,6 +3,7 @@ import "server-only";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import type { CreateAccountInput } from "./accounts.types";
+import { defaultTimeZone } from "./timezone";
 import type { User } from "./types";
 
 export async function createAccount(
@@ -41,5 +42,6 @@ export async function createAccount(
     storeSlug: pendingStoreSlug,
     activeStoreId: input.id,
     primaryStoreId: input.id,
+    timezone: defaultTimeZone,
   };
 }

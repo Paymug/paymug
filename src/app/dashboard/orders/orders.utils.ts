@@ -1,3 +1,4 @@
+import { formatInTimeZone } from "@/lib/timezone";
 import type { OrderStatus } from "@/lib/types";
 
 export function formatOrderNumber(orderId: string): string {
@@ -5,16 +6,16 @@ export function formatOrderNumber(orderId: string): string {
   return `#${short}`;
 }
 
-export function formatOrderListDate(value: string): string {
-  return new Date(value).toLocaleDateString(undefined, {
+export function formatOrderListDate(value: string, timeZone: string): string {
+  return formatInTimeZone(value, timeZone, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-export function formatOrderDateTime(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+export function formatOrderDateTime(value: string, timeZone: string): string {
+  return formatInTimeZone(value, timeZone, {
     month: "short",
     day: "numeric",
     year: "numeric",

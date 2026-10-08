@@ -254,5 +254,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `products` ADD `extra_seat_label` text DEFAULT '' NOT NULL;"
     ]
+  },
+  {
+    "name": "0031_user_timezone.sql",
+    "statements": [
+      "ALTER TABLE `users` ADD `timezone` text DEFAULT 'UTC' NOT NULL;"
+    ]
   }
 ];

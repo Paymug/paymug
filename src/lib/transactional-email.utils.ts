@@ -17,11 +17,12 @@ export function getEmailDisplayName(value: string) {
   return match?.[1]?.trim().replace(/^["']|["']$/g, "") || "";
 }
 
-export function formatEmailDate(value?: string) {
+export function formatEmailDate(value?: string, timeZone = "UTC") {
   return new Date(value || Date.now()).toLocaleString("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "UTC",
+    timeZoneName: "short",
+    timeZone,
   });
 }
 

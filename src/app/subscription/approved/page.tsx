@@ -1,3 +1,4 @@
+import { LocalDateTime } from "@/components/LocalDateTime";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import {
@@ -139,9 +140,13 @@ export default async function SubscriptionApprovedPage({
               : "Subscription received"}
         </h1>
         <p className="mt-3 text-sm text-muted">
-          {trialing
-            ? `PayPal confirmed your subscription. Your free trial ends ${new Date(trialEndsAt || "").toLocaleDateString()}, then recurring billing begins.`
-            : active
+          {trialing ? (
+            <>
+              PayPal confirmed your subscription. Your free trial ends{" "}
+              <LocalDateTime value={trialEndsAt || ""} variant="date" />, then
+              recurring billing begins.
+            </>
+          ) : active
               ? "PayPal confirmed your recurring subscription."
               : "PayPal is still finalizing the subscription. The seller can see its current status."}
         </p>

@@ -15,6 +15,7 @@ import {
   badgeBaseClass,
   badgeVariantClasses,
 } from "@/components/ui.styles";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { formatCustomerDate } from "../customers/customers.utils";
 import { LicenseDetailsDrawer } from "./LicenseDetailsDrawer";
 import type { LicenseRow, LicensesWorkspaceProps } from "./licenses.types";
@@ -39,6 +40,7 @@ export function LicensesWorkspace({
   licenses,
   summary,
 }: LicensesWorkspaceProps) {
+  const timeZone = useTimeZone();
   const [rows, setRows] = useState(licenses);
   const [selected, setSelected] = useState<LicenseRow>();
   const table = useDataTable("licenses", licenseColumns);
@@ -126,7 +128,7 @@ export function LicensesWorkspace({
                   {table.isVisible("expiry") && (
                     <td className="truncate px-4 py-3 tabular-nums">
                       {license.expiry
-                        ? formatCustomerDate(license.expiry)
+                        ? formatCustomerDate(license.expiry, timeZone)
                         : "Never"}
                     </td>
                   )}

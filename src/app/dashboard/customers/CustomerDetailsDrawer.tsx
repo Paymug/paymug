@@ -22,6 +22,7 @@ import {
 import { formatMoney } from "@/lib/format";
 import type { OrderStatus } from "@/lib/types";
 import { CustomerLicenseActivations } from "./CustomerLicenseActivations";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { formatCustomerDate, formatCustomerDateTime } from "./customers.utils";
 import type {
   CustomerDetailsDrawerProps,
@@ -69,6 +70,7 @@ export function CustomerDetailsDrawer({
   customer,
   onClose,
 }: CustomerDetailsDrawerProps) {
+  const timeZone = useTimeZone();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -117,7 +119,7 @@ export function CustomerDetailsDrawer({
     [customer.city, customer.country].filter(Boolean).join(", ") ||
     "Location not available";
   const stats: Array<{ label: string; value: string }> = [
-    { label: "First seen", value: formatCustomerDate(customer.firstSeen) },
+    { label: "First seen", value: formatCustomerDate(customer.firstSeen, timeZone) },
     { label: "Total revenue", value: formatMoney(customer.revenue, customer.currency) },
     { label: "MRR", value: formatMoney(customer.mrr, customer.currency) },
   ];
@@ -214,7 +216,7 @@ export function CustomerDetailsDrawer({
                         {order.productName}
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
-                        {formatCustomerDateTime(order.paidAt || order.createdAt)}
+                        {formatCustomerDateTime(order.paidAt || order.createdAt, timeZone)}
                         {order.discountCode
                           ? ` · ${order.discountCode}`
                           : ""}
@@ -369,7 +371,7 @@ export function CustomerDetailsDrawer({
                           </p>
                         )}
                         <p className="mt-0.5 text-xs text-muted">
-                          {formatCustomerDateTime(event.at)}
+                          {formatCustomerDateTime(event.at, timeZone)}
                         </p>
                       </div>
                     </li>

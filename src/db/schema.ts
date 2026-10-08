@@ -22,6 +22,7 @@ export const users = sqliteTable("users", {
   activeStoreId: text("active_store_id"),
   primaryStoreId: text("primary_store_id"),
   githubOAuthHostname: text("github_oauth_hostname"),
+  timezone: text("timezone").notNull().default("UTC"),
   createdAt: text("created_at").notNull(),
 });
 

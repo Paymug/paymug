@@ -3,6 +3,7 @@ import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
 import { listOrdersByUser, listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
+import { getUtcQueryRange, shiftToWallClock } from "@/lib/timezone";
 import { listVisitorEvents } from "@/lib/visitor-analytics";
 import {
   dashboardFilterCookieName,
@@ -26,14 +27,25 @@ export default async function ProductsPage({
   const cookieJar = await cookies();
   const filter = parseDashboardFilterState(
     await searchParams,
-    parseDashboardFilterCookie(cookieJar.get(dashboardFilterCookieName)?.value),
+    parseDashboardFilterCookie(
+      cookieJar.get(dashboardFilterCookieName)?.value,
+      user.timezone,
+    ),
+    user.timezone,
   );
 
-  const [products, orders, events] = await Promise.all([
+  const queryRange = getUtcQueryRange(filter.startDate, filter.endDate);
+  const [products, rawOrders, rawEvents] = await Promise.all([
     listProductsByUser(user.id, store.id, user.environment),
     listOrdersByUser(user.id, store.id, user.environment),
-    listVisitorEvents(store.id, filter.startDate, filter.endDate),
+    listVisitorEvents(store.id, queryRange.startDate, queryRange.endDate),
   ]);
+  // Count orders and visits by the user's local day.
+  const orders = shiftToWallClock(rawOrders, user.timezone);
+  const events = shiftToWallClock(rawEvents, user.timezone).filter((event) => {
+    const day = event.createdAt.slice(0, 10);
+    return day >= filter.startDate && day <= filter.endDate;
+  });
   const performance = buildProductPerformance({
     orders,
     events,

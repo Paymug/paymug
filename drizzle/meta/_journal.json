@@ -218,6 +218,13 @@
       "when": 1789538400000,
       "tag": "0030_extra_seat_label",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1789624800000,
+      "tag": "0031_user_timezone",
+      "breakpoints": true
     }
   ]
 }

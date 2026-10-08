@@ -3,6 +3,7 @@ import { hasProFeature } from "@/lib/app-license";
 import { GeneralSettingsForm } from "@/components/dashboard/GeneralSettingsForm";
 import { GrowthSettingsForm } from "@/components/dashboard/GrowthSettingsForm";
 import { StoreStatusSettings } from "@/components/dashboard/StoreStatusSettings";
+import { getTimeZoneOptions } from "@/lib/timezone";
 import { getStoreById } from "@/lib/stores";
 
 export default async function SettingsPage() {
@@ -35,6 +36,8 @@ export default async function SettingsPage() {
         name={user.name}
         email={user.email}
         memberSince={user.createdAt.slice(0, 10)}
+        timezone={user.timezone}
+        timezoneOptions={getTimeZoneOptions()}
       />
       <GrowthSettingsForm
         storeId={store.id}

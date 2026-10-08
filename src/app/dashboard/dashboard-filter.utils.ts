@@ -1,3 +1,4 @@
+import { defaultTimeZone, getTodayKey } from "@/lib/timezone";
 import type {
   DashboardFilterState,
   DashboardInterval,
@@ -113,10 +114,10 @@ export function getPresetRange(
     | "quarter"
     | "year"
     | "all",
-  earliestDate?: string
+  earliestDate?: string,
+  timeZone = defaultTimeZone,
 ) {
-  const end = new Date();
-  end.setUTCHours(12, 0, 0, 0);
+  const end = fromDateKey(getTodayKey(timeZone));
   let start = new Date(end);
 
   if (preset === "today") {
@@ -142,8 +143,9 @@ export function getPresetRange(
 
 function refreshSavedRelativeRange(
   saved: DashboardFilterState,
+  timeZone: string,
 ): DashboardFilterState {
-  const today = toDateKey(new Date());
+  const today = getTodayKey(timeZone);
   if (
     !isDateKey(saved.startDate) ||
     !isDateKey(saved.endDate) ||
@@ -170,6 +172,8 @@ function refreshSavedRelativeRange(
 
   const range = getPresetRange(
     preset as "today" | "7" | "14" | "30" | "90" | "365",
+    undefined,
+    timeZone,
   );
   return {
     ...saved,
@@ -181,12 +185,19 @@ function refreshSavedRelativeRange(
 
 export function parseDashboardFilterState(
   params: DashboardOverviewSearchParams,
-  saved?: DashboardFilterState
+  saved?: DashboardFilterState,
+  timeZone = defaultTimeZone,
 ): DashboardFilterState {
-  const currentSaved = saved ? refreshSavedRelativeRange(saved) : undefined;
+  const currentSaved = saved
+    ? refreshSavedRelativeRange(saved, timeZone)
+    : undefined;
   const fallbackDays =
     params.range === "7" ? 7 : params.range === "90" ? 90 : 30;
-  const fallback = getPresetRange(String(fallbackDays) as "7" | "30" | "90");
+  const fallback = getPresetRange(
+    String(fallbackDays) as "7" | "30" | "90",
+    undefined,
+    timeZone,
+  );
   const startDate = isDateKey(params.start)
     ? params.start
     : currentSaved && isDateKey(currentSaved.startDate)
@@ -218,13 +229,15 @@ export function parseDashboardFilterState(
 }
 
 export function parseDashboardFilterCookie(
-  value: string | undefined
+  value: string | undefined,
+  timeZone = defaultTimeZone,
 ): DashboardFilterState | undefined {
   if (!value) return undefined;
   try {
     return parseDashboardFilterState(
       {},
-      JSON.parse(decodeURIComponent(value)) as DashboardFilterState
+      JSON.parse(decodeURIComponent(value)) as DashboardFilterState,
+      timeZone,
     );
   } catch {
     return undefined;

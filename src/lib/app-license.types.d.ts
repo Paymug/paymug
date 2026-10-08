@@ -39,7 +39,15 @@ export interface LicenseAuthorityDeactivationRequest {
   instanceId: string;
 }
 
-export interface LicenseAuthorityResponse {
+export interface LicenseAuthoritySeats {
+  /** Total device seats; null is unlimited. */
+  seatLimit: number | null;
+  seatsUsed: number;
+  /** Seats still free; null is unlimited. */
+  seatsRemaining: number | null;
+}
+
+export interface LicenseAuthorityResponse extends Partial<LicenseAuthoritySeats> {
   valid: boolean;
   state: Exclude<AppLicenseState, "free">;
   plan: "pro";

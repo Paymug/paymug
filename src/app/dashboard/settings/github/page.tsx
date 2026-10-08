@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { formatDateTimeInTimeZone } from "@/lib/timezone";
 import { Alert, Button } from "@/components/ui";
 import {
   dashboardCardClass,
@@ -145,7 +146,7 @@ export default async function GitHubSettingsPage({
                 </strong>
               </p>
               <p className="mt-1 text-muted">
-                Connected {new Date(connection.connectedAt).toLocaleString()}
+                Connected {formatDateTimeInTimeZone(connection.connectedAt, user.timezone)}
               </p>
             </div>
             <p className="text-sm text-muted">

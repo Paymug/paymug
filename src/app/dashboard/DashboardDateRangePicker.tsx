@@ -12,6 +12,7 @@ import {
   getMonthKey,
   getPresetRange,
 } from "./dashboard-filter.utils";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { saveDashboardFilterPreference } from "./dashboard-filter-preference.utils";
 import type { DashboardFilterProps } from "./dashboard-overview.types";
 
@@ -32,9 +33,10 @@ export function DashboardDateRangePicker({
   productId,
   earliestDate,
 }: DashboardFilterProps) {
+  const timeZone = useTimeZone();
   const activePreset = presets.find((preset) => {
     if (preset.value === "custom") return false;
-    const range = getPresetRange(preset.value, earliestDate);
+    const range = getPresetRange(preset.value, earliestDate, timeZone);
     return range.startDate === startDate && range.endDate === endDate;
   });
   const router = useRouter();
@@ -122,7 +124,7 @@ export function DashboardDateRangePicker({
                         setShowCustomInputs(true);
                         return;
                       }
-                      const range = getPresetRange(preset.value, earliestDate);
+                      const range = getPresetRange(preset.value, earliestDate, timeZone);
                       navigate(range.startDate, range.endDate);
                     }}
                     className={`rounded-lg px-3 py-2 text-left text-sm hover:bg-[#f7f7f8] ${

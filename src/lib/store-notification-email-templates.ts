@@ -13,6 +13,7 @@ export function buildStoreOrderPaymentEmail(
   storeName: string,
   recipient: string,
   storeLogo?: string,
+  timeZone = "UTC",
 ): TransactionalEmailContent {
   const { order } = input;
   const free = order.gateway === "free";
@@ -34,7 +35,7 @@ export function buildStoreOrderPaymentEmail(
       { label: "Order ID", value: order.id },
       {
         label: free ? "Completed" : "Paid",
-        value: formatEmailDate(order.paidAt),
+        value: formatEmailDate(order.paidAt, timeZone),
       },
     ],
     footer: `This store notification was sent by ${storeName}.`,
@@ -51,6 +52,7 @@ export function buildStoreSubscriptionPaymentEmail(
   storeName: string,
   recipient: string,
   storeLogo?: string,
+  timeZone = "UTC",
 ): TransactionalEmailContent {
   const amount = Math.round(
     Number(input.event.resource?.amount?.total || 0) * 100,
@@ -72,7 +74,7 @@ export function buildStoreSubscriptionPaymentEmail(
         label: "Customer",
         value: input.subscription.subtitle || "Not provided",
       },
-      { label: "Received", value: formatEmailDate(input.event.create_time) },
+      { label: "Received", value: formatEmailDate(input.event.create_time, timeZone) },
     ],
     footer: `This store notification was sent by ${storeName}.`,
   });
@@ -88,6 +90,7 @@ export function buildStoreAffiliateRegisteredEmail(
   storeName: string,
   recipient: string,
   storeLogo?: string,
+  timeZone = "UTC",
 ): TransactionalEmailContent {
   const layout = renderEmailLayout({
     storeName,
@@ -104,7 +107,7 @@ export function buildStoreAffiliateRegisteredEmail(
       { label: "Status", value: input.affiliate.status },
       {
         label: "Registered",
-        value: formatEmailDate(input.affiliate.createdAt),
+        value: formatEmailDate(input.affiliate.createdAt, timeZone),
       },
     ],
     footer: `This store notification was sent by ${storeName}.`,

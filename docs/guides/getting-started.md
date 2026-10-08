@@ -13,6 +13,12 @@ last-verified: 2026-08-26
 - An email address for your seller account.
 - Test payment credentials for your first sale.
 
+## Set your time zone
+
+Open Dashboard → Settings and choose your time zone under Profile. Analytics,
+date ranges such as "Today", order and customer dates, and seller notification
+emails use it. The default is UTC.
+
 ## First test sale
 
 1. Create an account and store.

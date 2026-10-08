@@ -16,6 +16,7 @@ import { getActiveStoreForUser, listStoresByUser } from "@/lib/stores";
 import { getAppLicenseStatus } from "@/lib/app-license";
 import { getTablePreferences } from "@/lib/table-preferences";
 import { TablePreferencesProvider } from "@/components/dashboard/data-table/TablePreferencesProvider";
+import { TimeZoneProvider } from "@/components/dashboard/TimeZoneProvider";
 import { DashboardProFeatureGate } from "@/components/dashboard/DashboardProFeatureGate";
 
 export default async function DashboardLayout({
@@ -58,6 +59,7 @@ export default async function DashboardLayout({
       getTablePreferences(user.id),
     ]);
   return (
+    <TimeZoneProvider timeZone={user.timezone}>
     <DashboardShell
       nav={
         <DashboardNav
@@ -89,5 +91,6 @@ export default async function DashboardLayout({
         </DashboardProFeatureGate>
       </main>
     </DashboardShell>
+    </TimeZoneProvider>
   );
 }

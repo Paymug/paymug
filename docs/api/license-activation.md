@@ -24,6 +24,23 @@ Deactivation requires only `productId` and that returned `instanceId`. Do not
 send the license key when deactivating.
 The response includes `valid`, `state`, `plan`, `features`, and `manageUrl`.
 
+## Seat availability
+
+Activate and validate responses also report seat usage whenever the license key
+is found and belongs to the product:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `seatLimit` | integer or `null` | Total device seats, including extra seats; `null` is unlimited |
+| `seatsUsed` | integer | Devices currently activated |
+| `seatsRemaining` | integer or `null` | Free seats; `null` is unlimited |
+
+To check for a free seat without using one, call `validate` from any installation
+that is already activated and read `seatsRemaining`. A device that is not yet
+activated gets `valid: false` ("License is not activated for this installation")
+but the seat fields are still returned. Activation also returns them, including
+when it fails with the seat limit error.
+
 A license can have a fixed device seat limit or unlimited seats. Activating a new
 device uses one seat. When a fixed limit is full, activation fails with a seat
 limit error. Refreshing an existing device does not use another seat.

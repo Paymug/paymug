@@ -7,7 +7,9 @@ export type CreateUserInput = Omit<
   | "storeCoverImageUrl"
   | "storeEmailFrom"
   | "storeEmailReplyTo"
+  | "timezone"
 > & {
+  timezone?: string;
   activeStoreId?: string;
   primaryStoreId?: string;
   storeCoverImageUrl?: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
 import { Desktop, Trash } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,6 +13,7 @@ export function CustomerLicenseActivations({
   seatLimit,
   initialActivations,
 }: CustomerLicenseActivationsProps) {
+  const browserTimeZone = useBrowserTimeZone();
   const router = useRouter();
   const [activations, setActivations] = useState(initialActivations);
   const [removingId, setRemovingId] = useState<string>();
@@ -46,7 +48,7 @@ export function CustomerLicenseActivations({
                 </p>
                 <p className="mt-0.5 text-xs text-[#85859d]">
                   Version {activation.appVersion} · Last active {" "}
-                  {formatCustomerPortalDateTime(activation.lastSeenAt)}
+                  {formatCustomerPortalDateTime(activation.lastSeenAt, browserTimeZone)}
                 </p>
                 <p className="mt-1 truncate font-mono text-[11px] text-[#a0a0b2]">
                   {activation.instanceId}

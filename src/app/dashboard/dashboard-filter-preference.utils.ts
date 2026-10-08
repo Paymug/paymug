@@ -1,3 +1,4 @@
+import { defaultTimeZone } from "@/lib/timezone";
 import {
   dashboardFilterCookieName,
   parseDashboardFilterState,
@@ -20,7 +21,8 @@ export function hasDashboardFilterCookie() {
 }
 
 export function readDashboardFilterPreference(
-  validProductIds: string[]
+  validProductIds: string[],
+  timeZone = defaultTimeZone,
 ): DashboardFilterPreference | undefined {
   try {
     const stored = window.localStorage.getItem(dashboardFilterPreferenceKey);
@@ -29,6 +31,7 @@ export function readDashboardFilterPreference(
     const parsed = parseDashboardFilterState(
       {},
       value as DashboardFilterPreference,
+      timeZone,
     );
     return {
       ...parsed,

@@ -1,5 +1,7 @@
 "use client";
 
+import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
+import { formatDateInTimeZone } from "@/lib/timezone";
 import {
   ChartLineUp,
   Copy,
@@ -16,6 +18,7 @@ import { AffiliateReferralTools } from "./AffiliateReferralTools";
 export function CustomerAffiliateAnalytics({
   program,
 }: CustomerAffiliateProgramProps) {
+  const browserTimeZone = useBrowserTimeZone();
   const [copied, setCopied] = useState(false);
   const analytics = program.analytics;
   const affiliate = program.affiliate;
@@ -92,7 +95,7 @@ export function CustomerAffiliateAnalytics({
                       {purchase.orderId}
                     </p>
                     <p className="mt-0.5 text-xs text-[#9292a3]">
-                      {new Date(purchase.createdAt).toLocaleDateString()}
+                      {formatDateInTimeZone(purchase.createdAt, browserTimeZone)}
                     </p>
                   </div>
                   <div className="text-right text-sm">

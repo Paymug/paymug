@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
 import {
   CheckCircle,
   CreditCard,
@@ -33,6 +34,7 @@ export function CustomerPurchaseModal({
   purchase,
   onClose,
 }: CustomerPurchaseModalProps) {
+  const browserTimeZone = useBrowserTimeZone();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -106,7 +108,7 @@ export function CustomerPurchaseModal({
                 Purchase details
               </h2>
               <p className="mt-1 text-sm text-[#85859d]">
-                Purchased {formatCustomerPortalDateTime(purchasedAt)}
+                Purchased {formatCustomerPortalDateTime(purchasedAt, browserTimeZone)}
               </p>
             </div>
             <button
@@ -213,7 +215,7 @@ export function CustomerPurchaseModal({
                         {formatMoney(purchase.amount, purchase.currency)}
                       </p>
                       <p className="mt-0.5 text-xs text-[#85859d]">
-                        {formatCustomerPortalDateTime(purchasedAt)}
+                        {formatCustomerPortalDateTime(purchasedAt, browserTimeZone)}
                       </p>
                     </div>
                   </div>
@@ -262,8 +264,8 @@ export function CustomerPurchaseModal({
                     ["Currency", purchase.currency],
                     ["Order ID", purchase.id],
                     ["Provider reference", getCustomerPaymentReference(purchase)],
-                    ["Created", formatCustomerPortalDateTime(purchase.createdAt)],
-                    ["Paid", formatCustomerPortalDateTime(purchasedAt)],
+                    ["Created", formatCustomerPortalDateTime(purchase.createdAt, browserTimeZone)],
+                    ["Paid", formatCustomerPortalDateTime(purchasedAt, browserTimeZone)],
                   ].map(([label, value]) => (
                     <div key={label} className="min-w-0">
                       <dt className="text-[#9292a3]">{label}</dt>
@@ -378,14 +380,14 @@ export function CustomerPurchaseModal({
                       <p>
                         {purchase.license.updatesActive
                           ? purchase.license.updatesExpireAt
-                            ? `Updates included through ${formatCustomerPortalDateTime(purchase.license.updatesExpireAt)}.`
+                            ? `Updates included through ${formatCustomerPortalDateTime(purchase.license.updatesExpireAt, browserTimeZone)}.`
                             : "Updates are currently included."
                           : "The update period has ended. Your purchased version remains available forever."}
                       </p>
                     </div>
                   ) : purchase.license.expiresAt ? (
                     <p className="mt-2 text-xs text-[#85859d]">
-                      License expires {formatCustomerPortalDateTime(purchase.license.expiresAt)}
+                      License expires {formatCustomerPortalDateTime(purchase.license.expiresAt, browserTimeZone)}
                     </p>
                   ) : null}
                   <CustomerLicenseActivations

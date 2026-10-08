@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { listCustomerAccountsByEmails } from "@/lib/customer-accounts";
 import { listFeatureRecords } from "@/lib/feature-records";
 import { getStoreById } from "@/lib/stores";
+import { shiftToWallClock } from "@/lib/timezone";
 import {
   dashboardFilterCookieName,
   parseDashboardFilterCookie,
@@ -26,7 +27,11 @@ export default async function LicensesPage({
   const cookieJar = await cookies();
   const filter = parseDashboardFilterState(
     await searchParams,
-    parseDashboardFilterCookie(cookieJar.get(dashboardFilterCookieName)?.value),
+    parseDashboardFilterCookie(
+      cookieJar.get(dashboardFilterCookieName)?.value,
+      user.timezone,
+    ),
+    user.timezone,
   );
 
   const [licenses, customerRecords] = await Promise.all([
@@ -53,7 +58,7 @@ export default async function LicensesPage({
 
   const rows = buildLicenseRows({ licenses, accounts, customerNames });
   const summary = buildLicensesSummary(
-    rows,
+    shiftToWallClock(rows, user.timezone),
     filter.startDate,
     filter.endDate,
   );

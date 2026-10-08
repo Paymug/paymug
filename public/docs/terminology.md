@@ -9,6 +9,7 @@ public-root: /
 - **Customer:** a buyer who can use the customer portal.
 - **Product:** an item or subscription a seller offers.
 - **Extra seats:** additional device seats a buyer can purchase on top of a license's base seat limit, priced per seat with optional tiers.
+- **Time zone:** the seller account setting (an IANA name such as `America/New_York`, default `UTC`) used to group analytics by day and to display dates in the dashboard. Stored data and API timestamps are always UTC.
 - **Order:** the recorded result of a purchase.
 - **Delivery:** a file, license, redirect, or GitHub access granted after payment.
 - **Test mode:** a safe environment for test products and sandbox payments.

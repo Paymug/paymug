@@ -1,3 +1,4 @@
+import { LocalDateTime } from "@/components/LocalDateTime";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { ProductDescription } from "@/components/ProductDescription";
@@ -140,7 +141,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         <Row label="Email" value={order.customerEmail} />
         <Row label="Order ID" value={order.id.slice(0, 8) + "…"} />
         {order.paidAt && (
-          <Row label="Paid at" value={new Date(order.paidAt).toLocaleString()} />
+          <Row label="Paid at" value={<LocalDateTime value={order.paidAt} />} />
         )}
       </div>
 
@@ -184,9 +185,18 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             <div className="mt-3 text-sm leading-6 text-muted">
               <p className="font-medium text-foreground">Lifetime use included</p>
               <p>
-                {licenseEntitlement.updatesExpireAt
-                  ? `Updates included through ${new Date(licenseEntitlement.updatesExpireAt).toLocaleDateString()}.`
-                  : "Updates are currently included."}
+                {licenseEntitlement.updatesExpireAt ? (
+                  <>
+                    Updates included through{" "}
+                    <LocalDateTime
+                      value={licenseEntitlement.updatesExpireAt}
+                      variant="date"
+                    />
+                    .
+                  </>
+                ) : (
+                  "Updates are currently included."
+                )}
               </p>
             </div>
           )}
@@ -257,7 +267,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-4 border-b border-border py-2 text-sm last:border-0">
       <span className="text-muted">{label}</span>

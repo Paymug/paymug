@@ -6,6 +6,7 @@ export interface StoreNotificationEmailContext {
   name: string;
   logo?: string;
   recipient: string;
+  timeZone: string;
   sender: {
     name?: string;
     replyTo?: string;

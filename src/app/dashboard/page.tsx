@@ -22,6 +22,7 @@ import {
 } from "./dashboard-overview.utils";
 import type { DashboardPageProps } from "./dashboard.types";
 import { getStoreById } from "@/lib/stores";
+import { shiftToWallClock } from "@/lib/timezone";
 
 export default async function DashboardPage({
   searchParams,
@@ -31,19 +32,21 @@ export default async function DashboardPage({
 
   const params = await searchParams;
   const cookieJar = await cookies();
+  const timeZone = user.timezone;
   const savedFilter = parseDashboardFilterCookie(
-    cookieJar.get(dashboardFilterCookieName)?.value
+    cookieJar.get(dashboardFilterCookieName)?.value,
+    timeZone,
   );
-  const filter = parseDashboardFilterState(params, savedFilter);
+  const filter = parseDashboardFilterState(params, savedFilter, timeZone);
   const [
-    orders,
+    rawOrders,
     products,
-    subscriptions,
-    subscribers,
-    campaigns,
-    affiliateClicks,
-    affiliateReferrals,
-    affiliatePayouts,
+    rawSubscriptions,
+    rawSubscribers,
+    rawCampaigns,
+    rawAffiliateClicks,
+    rawAffiliateReferrals,
+    rawAffiliatePayouts,
     paypal,
     stripe,
     store,
@@ -61,6 +64,14 @@ export default async function DashboardPage({
       getStripeCredentials(user.id, undefined, user.activeStoreId),
       getStoreById(user.activeStoreId, user.id),
     ]);
+  // Bucket everything by the user's local day and hour.
+  const orders = shiftToWallClock(rawOrders, timeZone);
+  const subscriptions = shiftToWallClock(rawSubscriptions, timeZone);
+  const subscribers = shiftToWallClock(rawSubscribers, timeZone);
+  const campaigns = shiftToWallClock(rawCampaigns, timeZone);
+  const affiliateClicks = shiftToWallClock(rawAffiliateClicks, timeZone);
+  const affiliateReferrals = shiftToWallClock(rawAffiliateReferrals, timeZone);
+  const affiliatePayouts = shiftToWallClock(rawAffiliatePayouts, timeZone);
   const selectedProductId =
     filter.productId === "all" ||
     products.some((product) => product.id === filter.productId)

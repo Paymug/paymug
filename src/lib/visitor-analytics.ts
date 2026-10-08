@@ -34,15 +34,16 @@ export async function listVisitorEvents(
   });
 }
 
-export async function listVisitorVisitDays(
+/** Distinct visit minutes (UTC, `YYYY-MM-DDTHH:MM`) so callers can derive local days. */
+export async function listVisitorVisitMinutes(
   storeId: string,
   visitorIds: string[],
-): Promise<Array<{ visitorId: string; day: string }>> {
+): Promise<Array<{ visitorId: string; minute: string }>> {
   if (visitorIds.length === 0) return [];
   const db = await getDb();
-  const day = sql<string>`substr(${visitorEvents.createdAt}, 1, 10)`;
+  const minute = sql<string>`substr(${visitorEvents.createdAt}, 1, 16)`;
   return db
-    .selectDistinct({ visitorId: visitorEvents.visitorId, day })
+    .selectDistinct({ visitorId: visitorEvents.visitorId, minute })
     .from(visitorEvents)
     .where(
       and(
@@ -59,5 +60,5 @@ export async function getEarliestVisitorEventDate(storeId: string): Promise<stri
     where: eq(visitorEvents.storeId, storeId),
     orderBy: [asc(visitorEvents.createdAt)],
   });
-  return event?.createdAt.slice(0, 10);
+  return event?.createdAt;
 }

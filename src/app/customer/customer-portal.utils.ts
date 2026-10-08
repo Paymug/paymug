@@ -1,3 +1,4 @@
+import { formatInTimeZone } from "@/lib/timezone";
 import type { CustomerPortalPurchase } from "@/lib/customer-portal.types";
 
 export function getCustomerStatusClass(status: string): string {
@@ -19,8 +20,11 @@ export function getCustomerStatusClass(status: string): string {
   return "bg-amber-50/35 text-amber-700/80";
 }
 
-export function formatCustomerPortalDateTime(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+export function formatCustomerPortalDateTime(
+  value: string,
+  timeZone: string,
+): string {
+  return formatInTimeZone(value, timeZone, {
     dateStyle: "medium",
     timeStyle: "short",
   });

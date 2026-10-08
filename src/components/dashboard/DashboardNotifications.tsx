@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BellSimple } from "@phosphor-icons/react";
 import { useState } from "react";
+import { useTimeZone } from "./TimeZoneProvider";
 import {
   formatNotificationAge,
   getNotificationAccentClass,
@@ -16,6 +17,7 @@ export function DashboardNotifications({
   initialUnreadCount,
   buttonClassName,
 }: DashboardNotificationsProps) {
+  const timeZone = useTimeZone();
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(initialHasUnread);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
@@ -101,7 +103,7 @@ export function DashboardNotifications({
                       </span>
                     )}
                     <span className="mt-1 block text-sm text-[#9a9aab]">
-                      {formatNotificationAge(notification.createdAt)}
+                      {formatNotificationAge(notification.createdAt, timeZone)}
                     </span>
                   </span>
                 </Link>

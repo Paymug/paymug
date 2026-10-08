@@ -8,7 +8,8 @@ import { listOrdersByUser } from "@/lib/db";
 import { listFeatureRecords } from "@/lib/feature-records";
 import { getStoreById } from "@/lib/stores";
 import { listVisitorIdentities } from "@/lib/visitor-identities";
-import { listVisitorVisitDays } from "@/lib/visitor-analytics";
+import { listVisitorVisitMinutes } from "@/lib/visitor-analytics";
+import { toWallClockIso } from "@/lib/timezone";
 import { listOriginVisitsByEmail } from "@/lib/customer-origin";
 import {
   dashboardFilterCookieName,
@@ -32,7 +33,11 @@ export default async function CustomersPage({
   const cookieJar = await cookies();
   const filter = parseDashboardFilterState(
     await searchParams,
-    parseDashboardFilterCookie(cookieJar.get(dashboardFilterCookieName)?.value),
+    parseDashboardFilterCookie(
+      cookieJar.get(dashboardFilterCookieName)?.value,
+      user.timezone,
+    ),
+    user.timezone,
   );
 
   const [
@@ -74,14 +79,15 @@ export default async function CustomersPage({
     ? await listOriginVisitsByEmail(store.id, identities)
     : new Map();
   const visitorIds = [...new Set(identities.map((identity) => identity.visitorId))];
-  const visitDays = await listVisitorVisitDays(store.id, visitorIds);
+  const visitMinutes = await listVisitorVisitMinutes(store.id, visitorIds);
   const emailByVisitorId = new Map(
     identities.map((identity) => [identity.visitorId, identity.email]),
   );
   const daysByEmail = new Map<string, Set<string>>();
-  for (const { visitorId, day } of visitDays) {
+  for (const { visitorId, minute } of visitMinutes) {
     const email = emailByVisitorId.get(visitorId);
     if (!email) continue;
+    const day = toWallClockIso(`${minute}:00.000Z`, user.timezone).slice(0, 10);
     const days = daysByEmail.get(email) ?? new Set<string>();
     days.add(day);
     daysByEmail.set(email, days);

@@ -39,6 +39,8 @@ export interface User {
   primaryStoreId: string;
   environment: PayPalMode;
   githubOAuthHostname?: string;
+  /** IANA time zone used for dashboard analytics and timestamps. */
+  timezone: string;
   createdAt: string;
 }
 
@@ -54,6 +56,7 @@ export interface PublicUser {
   activeStoreId: string;
   primaryStoreId: string;
   environment: PayPalMode;
+  timezone: string;
   createdAt: string;
 }
 

@@ -3,17 +3,19 @@
 import { Check, Copy, X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
+import { fromWallClockIso, toWallClockIso } from "@/lib/timezone";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
 import { Button, Input } from "@/components/ui";
 import { CustomerLicenseActivations } from "../customers/CustomerLicenseActivations";
 import { formatCustomerDate } from "../customers/customers.utils";
 import type { LicenseDetailsDrawerProps, LicenseRow } from "./licenses.types";
 
-function toDateInputValue(value?: string): string {
+function toDateInputValue(value: string | undefined, timeZone: string): string {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
+  return toWallClockIso(date.toISOString(), timeZone).slice(0, 10);
 }
 
 export function LicenseDetailsDrawer({
@@ -21,6 +23,7 @@ export function LicenseDetailsDrawer({
   onClose,
   onUpdated,
 }: LicenseDetailsDrawerProps) {
+  const timeZone = useTimeZone();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -28,7 +31,7 @@ export function LicenseDetailsDrawer({
     license.seatLimit === null ? "" : String(license.seatLimit),
   );
   const [expiryInput, setExpiryInput] = useState(
-    toDateInputValue(license.expiry),
+    toDateInputValue(license.expiry, timeZone),
   );
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -81,9 +84,13 @@ export function LicenseDetailsDrawer({
     const seatLimit = seatLimitInput.trim()
       ? Math.max(1, Number(seatLimitInput))
       : null;
-    const expiry = expiryInput
-      ? new Date(`${expiryInput}T12:00:00.000Z`).toISOString()
-      : null;
+    // Keep the stored instant unless the date was changed; new dates expire at
+    // noon in the user's time zone.
+    const expiry = !expiryInput
+      ? null
+      : expiryInput === toDateInputValue(license.expiry, timeZone)
+        ? (license.expiry ?? null)
+        : fromWallClockIso(`${expiryInput}T12:00:00.000Z`, timeZone);
     try {
       const response = await fetch(`/api/features/licenses/${license.id}`, {
         method: "PATCH",
@@ -223,7 +230,7 @@ export function LicenseDetailsDrawer({
             <div className="flex items-center justify-between gap-4">
               <dt className="text-muted">Issued</dt>
               <dd className="tabular-nums">
-                {formatCustomerDate(license.issuedAt)}
+                {formatCustomerDate(license.issuedAt, timeZone)}
               </dd>
             </div>
             <div className="flex items-center justify-between gap-4">

@@ -11,18 +11,7 @@ import { listAbandonmentResponses } from "@/lib/abandonment-responses";
 import { getSessionUser } from "@/lib/auth";
 import { listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
-
-function formatDateTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
+import { formatDateTimeInTimeZone } from "@/lib/timezone";
 
 export default async function AbandonmentPage() {
   const user = await getSessionUser();
@@ -100,7 +89,7 @@ export default async function AbandonmentPage() {
                   className="border-b border-border last:border-0 align-top"
                 >
                   <td className="whitespace-nowrap px-4 py-3 tabular-nums text-muted">
-                    {formatDateTime(response.createdAt)}
+                    {formatDateTimeInTimeZone(response.createdAt, user.timezone)}
                   </td>
                   <td className="px-4 py-3">
                     {response.productId

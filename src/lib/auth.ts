@@ -28,6 +28,7 @@ export function toPublicUser(user: User, store?: Store): PublicUser {
     activeStoreId: store?.id || user.activeStoreId,
     primaryStoreId: user.primaryStoreId,
     environment: user.environment,
+    timezone: user.timezone,
     createdAt: user.createdAt,
   };
 }

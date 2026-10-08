@@ -1,5 +1,7 @@
 "use client";
 
+import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
+import { formatDateInTimeZone } from "@/lib/timezone";
 import {
   ArrowRight,
   ArrowsClockwise,
@@ -21,6 +23,7 @@ export function CustomerPortalView({
   customer,
   portal,
 }: CustomerPortalViewProps) {
+  const browserTimeZone = useBrowserTimeZone();
   const [selectedPurchase, setSelectedPurchase] =
     useState<CustomerPortalPurchase | null>(null);
   const activeSubscriptions = portal.subscriptions.filter((subscription) =>
@@ -152,9 +155,10 @@ export function CustomerPortalView({
                         </span>
                       </span>
                       <span className="hidden text-sm text-[#696978] md:block">
-                        {new Date(
+                        {formatDateInTimeZone(
                           purchase.paidAt || purchase.createdAt,
-                        ).toLocaleDateString()}
+                          browserTimeZone,
+                        )}
                       </span>
                       <span className="hidden text-sm font-semibold md:block">
                         {formatMoney(purchase.amount, purchase.currency)}
@@ -170,7 +174,7 @@ export function CustomerPortalView({
                       <span className="col-span-2 flex items-center gap-2 pl-14 text-xs text-[#85859d] md:hidden">
                         <span>{formatMoney(purchase.amount, purchase.currency)}</span>
                         <span>·</span>
-                        <span>{formatCustomerPortalDateTime(purchase.paidAt || purchase.createdAt)}</span>
+                        <span>{formatCustomerPortalDateTime(purchase.paidAt || purchase.createdAt, browserTimeZone)}</span>
                       </span>
                     </button>
                   ))}

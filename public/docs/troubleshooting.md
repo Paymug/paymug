@@ -34,6 +34,12 @@ expiry, and customer account. Do not give a customer a seller credential.
 Check HTTPS, status response, timeout, secret, signature verification, duplicate
 handling, and delivery history. Fix the receiver before resending.
 
+## Times or daily totals look wrong
+
+Check the seller time zone in Dashboard → Settings → Profile. Analytics and
+order dates follow it; the default is UTC, so an evening sale can land on the
+next day until it is changed. API and webhook timestamps are UTC by design.
+
 ## Escalate
 
 Report the base URL, mode, approximate time, safe resource ID, status code, and

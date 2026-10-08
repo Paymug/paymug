@@ -1,6 +1,7 @@
+import { formatInTimeZone } from "@/lib/timezone";
 import type { NotificationType } from "@/lib/notifications.types";
 
-export function formatNotificationAge(createdAt: string) {
+export function formatNotificationAge(createdAt: string, timeZone: string) {
   const elapsed = Date.now() - new Date(createdAt).getTime();
   const minutes = Math.max(0, Math.floor(elapsed / 60_000));
   if (minutes < 1) return "Just now";
@@ -9,7 +10,7 @@ export function formatNotificationAge(createdAt: string) {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(createdAt).toLocaleDateString("en-US", {
+  return formatInTimeZone(createdAt, timeZone, {
     month: "short",
     day: "numeric",
   });

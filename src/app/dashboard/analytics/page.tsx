@@ -9,6 +9,11 @@ import { getSessionUser } from "@/lib/auth";
 import { listOrdersByUser, listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
 import {
+  getUtcQueryRange,
+  shiftToWallClock,
+  toWallClockIso,
+} from "@/lib/timezone";
+import {
   getEarliestVisitorEventDate,
   listVisitorEvents,
 } from "@/lib/visitor-analytics";
@@ -50,18 +55,28 @@ export default async function AnalyticsPage({
   const cookieJar = await cookies();
   const filter = parseDashboardFilterState(
     await searchParams,
-    parseDashboardFilterCookie(cookieJar.get(dashboardFilterCookieName)?.value),
+    parseDashboardFilterCookie(
+      cookieJar.get(dashboardFilterCookieName)?.value,
+      user.timezone,
+    ),
+    user.timezone,
   );
   const previousRange = getPreviousAnalyticsRange(
     filter.startDate,
     filter.endDate,
   );
-  const [events, earliestDate, products, orders] = await Promise.all([
-    listVisitorEvents(store.id, previousRange.startDate, filter.endDate),
+  const queryRange = getUtcQueryRange(previousRange.startDate, filter.endDate);
+  const [rawEvents, rawEarliestDate, products, rawOrders] = await Promise.all([
+    listVisitorEvents(store.id, queryRange.startDate, queryRange.endDate),
     getEarliestVisitorEventDate(store.id),
     listProductsByUser(user.id, store.id, user.environment),
     listOrdersByUser(user.id, store.id, user.environment),
   ]);
+  const events = shiftToWallClock(rawEvents, user.timezone);
+  const orders = shiftToWallClock(rawOrders, user.timezone);
+  const earliestDate = rawEarliestDate
+    ? toWallClockIso(rawEarliestDate, user.timezone).slice(0, 10)
+    : undefined;
   const selectedProductId =
     filter.productId === "all" ||
     products.some((product) => product.id === filter.productId)

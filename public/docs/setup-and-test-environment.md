@@ -14,6 +14,11 @@ You need:
 - a test email address;
 - a test product or permission to create one.
 
+Set the seller time zone in Dashboard → Settings → Profile before reading
+analytics or order times. Dashboard charts, date ranges ("Today", "Last 7
+days"), order and customer dates, and seller notification emails use it. API
+timestamps and webhook payloads stay in UTC ISO 8601.
+
 Never use a live card, live payment secret, or real customer data for a test.
 
 ## Safe order

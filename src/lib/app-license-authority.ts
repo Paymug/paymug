@@ -14,6 +14,7 @@ import type {
   LicenseAuthorityDeactivationRequest,
   LicenseAuthorityRequest,
   LicenseAuthorityResponse,
+  LicenseAuthoritySeats,
 } from "./app-license.types";
 
 function parseLicenseData(value: string): Record<string, unknown> {
@@ -56,12 +57,26 @@ function getLicenseState(
     : "active";
 }
 
+function getSeatInfo(
+  data: Record<string, unknown>,
+  activationCount: number,
+): LicenseAuthoritySeats {
+  const seatLimit = parseLicenseSeatLimit(data.seatLimit);
+  return {
+    seatLimit,
+    seatsUsed: activationCount,
+    seatsRemaining:
+      seatLimit === null ? null : Math.max(seatLimit - activationCount, 0),
+  };
+}
+
 async function createAuthorityResponse(
   requestUrl: string,
   state: "active" | "invalid" | "expired" | "deactivated",
   expiresAt?: string,
   error?: string,
   instanceId?: string,
+  seats?: LicenseAuthoritySeats,
 ): Promise<LicenseAuthorityResponse> {
   return {
     valid: state === "active",
@@ -72,6 +87,7 @@ async function createAuthorityResponse(
     instanceId,
     expiresAt,
     error,
+    ...seats,
   };
 }
 
@@ -106,15 +122,18 @@ export async function activateAuthorityLicense(
   const expiresAt =
     typeof data.expiresAt === "string" ? data.expiresAt : undefined;
   const state = getLicenseState(license.status, data);
+  const activations = parseLicenseActivations(data.appActivations);
+  const currentSeats = getSeatInfo(data, activations.length);
   if (state !== "active") {
     return createAuthorityResponse(
       requestUrl,
       state,
       expiresAt,
       state === "expired" ? "License has expired" : "License is not active",
+      undefined,
+      currentSeats,
     );
   }
-  const activations = parseLicenseActivations(data.appActivations);
   const seatLimit = parseLicenseSeatLimit(data.seatLimit);
   const existing = activations.find(
     (activation) => activation.instanceId === input.instanceId,
@@ -125,6 +144,8 @@ export async function activateAuthorityLicense(
       "invalid",
       expiresAt,
       `License seat limit reached (${seatLimit})`,
+      undefined,
+      currentSeats,
     );
   }
   const now = new Date().toISOString();
@@ -158,6 +179,7 @@ export async function activateAuthorityLicense(
     expiresAt,
     undefined,
     input.instanceId,
+    getSeatInfo(data, nextActivations.length),
   );
 }
 
@@ -191,10 +213,19 @@ export async function validateAuthorityLicense(
   const expiresAt =
     typeof data.expiresAt === "string" ? data.expiresAt : undefined;
   const state = getLicenseState(license.status, data);
+  const activations = parseLicenseActivations(data.appActivations);
+  const seats = getSeatInfo(data, activations.length);
   if (state !== "active") {
-    return createAuthorityResponse(requestUrl, state, expiresAt);
+    return createAuthorityResponse(
+      requestUrl,
+      state,
+      expiresAt,
+      undefined,
+      undefined,
+      seats,
+    );
   }
-  const activation = parseLicenseActivations(data.appActivations).find(
+  const activation = activations.find(
     (item) => item.instanceId === input.instanceId,
   );
   if (!activation) {
@@ -203,6 +234,8 @@ export async function validateAuthorityLicense(
       "invalid",
       expiresAt,
       "License is not activated for this installation",
+      undefined,
+      seats,
     );
   }
   return activateAuthorityLicense(input, requestUrl);

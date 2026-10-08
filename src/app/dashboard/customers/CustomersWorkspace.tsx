@@ -21,6 +21,8 @@ import {
 import { formatMoney } from "@/lib/format";
 import { CustomerActionsMenu } from "./CustomerActionsMenu";
 import { CustomerDetailsDrawer } from "./CustomerDetailsDrawer";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
+import { toWallClockIso } from "@/lib/timezone";
 import { formatCustomerDate } from "./customers.utils";
 import type {
   CustomerSummary,
@@ -44,11 +46,12 @@ export function CustomersWorkspace({
   customers,
   range,
 }: CustomersWorkspaceProps) {
+  const timeZone = useTimeZone();
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerSummary>();
   const table = useDataTable("customers", customerColumns);
   const totalCustomers = customers.length;
   const newCustomers = customers.filter((customer) => {
-    const firstSeen = customer.firstSeen.slice(0, 10);
+    const firstSeen = toWallClockIso(customer.firstSeen, timeZone).slice(0, 10);
     return firstSeen >= range.startDate && firstSeen <= range.endDate;
   }).length;
   const returningCustomers = customers.filter(
@@ -117,7 +120,7 @@ export function CustomersWorkspace({
                 >
                   {table.isVisible("firstSeen") && (
                   <td className="truncate px-4 py-3 tabular-nums text-muted">
-                    {formatCustomerDate(customer.firstSeen)}
+                    {formatCustomerDate(customer.firstSeen, timeZone)}
                   </td>
                   )}
                   {table.isVisible("name") && (

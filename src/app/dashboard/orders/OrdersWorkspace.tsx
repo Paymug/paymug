@@ -31,6 +31,7 @@ import type {
   DashboardOrderItem,
   OrdersWorkspaceProps,
 } from "./OrdersWorkspace.types";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import {
   formatOrderDateTime,
   formatOrderListDate,
@@ -58,6 +59,7 @@ function OrderDetailDrawer({
   order: DashboardOrderItem;
   onClose(): void;
 }) {
+  const timeZone = useTimeZone();
   const orderNumber = formatOrderNumber(order.id);
   const benefitsAvailable = Boolean(
     order.deliveryContent ||
@@ -70,7 +72,7 @@ function OrderDetailDrawer({
     <RightDrawerModal
       eyebrow="Order"
       title={`Order ${orderNumber}`}
-      description={formatOrderDateTime(order.createdAt)}
+      description={formatOrderDateTime(order.createdAt, timeZone)}
       onClose={onClose}
     >
       <div className="space-y-6">
@@ -248,7 +250,7 @@ function OrderDetailDrawer({
                 </code>
                 {order.license.expiresAt && (
                   <p className="mt-2 text-xs text-[#8b8ba3]">
-                    Expires {formatOrderListDate(order.license.expiresAt)}
+                    Expires {formatOrderListDate(order.license.expiresAt, timeZone)}
                   </p>
                 )}
                 {order.license.perpetual && (
@@ -257,7 +259,7 @@ function OrderDetailDrawer({
                     <p>
                       {order.license.updatesActive
                         ? order.license.updatesExpireAt
-                          ? `Updates through ${formatOrderListDate(order.license.updatesExpireAt)}`
+                          ? `Updates through ${formatOrderListDate(order.license.updatesExpireAt, timeZone)}`
                           : "Updates included"
                         : "Update period ended"}
                     </p>
@@ -317,7 +319,7 @@ function OrderDetailDrawer({
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={entry.status} />
                     <span className="text-xs text-[#8b8ba3]">
-                      {formatOrderDateTime(entry.paidAt || entry.createdAt)}
+                      {formatOrderDateTime(entry.paidAt || entry.createdAt, timeZone)}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[#8b8ba3]">
@@ -351,6 +353,7 @@ const orderColumns: DataTableColumn[] = [
 ];
 
 export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
+  const timeZone = useTimeZone();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const table = useDataTable("orders", orderColumns);
   const selected = orders.find((order) => order.id === selectedId) || null;
@@ -398,7 +401,7 @@ export function OrdersWorkspace({ orders }: OrdersWorkspaceProps) {
               >
                 {table.isVisible("date") && (
                   <td className="truncate px-4 py-3 text-muted">
-                    {formatOrderListDate(order.createdAt)}
+                    {formatOrderListDate(order.createdAt, timeZone)}
                   </td>
                 )}
                 {table.isVisible("status") && (

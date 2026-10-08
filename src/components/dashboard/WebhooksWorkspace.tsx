@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDateTimeInTimeZone } from "@/lib/timezone";
+import { useTimeZone } from "./TimeZoneProvider";
 import {
   ArrowClockwise,
   Flask,
@@ -31,6 +33,7 @@ import {
 } from "./webhooks-workspace.utils";
 
 export function WebhooksWorkspace() {
+  const timeZone = useTimeZone();
   const [webhooks, setWebhooks] = useState<OutboundWebhookRecord[]>([]);
   const [deliveries, setDeliveries] = useState<
     NonNullable<WebhooksResponse["deliveries"]>
@@ -364,7 +367,7 @@ export function WebhooksWorkspace() {
                         </details>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-muted">
-                        {new Date(delivery.createdAt).toLocaleString()}
+                        {formatDateTimeInTimeZone(delivery.createdAt, timeZone)}
                         {delivery.durationMs !== undefined && (
                           <span className="block text-xs">
                             {delivery.durationMs} ms

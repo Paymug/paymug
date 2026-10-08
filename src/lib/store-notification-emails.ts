@@ -28,6 +28,7 @@ async function getStoreNotificationEmailContext(
     name: store?.name || user.storeName,
     logo: store?.logoImageUrl,
     recipient: user.email,
+    timeZone: user.timezone,
     sender: store
       ? {
           name: store.name,
@@ -54,6 +55,7 @@ export async function sendStoreOrderPaymentEmail(
         context.name,
         context.recipient,
         context.logo,
+        context.timeZone,
       ),
       context.sender,
     );
@@ -78,6 +80,7 @@ export async function sendStoreSubscriptionPaymentEmail(
         context.name,
         context.recipient,
         context.logo,
+        context.timeZone,
       ),
       context.sender,
     );
@@ -102,6 +105,7 @@ export async function sendStoreAffiliateRegisteredEmail(
         context.name,
         context.recipient,
         context.logo,
+        context.timeZone,
       ),
       context.sender,
     );

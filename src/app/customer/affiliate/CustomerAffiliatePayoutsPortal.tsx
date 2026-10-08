@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
 import { CurrencyDollar } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,6 +16,7 @@ export function CustomerAffiliatePayoutsPortal({
   customer,
   data,
 }: CustomerAffiliatePortalProps) {
+  const browserTimeZone = useBrowserTimeZone();
   const [selectedStoreId, setSelectedStoreId] = useState(data.programs[0]?.storeId || "");
   const program = data.programs.find((candidate) => candidate.storeId === selectedStoreId) || data.programs[0];
   if (!program) return null;
@@ -92,8 +94,8 @@ export function CustomerAffiliatePayoutsPortal({
                       {reports.map((report) => (
                         <tr key={report.id} className="border-b border-[#eeeeF2] last:border-0">
                           <td className="px-5 py-4 font-medium">{report.reference || report.id}</td>
-                          <td className="px-5 py-4 text-[#696978]">{formatCustomerPortalDateTime(report.createdAt)}</td>
-                          <td className="px-5 py-4 text-[#696978]">{report.paidAt ? formatCustomerPortalDateTime(report.paidAt) : "—"}</td>
+                          <td className="px-5 py-4 text-[#696978]">{formatCustomerPortalDateTime(report.createdAt, browserTimeZone)}</td>
+                          <td className="px-5 py-4 text-[#696978]">{report.paidAt ? formatCustomerPortalDateTime(report.paidAt, browserTimeZone) : "—"}</td>
                           <td className="px-5 py-4">
                             <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getCustomerStatusClass(report.status)}`}>{report.status}</span>
                           </td>

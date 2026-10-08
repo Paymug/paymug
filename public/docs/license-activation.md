@@ -62,6 +62,19 @@ POST /api/v1/licenses/validate
 Use validation when the agent needs to confirm an existing activation. Do not
 activate repeatedly just to check state.
 
+Activate and validate responses also include seat usage when the license key is
+found and matches the product:
+
+| Field | Meaning |
+| --- | --- |
+| `seatLimit` | Total device seats, including purchased extra seats; `null` is unlimited |
+| `seatsUsed` | Devices currently activated |
+| `seatsRemaining` | Free seats; `null` is unlimited |
+
+To check seats before activating, call validate with the new `instanceId`. It
+returns `valid: false` (not activated yet) together with the seat fields. Activate
+only when `seatsRemaining` is `null` or greater than `0`.
+
 ## Deactivate
 
 Keep the `instanceId` returned by activation. To deactivate, send only the
@@ -90,7 +103,7 @@ Confirm the returned state is `deactivated`.
 | `expired` | License expiry has passed | Ask the owner to renew |
 | `deactivated` | This installation is no longer active | Activate again only when intended |
 
-If the seat limit is reached, do not retry in a loop. Ask the customer to open
+If the seat limit is reached (`seatsRemaining` is `0`), do not retry in a loop. Ask the customer to open
 the purchase in `/customer`, review Active devices, and remove a device that is
 no longer used.
 

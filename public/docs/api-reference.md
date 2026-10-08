@@ -23,6 +23,14 @@ The resource list responses are JSON objects with a plural top-level field such
 as `products`, `orders`, or `customers`. Treat item fields as contract data only
 when the current API reference documents them.
 
+## License seat availability
+
+`POST /api/v1/licenses/activate` and `POST /api/v1/licenses/validate` return
+`seatLimit` (integer or `null` for unlimited), `seatsUsed`, and `seatsRemaining`
+(integer or `null`) alongside `valid`, `state`, and `features`. Validate a new
+`instanceId` to read free seats without activating; see the
+[license runbook](/docs/license-activation.md).
+
 ## Product extra seats
 
 Items in `GET /api/v1/products` include these fields for licensed products:

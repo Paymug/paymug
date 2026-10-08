@@ -2,6 +2,7 @@
 
 import { Desktop, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
+import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { formatCustomerDateTime } from "./customers.utils";
 import type { CustomerLicenseActivationsProps } from "./CustomerLicenseActivations.types";
 
@@ -10,6 +11,7 @@ export function CustomerLicenseActivations({
   seatLimit,
   initialActivations,
 }: CustomerLicenseActivationsProps) {
+  const timeZone = useTimeZone();
   const [activations, setActivations] = useState(initialActivations);
   const [removingId, setRemovingId] = useState<string>();
   const [error, setError] = useState<string>();
@@ -72,7 +74,7 @@ export function CustomerLicenseActivations({
                 </p>
                 <p className="mt-0.5 text-xs text-[#85859d]">
                   Version {activation.appVersion} · Last active{" "}
-                  {formatCustomerDateTime(activation.lastSeenAt)}
+                  {formatCustomerDateTime(activation.lastSeenAt, timeZone)}
                 </p>
                 <p className="mt-1 truncate font-mono text-[11px] text-[#a0a0b2]">
                   {activation.instanceId}

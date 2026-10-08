@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Alert, Button, Input } from "@/components/ui";
+import { useEffect, useState } from "react";
+import { Alert, Button, Input, Select } from "@/components/ui";
 import type {
   GeneralSettingsFormProps,
   GeneralSettingsResponse,
@@ -12,12 +12,23 @@ export function GeneralSettingsForm({
   name: initialName,
   email,
   memberSince,
+  timezone: initialTimezone,
+  timezoneOptions,
 }: GeneralSettingsFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
+  const [timezone, setTimezone] = useState(initialTimezone);
+  const [browserTimezone, setBrowserTimezone] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezoneOptions.some((option) => option.value === detected)) {
+      setBrowserTimezone(detected);
+    }
+  }, [timezoneOptions]);
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +38,7 @@ export function GeneralSettingsForm({
     const response = await fetch("/api/settings/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, timezone }),
     });
     const data = (await response.json()) as GeneralSettingsResponse;
     setSaving(false);
@@ -57,6 +68,32 @@ export function GeneralSettingsForm({
             required
           />
           <Input label="Email" name="email" value={email} disabled />
+          <div>
+            <Select
+              label="Time zone"
+              name="timezone"
+              value={timezone}
+              onValueChange={setTimezone}
+              options={timezoneOptions}
+              searchable
+              searchPlaceholder="Search time zones…"
+            />
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              Used for analytics, orders, and other dates in your dashboard.
+              {browserTimezone && browserTimezone !== timezone && (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="font-medium text-accent-dark hover:underline"
+                    onClick={() => setTimezone(browserTimezone)}
+                  >
+                    Use browser time zone
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
           <p className="text-sm text-muted">Member since {memberSince}</p>
           {error && <Alert>{error}</Alert>}
           {success && (
