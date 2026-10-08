@@ -8,6 +8,7 @@ public-root: /
 - **Store:** the seller's public storefront and settings.
 - **Customer:** a buyer who can use the customer portal.
 - **Product:** an item or subscription a seller offers.
+- **Extra seats:** additional device seats a buyer can purchase on top of a license's base seat limit, priced per seat with optional tiers.
 - **Order:** the recorded result of a purchase.
 - **Delivery:** a file, license, redirect, or GitHub access granted after payment.
 - **Test mode:** a safe environment for test products and sandbox payments.

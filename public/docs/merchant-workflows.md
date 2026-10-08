@@ -26,7 +26,9 @@ expired states using the provider test tools.
 
 ## Product delivery
 
-Choose files, license keys, or private GitHub access. Test the customer experience
+Choose files, license keys, or private GitHub access. For licensed products with a
+fixed seat limit, **Sell extra seats** lets buyers add seats at checkout with a
+per-seat price and optional tiers. Test the customer experience
 after payment. Check expiry and revocation rules before testing a second customer.
 
 ## Growth features

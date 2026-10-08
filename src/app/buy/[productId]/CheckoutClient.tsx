@@ -29,6 +29,7 @@ import {
   formatCustomCheckoutAmount,
   parseCustomCheckoutAmount,
 } from "@/lib/custom-product-amount";
+import { ExtraSeatsPicker } from "@/components/ExtraSeatsPicker";
 import { AbandonmentSurvey } from "@/components/AbandonmentSurvey";
 import { DEFAULT_ABANDONMENT_QUESTION } from "@/lib/abandonment";
 
@@ -37,6 +38,9 @@ export function CheckoutClient({
   productId,
   productName,
   productPrice,
+  extraSeatsEnabled = false,
+  extraSeats = 0,
+  extraSeatsPrice = 0,
   defaultProductPrice,
   customAmountEnabled,
   allowNote,
@@ -516,10 +520,22 @@ export function CheckoutClient({
           <div className="flex items-center justify-between gap-4">
             <span className="text-muted">{productName}</span>
             <span>
-              {formatProductPageMoney(pricing.subtotal, currency)}
+              {formatProductPageMoney(
+                pricing.subtotal - extraSeatsPrice,
+                currency,
+              )}
               {priceSuffix}
             </span>
           </div>
+          {extraSeatsEnabled && (
+            <div className="flex items-start justify-between gap-4 mt-4">
+              <ExtraSeatsPicker key={extraSeats} extraSeats={extraSeats} />
+              <span>
+                {formatProductPageMoney(extraSeatsPrice, currency)}
+                {extraSeats > 0 ? priceSuffix : ""}
+              </span>
+            </div>
+          )}
           {pricing.discountAmount > 0 && (
             <div className="flex items-center justify-between gap-4 text-emerald-600">
               <span>

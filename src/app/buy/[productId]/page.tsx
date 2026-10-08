@@ -39,6 +39,7 @@ import {
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
 import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
+import { canSellExtraSeats } from "@/lib/extra-seats";
 import { ProductConfigurationPicker } from "@/components/ProductConfigurationPicker";
 import { resolveProductConfiguration } from "@/lib/product-configurations";
 import PaymentSheet from "./PaymentSheet";
@@ -295,6 +296,9 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   abandonmentOptions={store.abandonmentOptions}
                   customAmount={customAmount}
                   custom={configuration.custom}
+                  extraSeatsEnabled={canSellExtraSeats(product)}
+                  extraSeats={configuration.extraSeats}
+                  extraSeatsPrice={configuration.extraSeatsPrice}
                   affiliateRef={ref?.trim() || undefined}
                   initialDiscountCode={discount?.trim() || undefined}
                   initialTransactionFeeAmount={

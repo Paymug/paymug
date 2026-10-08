@@ -1,4 +1,10 @@
 import type { CheckoutCustomData } from "./checkout-custom-data.types";
+import {
+  calculateExtraSeatsPrice,
+  canSellExtraSeats,
+  extraSeatsCustomKey,
+  parseExtraSeatCount,
+} from "./extra-seats";
 import type {
   ConfigurableProduct,
   ProductBundle,
@@ -89,10 +95,30 @@ export function resolveProductConfiguration(
     }
   }
 
+  let extraSeats = 0;
+  let extraSeatsPrice = 0;
+  if (
+    product.extraSeatTiers &&
+    canSellExtraSeats({
+      generateLicense: product.generateLicense ?? false,
+      licenseSeatLimit: product.licenseSeatLimit ?? null,
+      extraSeatsEnabled: product.extraSeatsEnabled ?? false,
+      extraSeatTiers: product.extraSeatTiers,
+    })
+  ) {
+    extraSeats = parseExtraSeatCount(custom);
+    extraSeatsPrice = calculateExtraSeatsPrice(product.extraSeatTiers, extraSeats);
+    price += extraSeatsPrice;
+    if (extraSeats > 0) normalizedCustom[extraSeatsCustomKey] = String(extraSeats);
+    else delete normalizedCustom[extraSeatsCustomKey];
+  }
+
   return {
     price,
     selectedOption,
     selectedBundleChoices,
+    extraSeats,
+    extraSeatsPrice,
     custom: normalizedCustom,
   };
 }

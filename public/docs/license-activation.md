@@ -48,7 +48,8 @@ instance URL, and app version. A successful response has `valid: true`, state
 Each license has a device seat policy. A product can allow a fixed number of
 active devices or unlimited devices. A new device can activate while a seat is
 available. When all limited seats are used, activation returns
-`License seat limit reached`.
+`License seat limit reached`. If the product sells extra seats, a license's seat
+limit is the base seat limit plus the extra seats the buyer purchased.
 
 ## Validate
 

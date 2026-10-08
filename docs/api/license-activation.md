@@ -28,6 +28,10 @@ A license can have a fixed device seat limit or unlimited seats. Activating a ne
 device uses one seat. When a fixed limit is full, activation fails with a seat
 limit error. Refreshing an existing device does not use another seat.
 
+When the product sells extra seats, the license seat limit is the product seat
+limit plus the extra seats bought at checkout (stored on the license as
+`extraSeats`).
+
 Customers can open the licensed purchase at `/customer` to view active devices
 and remove one. A removed device fails its next validation.
 

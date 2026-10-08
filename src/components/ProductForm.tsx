@@ -38,6 +38,7 @@ import type {
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { FormSwitch } from "./FormSwitch";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
+import { ExtraSeatsEditor } from "./ExtraSeatsEditor";
 import { ProductConfigurationEditor } from "./ProductConfigurationEditor";
 
 export function ProductForm({
@@ -112,6 +113,12 @@ export function ProductForm({
   );
   const [licenseSeatLimit, setLicenseSeatLimit] = useState(
     String(product?.licenseSeatLimit ?? 1),
+  );
+  const [extraSeatsEnabled, setExtraSeatsEnabled] = useState(
+    product?.extraSeatsEnabled || false,
+  );
+  const [extraSeatTiers, setExtraSeatTiers] = useState(
+    product?.extraSeatTiers || [],
   );
   const [billingType, setBillingType] = useState<ProductBillingType>(
     product?.billingType || "one_time",
@@ -228,6 +235,12 @@ export function ProductForm({
         ? null
         : parsedLicenseSeatLimit
       : 1,
+    extraSeatsEnabled:
+      generateLicense &&
+      !licenseSeatsUnlimited &&
+      extraSeatsEnabled &&
+      extraSeatTiers.length > 0,
+    extraSeatTiers,
     billingType,
     customAmountEnabled:
       billingType === "one_time" && customAmountEnabled,
@@ -832,6 +845,22 @@ export function ProductForm({
                 step="1"
                 value={licenseSeatLimit}
                 onChange={(event) => setLicenseSeatLimit(event.target.value)}
+              />
+            )}
+
+            {!licenseSeatsUnlimited && (
+              <ExtraSeatsEditor
+                currency={currency}
+                enabled={extraSeatsEnabled}
+                tiers={extraSeatTiers}
+                onEnabledChange={(enabled) => {
+                  setExtraSeatsEnabled(enabled);
+                  requestAutosave(1);
+                }}
+                onTiersChange={(tiers) => {
+                  setExtraSeatTiers(tiers);
+                  requestAutosave(800);
+                }}
               />
             )}
 

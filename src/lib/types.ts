@@ -1,5 +1,6 @@
 import type { ProductFile } from "./product-files.types";
 import type { CheckoutCustomData } from "./checkout-custom-data.types";
+import type { ProductExtraSeatTier } from "./extra-seats.types";
 import type {
   ProductBundle,
   ProductOption,
@@ -150,6 +151,10 @@ export interface Product {
   licenseUpdatePeriodCount: number;
   /** Maximum active devices, or null for unlimited devices. */
   licenseSeatLimit: number | null;
+  /** Lets buyers purchase seats beyond licenseSeatLimit. Needs a limited seat count. */
+  extraSeatsEnabled: boolean;
+  /** Graduated per-seat prices (cents) for extra seats, sorted by `from`. */
+  extraSeatTiers: ProductExtraSeatTier[];
   /** One-time purchase or recurring subscription. */
   billingType: ProductBillingType;
   /** Allows one-time checkout links to override the default price. */

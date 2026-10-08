@@ -1,3 +1,4 @@
+import type { ProductExtraSeatTier } from "@/lib/extra-seats.types";
 import type { Product } from "@/lib/types";
 import type { ProductFile } from "@/lib/product-files.types";
 import type {
@@ -27,6 +28,8 @@ export interface ProductFormSavePayload {
   licenseUpdatePeriodUnit?: "day" | "week" | "month" | "year" | null;
   licenseUpdatePeriodCount: number;
   licenseSeatLimit: number | null;
+  extraSeatsEnabled: boolean;
+  extraSeatTiers: ProductExtraSeatTier[];
   billingType: "one_time" | "subscription";
   customAmountEnabled: boolean;
   allowNote: boolean;

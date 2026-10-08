@@ -23,7 +23,8 @@ confirm the email address, store URL, payment status, and test/live mode.
 
 1. Open a purchase that includes a license key.
 2. Find Active devices under the key.
-3. Check the number of used seats and the seat limit.
+3. Check the number of used seats and the seat limit. The limit includes any
+   extra seats bought at checkout.
 4. Remove a device that is no longer used.
 
 The removed device fails its next license validation. Do not remove the current

@@ -1,4 +1,5 @@
 import type { CheckoutCustomData } from "./checkout-custom-data.types";
+import type { ExtraSeatProduct } from "./extra-seats.types";
 import type { Product } from "./types";
 
 export interface ProductOption {
@@ -27,10 +28,14 @@ export interface ResolvedProductConfiguration {
     bundle: ProductBundle;
     choice: ProductBundleChoice;
   }>;
+  /** Extra license seats the buyer added (0 when unavailable). */
+  extraSeats: number;
+  extraSeatsPrice: number;
   custom: CheckoutCustomData;
 }
 
 export type ConfigurableProduct = Pick<
   Product,
   "price" | "options" | "bundles"
->;
+> &
+  Partial<ExtraSeatProduct>;

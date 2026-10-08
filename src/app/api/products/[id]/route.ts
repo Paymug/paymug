@@ -26,6 +26,11 @@ import {
   parseProductLicenseType,
 } from "@/lib/license-entitlements";
 import { jsonError } from "@/lib/utils";
+import {
+  maxExtraSeatTiers,
+  maxExtraSeats,
+  normalizeExtraSeatTiers,
+} from "@/lib/extra-seats";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { omitProductPurchaseDetails } from "./route.utils";
 import { validateProductCategoryIds } from "@/lib/product-categories";
@@ -60,6 +65,11 @@ export async function GET(_req: Request, ctx: Ctx) {
   return Response.json({ product });
 }
 
+const extraSeatTierSchema = z.object({
+  from: z.number().int().min(1).max(maxExtraSeats),
+  price: z.number().int().min(0).max(1_000_000_000),
+});
+
 const updateSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   slug: z.string().trim().max(100).optional(),
@@ -82,6 +92,8 @@ const updateSchema = z.object({
   licenseUpdatePeriodUnit: z.enum(["day", "week", "month", "year"]).nullable().optional(),
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).optional(),
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().optional(),
+  extraSeatsEnabled: z.boolean().optional(),
+  extraSeatTiers: z.array(extraSeatTierSchema).max(maxExtraSeatTiers).optional(),
   billingType: z.enum(["one_time", "subscription"]).optional(),
   customAmountEnabled: z.boolean().optional(),
   allowNote: z.boolean().optional(),
@@ -209,6 +221,14 @@ export async function PATCH(req: Request, ctx: Ctx) {
         ? parsed.data.licenseSeatLimit
         : existing.licenseSeatLimit
       : 1;
+    const extraSeatTiers = normalizeExtraSeatTiers(
+      parsed.data.extraSeatTiers ?? existing.extraSeatTiers,
+    );
+    const extraSeatsEnabled =
+      generateLicense &&
+      licenseSeatLimit !== null &&
+      extraSeatTiers.length > 0 &&
+      (parsed.data.extraSeatsEnabled ?? existing.extraSeatsEnabled);
     let licenseUpdatePeriod = { unit: null as null | "day" | "week" | "month" | "year", count: 1 };
     try {
       if (licenseType === "perpetual") {
@@ -236,6 +256,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
       licenseUpdatePeriodUnit: licenseUpdatePeriod.unit,
       licenseUpdatePeriodCount: licenseUpdatePeriod.count,
       licenseSeatLimit,
+      extraSeatsEnabled,
+      extraSeatTiers,
       billingType: nextBillingType,
       customAmountEnabled:
         nextBillingType === "one_time"

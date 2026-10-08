@@ -20,6 +20,10 @@ import type {
   StripeConnection,
   User,
 } from "./types";
+import {
+  parseExtraSeatTiers,
+  serializeExtraSeatTiers,
+} from "./extra-seats";
 import { getStoredGitHubHostname } from "./github-hostname.utils";
 import {
   parseProductFiles,
@@ -147,6 +151,8 @@ function rowToProduct(
       row.licenseSeatLimit === null
         ? null
         : Math.max(1, row.licenseSeatLimit || 1),
+    extraSeatsEnabled: row.extraSeatsEnabled,
+    extraSeatTiers: parseExtraSeatTiers(row.extraSeatTiers),
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
     customAmountEnabled: row.customAmountEnabled,
     allowNote: row.allowNote,
@@ -486,6 +492,8 @@ export async function createProduct(product: Product): Promise<Product> {
       product.licenseSeatLimit === null
         ? null
         : Math.max(1, product.licenseSeatLimit || 1),
+    extraSeatsEnabled: product.extraSeatsEnabled ?? false,
+    extraSeatTiers: serializeExtraSeatTiers(product.extraSeatTiers),
     billingType: product.billingType || "one_time",
     customAmountEnabled:
       product.billingType === "one_time" && product.customAmountEnabled,
@@ -579,6 +587,12 @@ export async function updateProduct(
                 ? null
                 : Math.max(1, patch.licenseSeatLimit),
           }
+        : {}),
+      ...(patch.extraSeatsEnabled !== undefined
+        ? { extraSeatsEnabled: patch.extraSeatsEnabled }
+        : {}),
+      ...(patch.extraSeatTiers !== undefined
+        ? { extraSeatTiers: serializeExtraSeatTiers(patch.extraSeatTiers) }
         : {}),
       ...(patch.billingType !== undefined
         ? { billingType: patch.billingType }

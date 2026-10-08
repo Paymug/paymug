@@ -21,7 +21,9 @@ See [API workflows](/docs/api-workflows.md).
 
 1. Select test mode.
 2. Create a product with a price and delivery method.
-3. Add a test file or license/GitHub delivery only when configured.
+3. Add a test file or license/GitHub delivery only when configured. To test extra
+   seats, enable a license with a fixed seat limit, turn on Sell extra seats,
+   and use the plus/minus control on the product page.
 4. Publish it.
 5. Complete a test checkout and confirm delivery.
 

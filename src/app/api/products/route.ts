@@ -23,6 +23,11 @@ import {
   parseProductLicenseType,
 } from "@/lib/license-entitlements";
 import { jsonError, uid } from "@/lib/utils";
+import {
+  maxExtraSeatTiers,
+  maxExtraSeats,
+  normalizeExtraSeatTiers,
+} from "@/lib/extra-seats";
 import { requireProFeature } from "@/lib/pro-feature-access";
 import { validateProductCategoryIds } from "@/lib/product-categories";
 import {
@@ -40,6 +45,11 @@ export async function GET() {
   );
   return Response.json({ products });
 }
+
+const extraSeatTierSchema = z.object({
+  from: z.number().int().min(1).max(maxExtraSeats),
+  price: z.number().int().min(0).max(1_000_000_000),
+});
 
 const createSchema = z.object({
   name: z.string().min(1).max(120),
@@ -63,6 +73,8 @@ const createSchema = z.object({
   licenseUpdatePeriodUnit: z.enum(["day", "week", "month", "year"]).nullable().optional(),
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).default(1),
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().default(1),
+  extraSeatsEnabled: z.boolean().default(false),
+  extraSeatTiers: z.array(extraSeatTierSchema).max(maxExtraSeatTiers).default([]),
   billingType: z.enum(["one_time", "subscription"]).default("one_time"),
   customAmountEnabled: z.boolean().default(false),
   allowNote: z.boolean().default(false),
@@ -185,6 +197,15 @@ export async function POST(req: Request) {
         return jsonError("Product slug already taken", 409);
       }
     }
+    const extraSeatTiers = normalizeExtraSeatTiers(parsed.data.extraSeatTiers);
+    const extraSeats = {
+      extraSeatsEnabled:
+        parsed.data.extraSeatsEnabled &&
+        parsed.data.generateLicense &&
+        parsed.data.licenseSeatLimit !== null &&
+        extraSeatTiers.length > 0,
+      extraSeatTiers,
+    };
     const product = await createProduct({
       id: uid(),
       userId: user.id,
@@ -214,6 +235,7 @@ export async function POST(req: Request) {
       licenseSeatLimit: parsed.data.generateLicense
         ? parsed.data.licenseSeatLimit
         : 1,
+      ...extraSeats,
       billingType,
       customAmountEnabled:
         billingType === "one_time" && parsed.data.customAmountEnabled,

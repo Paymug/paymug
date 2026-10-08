@@ -241,5 +241,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `product_categories` ADD `visible_on_storefront` integer DEFAULT true NOT NULL;"
     ]
+  },
+  {
+    "name": "0029_product_extra_seats.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `extra_seats_enabled` integer DEFAULT false NOT NULL;",
+      "ALTER TABLE `products` ADD `extra_seat_tiers` text DEFAULT '[]' NOT NULL;"
+    ]
   }
 ];

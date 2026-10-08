@@ -28,8 +28,8 @@ paths:
                   products:
                     type: array
                     items:
-                      type: object
-                      additionalProperties: true
+                      $ref: '#/components/schemas/Product'
+
         '401':
           $ref: '#/components/responses/Unauthorized'
   /api/v1/orders:
@@ -79,6 +79,35 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 components:
+  schemas:
+    ExtraSeatTier:
+      type: object
+      required: [from, price]
+      properties:
+        from:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: First extra seat (1-based) this price applies to. The first tier always starts at 1.
+        price:
+          type: integer
+          minimum: 0
+          description: Price per extra seat in cents.
+    Product:
+      type: object
+      additionalProperties: true
+      properties:
+        licenseSeatLimit:
+          type: [integer, 'null']
+          description: Base device seats for a licensed product; null means unlimited.
+        extraSeatsEnabled:
+          type: boolean
+          description: Buyers can add seats beyond licenseSeatLimit at checkout. Requires a finite seat limit.
+        extraSeatTiers:
+          type: array
+          description: Accumulating per-seat prices. Each extra seat is charged at the tier it falls in. Buyers choose a count with the checkout custom field extra_seats.
+          items:
+            $ref: '#/components/schemas/ExtraSeatTier'
   securitySchemes:
     bearerApiKey:
       type: http

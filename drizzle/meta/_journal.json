@@ -204,6 +204,13 @@
       "when": 1789365600000,
       "tag": "0028_category_storefront_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1789452000000,
+      "tag": "0029_product_extra_seats",
+      "breakpoints": true
     }
   ]
 }

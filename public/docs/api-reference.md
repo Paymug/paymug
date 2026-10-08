@@ -23,6 +23,23 @@ The resource list responses are JSON objects with a plural top-level field such
 as `products`, `orders`, or `customers`. Treat item fields as contract data only
 when the current API reference documents them.
 
+## Product extra seats
+
+Items in `GET /api/v1/products` include these fields for licensed products:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `licenseSeatLimit` | integer or `null` | Base device seats; `null` is unlimited |
+| `extraSeatsEnabled` | boolean | Buyers can purchase seats beyond the base limit |
+| `extraSeatTiers` | array | Per-seat prices in cents: `[{ "from": 1, "price": 500 }, { "from": 11, "price": 300 }]` |
+
+Tiers accumulate: each extra seat is charged at the price of the tier it falls
+in, and the first tier always starts at `from: 1`. Extra seats require a finite
+`licenseSeatLimit`. A buyer selects them with the checkout custom field
+`extra_seats` (for example `?[custom][extra_seats]=3` on the product link, or
+`custom: { "extra_seats": "3" }` in checkout requests). The server calculates the
+price; ignore any client-side total.
+
 ## Authentication example
 
 ```bash

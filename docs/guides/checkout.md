@@ -10,6 +10,11 @@ last-verified: 2026-08-26
 The buyer opens a product link, applies a discount if available, pays through the
 selected provider, and returns to Paymug.
 
+When a product sells extra seats, the buyer picks the number of extra seats on
+the product page. The seats are added to the order total and to the license seat
+limit. Checkout links can preselect them with `?[custom][extra_seats]=3`; the
+server recalculates the price from the product's current seat tiers.
+
 A browser success page is not proof of payment. The provider callback must confirm
 the payment before Paymug marks the order paid and gives access to delivery.
 

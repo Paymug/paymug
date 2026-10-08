@@ -17,5 +17,8 @@ subscription.
 5. Save and publish the product.
 6. Copy the checkout link and test it.
 
+Licensed products with a fixed device seat limit can also sell extra seats, with
+optional tiered per-seat pricing. See [Product licenses](licenses.md).
+
 Keep a product unpublished while its price, payment, and delivery settings are
 being tested.

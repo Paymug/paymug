@@ -15,6 +15,12 @@ import type {
   AppliedDiscount,
   CompleteCommerceFeaturesOptions,
 } from "./commerce-features.types";
+import {
+  canSellExtraSeats,
+  extraSeatsCustomKey,
+  parseExtraSeatCount,
+  resolveLicenseSeatLimit,
+} from "./extra-seats";
 import { grantGitHubOrderAccess } from "./github-access";
 import { calculateAffiliateCommission } from "./affiliate-settings.utils";
 import { getStoreById } from "./stores";
@@ -354,15 +360,30 @@ async function issueLicense(order: Order, product: Product): Promise<void> {
       ? product.intervalCount || 1
       : product.licenseUpdatePeriodCount || 1
   );
+  const extraSeats = canSellExtraSeats(product)
+    ? parseExtraSeatCount(order.custom)
+    : 0;
   if (existing) {
     if (subscriptionLicense) {
+      // Renewal orders may not repeat the buyer's extra seats; keep the ones
+      // already attached to the license.
+      const renewedExtraSeats =
+        order.custom[extraSeatsCustomKey] !== undefined
+          ? extraSeats
+          : canSellExtraSeats(product)
+            ? Math.max(0, Number(existing.data.extraSeats) || 0)
+            : 0;
       await updateFeatureRecord(existing.id, order.userId, {
         data: {
           ...existing.data,
           latestOrderId: order.id,
           updatesStatus: "active",
           updatesExpiredAt: null,
-          seatLimit: product.licenseSeatLimit,
+          extraSeats: renewedExtraSeats,
+          seatLimit:
+            product.licenseSeatLimit === null
+              ? null
+              : product.licenseSeatLimit + renewedExtraSeats,
           foreverFreeSubscription:
             existing.data.foreverFreeSubscription === true ||
             foreverFreeSubscription,
@@ -400,7 +421,8 @@ async function issueLicense(order: Order, product: Product): Promise<void> {
       transactionFeeAmount: order.transactionFeeAmount,
       issuedAt,
       licenseType: perpetual ? "perpetual" : "standard",
-      seatLimit: product.licenseSeatLimit,
+      seatLimit: resolveLicenseSeatLimit(product, order.custom),
+      extraSeats,
       ...(perpetual
         ? {
             perpetual: true,
