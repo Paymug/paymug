@@ -3,13 +3,17 @@
 import { Minus, Plus } from "@phosphor-icons/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { extraSeatsCustomKey, maxExtraSeats } from "@/lib/extra-seats";
+import {
+  defaultExtraSeatLabel,
+  extraSeatsCustomKey,
+  maxExtraSeats,
+} from "@/lib/extra-seats";
 import type { ExtraSeatsPickerProps } from "./ExtraSeatsPicker.types";
 
 const buttonClass =
   "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition bg-[#f0f0f5] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent";
 
-export function ExtraSeatsPicker({ extraSeats }: ExtraSeatsPickerProps) {
+export function ExtraSeatsPicker({ extraSeats, label }: ExtraSeatsPickerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -30,7 +34,7 @@ export function ExtraSeatsPicker({ extraSeats }: ExtraSeatsPickerProps) {
     <div className="flex flex-col gap-1">
 
       <label htmlFor="extra-seats" className="text-muted">
-        Extra seats
+        {label || defaultExtraSeatLabel}
       </label>
 
       <div className="flex items-center gap-1">
@@ -45,7 +49,7 @@ export function ExtraSeatsPicker({ extraSeats }: ExtraSeatsPickerProps) {
         </button>
         <input
           id="extra-seats"
-          aria-label="Extra seats"
+          aria-label={label || defaultExtraSeatLabel}
           type="number"
           inputMode="numeric"
           min={0}

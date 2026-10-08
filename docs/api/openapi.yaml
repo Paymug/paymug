@@ -103,6 +103,10 @@ components:
         extraSeatsEnabled:
           type: boolean
           description: Buyers can add seats beyond licenseSeatLimit at checkout. Requires a finite seat limit.
+        extraSeatLabel:
+          type: string
+          maxLength: 40
+          description: Buyer-facing name for extra seats. Empty uses the default.
         extraSeatTiers:
           type: array
           description: Accumulating per-seat prices. Each extra seat is charged at the tier it falls in. Buyers choose a count with the checkout custom field extra_seats.

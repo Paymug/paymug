@@ -155,6 +155,8 @@ export interface Product {
   extraSeatsEnabled: boolean;
   /** Graduated per-seat prices (cents) for extra seats, sorted by `from`. */
   extraSeatTiers: ProductExtraSeatTier[];
+  /** Buyer-facing name for extra seats; empty uses the default label. */
+  extraSeatLabel: string;
   /** One-time purchase or recurring subscription. */
   billingType: ProductBillingType;
   /** Allows one-time checkout links to override the default price. */

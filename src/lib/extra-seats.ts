@@ -6,6 +6,8 @@ import type {
 
 export const extraSeatsCustomKey = "extra_seats";
 export const maxExtraSeats = 1000;
+export const maxExtraSeatLabelLength = 40;
+export const defaultExtraSeatLabel = "Extra seats";
 export const maxExtraSeatTiers = 10;
 const maxTierPrice = 1_000_000_000;
 

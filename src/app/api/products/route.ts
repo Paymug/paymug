@@ -24,6 +24,7 @@ import {
 } from "@/lib/license-entitlements";
 import { jsonError, uid } from "@/lib/utils";
 import {
+  maxExtraSeatLabelLength,
   maxExtraSeatTiers,
   maxExtraSeats,
   normalizeExtraSeatTiers,
@@ -74,6 +75,7 @@ const createSchema = z.object({
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).default(1),
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().default(1),
   extraSeatsEnabled: z.boolean().default(false),
+  extraSeatLabel: z.string().trim().max(maxExtraSeatLabelLength).default(""),
   extraSeatTiers: z.array(extraSeatTierSchema).max(maxExtraSeatTiers).default([]),
   billingType: z.enum(["one_time", "subscription"]).default("one_time"),
   customAmountEnabled: z.boolean().default(false),
@@ -205,6 +207,7 @@ export async function POST(req: Request) {
         parsed.data.licenseSeatLimit !== null &&
         extraSeatTiers.length > 0,
       extraSeatTiers,
+      extraSeatLabel: parsed.data.extraSeatLabel,
     };
     const product = await createProduct({
       id: uid(),

@@ -248,5 +248,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "ALTER TABLE `products` ADD `extra_seats_enabled` integer DEFAULT false NOT NULL;",
       "ALTER TABLE `products` ADD `extra_seat_tiers` text DEFAULT '[]' NOT NULL;"
     ]
+  },
+  {
+    "name": "0030_extra_seat_label.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `extra_seat_label` text DEFAULT '' NOT NULL;"
+    ]
   }
 ];

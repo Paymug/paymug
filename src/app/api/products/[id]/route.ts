@@ -27,6 +27,7 @@ import {
 } from "@/lib/license-entitlements";
 import { jsonError } from "@/lib/utils";
 import {
+  maxExtraSeatLabelLength,
   maxExtraSeatTiers,
   maxExtraSeats,
   normalizeExtraSeatTiers,
@@ -93,6 +94,7 @@ const updateSchema = z.object({
   licenseUpdatePeriodCount: z.number().int().min(1).max(3650).optional(),
   licenseSeatLimit: z.number().int().min(1).max(1000).nullable().optional(),
   extraSeatsEnabled: z.boolean().optional(),
+  extraSeatLabel: z.string().trim().max(maxExtraSeatLabelLength).optional(),
   extraSeatTiers: z.array(extraSeatTierSchema).max(maxExtraSeatTiers).optional(),
   billingType: z.enum(["one_time", "subscription"]).optional(),
   customAmountEnabled: z.boolean().optional(),

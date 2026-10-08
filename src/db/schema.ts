@@ -207,6 +207,7 @@ export const products = sqliteTable(
     .notNull()
     .default(false),
   extraSeatTiers: text("extra_seat_tiers").notNull().default("[]"),
+  extraSeatLabel: text("extra_seat_label").notNull().default(""),
   billingType: text("billing_type", {
     enum: ["one_time", "subscription"],
   })

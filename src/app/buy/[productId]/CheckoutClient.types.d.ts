@@ -13,6 +13,7 @@ export interface CheckoutClientProps {
   custom: CheckoutCustomData;
   extraSeatsEnabled?: boolean;
   extraSeats?: number;
+  extraSeatLabel?: string;
   /** Cost of the extra seats in cents, already included in productPrice. */
   extraSeatsPrice?: number;
   affiliateRef?: string;

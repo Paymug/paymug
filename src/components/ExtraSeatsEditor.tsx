@@ -4,12 +4,15 @@ import { Trash } from "@phosphor-icons/react";
 import { Fragment } from "react";
 import { formatMoney } from "@/lib/format";
 import {
+  defaultExtraSeatLabel,
+  maxExtraSeatLabelLength,
   maxExtraSeatTiers,
   maxExtraSeats,
   normalizeExtraSeatTiers,
 } from "@/lib/extra-seats";
 import type { ExtraSeatsEditorProps } from "./ExtraSeatsEditor.types";
 import { FormSwitch } from "./FormSwitch";
+import { Input } from "./ui";
 import { inputClass } from "./ui.styles";
 
 function toCents(value: string) {
@@ -20,6 +23,8 @@ export function ExtraSeatsEditor({
   currency,
   enabled,
   tiers,
+  label,
+  onLabelChange,
   onEnabledChange,
   onTiersChange,
 }: ExtraSeatsEditorProps) {
@@ -67,6 +72,15 @@ export function ExtraSeatsEditor({
 
       {enabled && (
         <div className="space-y-3">
+          <Input
+            label="Label"
+            name="extraSeatLabel"
+            value={label}
+            maxLength={maxExtraSeatLabelLength}
+            placeholder={defaultExtraSeatLabel}
+            onChange={(event) => onLabelChange(event.target.value)}
+          />
+
           <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_2.25rem] items-center gap-x-3 gap-y-2">
             <span className="text-xs font-medium text-muted">From seat</span>
             <span className="text-xs font-medium text-muted">

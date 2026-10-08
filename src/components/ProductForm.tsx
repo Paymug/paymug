@@ -117,6 +117,9 @@ export function ProductForm({
   const [extraSeatsEnabled, setExtraSeatsEnabled] = useState(
     product?.extraSeatsEnabled || false,
   );
+  const [extraSeatLabel, setExtraSeatLabel] = useState(
+    product?.extraSeatLabel || "",
+  );
   const [extraSeatTiers, setExtraSeatTiers] = useState(
     product?.extraSeatTiers || [],
   );
@@ -241,6 +244,7 @@ export function ProductForm({
       extraSeatsEnabled &&
       extraSeatTiers.length > 0,
     extraSeatTiers,
+    extraSeatLabel: extraSeatLabel.trim(),
     billingType,
     customAmountEnabled:
       billingType === "one_time" && customAmountEnabled,
@@ -853,6 +857,8 @@ export function ProductForm({
                 currency={currency}
                 enabled={extraSeatsEnabled}
                 tiers={extraSeatTiers}
+                label={extraSeatLabel}
+                onLabelChange={setExtraSeatLabel}
                 onEnabledChange={(enabled) => {
                   setExtraSeatsEnabled(enabled);
                   requestAutosave(1);

@@ -40,6 +40,7 @@ export function CheckoutClient({
   productPrice,
   extraSeatsEnabled = false,
   extraSeats = 0,
+  extraSeatLabel,
   extraSeatsPrice = 0,
   defaultProductPrice,
   customAmountEnabled,
@@ -529,7 +530,11 @@ export function CheckoutClient({
           </div>
           {extraSeatsEnabled && (
             <div className="flex items-start justify-between gap-4 mt-4">
-              <ExtraSeatsPicker key={extraSeats} extraSeats={extraSeats} />
+              <ExtraSeatsPicker
+                key={extraSeats}
+                extraSeats={extraSeats}
+                label={extraSeatLabel}
+              />
               <span>
                 {formatProductPageMoney(extraSeatsPrice, currency)}
                 {extraSeats > 0 ? priceSuffix : ""}

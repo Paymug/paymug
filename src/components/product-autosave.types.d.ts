@@ -30,6 +30,7 @@ export interface ProductFormSavePayload {
   licenseSeatLimit: number | null;
   extraSeatsEnabled: boolean;
   extraSeatTiers: ProductExtraSeatTier[];
+  extraSeatLabel: string;
   billingType: "one_time" | "subscription";
   customAmountEnabled: boolean;
   allowNote: boolean;

@@ -298,6 +298,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   custom={configuration.custom}
                   extraSeatsEnabled={canSellExtraSeats(product)}
                   extraSeats={configuration.extraSeats}
+                  extraSeatLabel={product.extraSeatLabel}
                   extraSeatsPrice={configuration.extraSeatsPrice}
                   affiliateRef={ref?.trim() || undefined}
                   initialDiscountCode={discount?.trim() || undefined}

@@ -31,6 +31,7 @@ Items in `GET /api/v1/products` include these fields for licensed products:
 | --- | --- | --- |
 | `licenseSeatLimit` | integer or `null` | Base device seats; `null` is unlimited |
 | `extraSeatsEnabled` | boolean | Buyers can purchase seats beyond the base limit |
+| `extraSeatLabel` | string | Buyer-facing name for extra seats; empty means the default "Extra seats" |
 | `extraSeatTiers` | array | Per-seat prices in cents: `[{ "from": 1, "price": 500 }, { "from": 11, "price": 300 }]` |
 
 Tiers accumulate: each extra seat is charged at the price of the tier it falls

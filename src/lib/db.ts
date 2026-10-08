@@ -153,6 +153,7 @@ function rowToProduct(
         : Math.max(1, row.licenseSeatLimit || 1),
     extraSeatsEnabled: row.extraSeatsEnabled,
     extraSeatTiers: parseExtraSeatTiers(row.extraSeatTiers),
+    extraSeatLabel: row.extraSeatLabel,
     billingType: row.billingType === "subscription" ? "subscription" : "one_time",
     customAmountEnabled: row.customAmountEnabled,
     allowNote: row.allowNote,
@@ -494,6 +495,7 @@ export async function createProduct(product: Product): Promise<Product> {
         : Math.max(1, product.licenseSeatLimit || 1),
     extraSeatsEnabled: product.extraSeatsEnabled ?? false,
     extraSeatTiers: serializeExtraSeatTiers(product.extraSeatTiers),
+    extraSeatLabel: product.extraSeatLabel?.trim() ?? "",
     billingType: product.billingType || "one_time",
     customAmountEnabled:
       product.billingType === "one_time" && product.customAmountEnabled,
@@ -590,6 +592,9 @@ export async function updateProduct(
         : {}),
       ...(patch.extraSeatsEnabled !== undefined
         ? { extraSeatsEnabled: patch.extraSeatsEnabled }
+        : {}),
+      ...(patch.extraSeatLabel !== undefined
+        ? { extraSeatLabel: patch.extraSeatLabel.trim() }
         : {}),
       ...(patch.extraSeatTiers !== undefined
         ? { extraSeatTiers: serializeExtraSeatTiers(patch.extraSeatTiers) }
