@@ -39,6 +39,7 @@ import {
   getOrderStatusBadgeVariant,
 } from "./orders.utils";
 import Link from "next/link";
+import { OrderActionsMenu } from "./OrderActionsMenu";
 
 function StatusBadge({ status }: { status: DashboardOrderItem["status"] }) {
   return (
@@ -73,6 +74,13 @@ function OrderDetailDrawer({
       eyebrow="Order"
       title={`Order ${orderNumber}`}
       description={formatOrderDateTime(order.createdAt, timeZone)}
+      descriptionAction={
+        <OrderActionsMenu
+          orderId={order.id}
+          orderNumber={orderNumber}
+          canResend={order.status === "paid"}
+        />
+      }
       onClose={onClose}
     >
       <div className="space-y-6">

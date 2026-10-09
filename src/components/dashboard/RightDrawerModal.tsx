@@ -18,7 +18,7 @@ export const RightDrawerModal = forwardRef<
   RightDrawerModalHandle,
   RightDrawerModalProps
 >(function RightDrawerModal(
-  { eyebrow, title, description, footer, onClose, children },
+  { eyebrow, title, description, descriptionAction, footer, onClose, children },
   ref
 ) {
   const [mounted, setMounted] = useState(false);
@@ -97,14 +97,6 @@ export const RightDrawerModal = forwardRef<
               >
                 {title}
               </h2>
-              {description && (
-                <p
-                  id={descriptionId}
-                  className="mt-1 text-sm leading-5 text-[#8b8ba3]"
-                >
-                  {description}
-                </p>
-              )}
             </div>
             <button
               type="button"
@@ -115,6 +107,21 @@ export const RightDrawerModal = forwardRef<
               <X size={16} weight="bold" />
             </button>
           </div>
+          {(description || descriptionAction) && (
+            <div className="mt-1 flex min-h-8 items-center justify-between gap-3">
+              {description ? (
+                <p
+                  id={descriptionId}
+                  className="min-w-0 text-sm leading-5 text-[#8b8ba3]"
+                >
+                  {description}
+                </p>
+              ) : (
+                <span />
+              )}
+              {descriptionAction}
+            </div>
+          )}
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">

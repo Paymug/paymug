@@ -4,9 +4,13 @@ import { findProductById, findUserById } from "./db";
 import { getProductPublicPath } from "./product-paths";
 import { getStoreById } from "./stores";
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
-import { sendCloudflareEmail } from "./cloudflare-email";
+import {
+  sendCloudflareEmail,
+  sendCloudflareEmailStrict,
+} from "./cloudflare-email";
 import {
   buildOrderPaymentFailedEmail,
+  buildSetupTestEmail,
   buildPurchaseConfirmationEmail,
   buildSubscriptionApprovalEmail,
   buildSubscriptionPaymentIssueEmail,
@@ -49,7 +53,7 @@ async function getStoreEmailContext(
   };
 }
 
-export async function sendPurchaseConfirmationEmail(
+async function preparePurchaseConfirmationEmail(
   input: PurchaseConfirmationEmailInput
 ) {
   const store = await getStoreEmailContext(
@@ -60,14 +64,29 @@ export async function sendPurchaseConfirmationEmail(
     `/checkout/success?orderId=${encodeURIComponent(input.order.id)}`,
     input.requestUrl
   );
-  return sendCloudflareEmail(
-    buildPurchaseConfirmationEmail(
+  return {
+    content: buildPurchaseConfirmationEmail(
       { ...input, storeLogo: store.logo },
       store.name,
       receiptUrl
     ),
-    store.sender
-  );
+    sender: store.sender,
+  };
+}
+
+export async function sendPurchaseConfirmationEmail(
+  input: PurchaseConfirmationEmailInput
+) {
+  const { content, sender } = await preparePurchaseConfirmationEmail(input);
+  return sendCloudflareEmail(content, sender);
+}
+
+/** Like sendPurchaseConfirmationEmail, but throws when delivery fails. */
+export async function resendPurchaseConfirmationEmail(
+  input: PurchaseConfirmationEmailInput
+) {
+  const { content, sender } = await preparePurchaseConfirmationEmail(input);
+  return sendCloudflareEmailStrict(content, sender);
 }
 
 export async function sendOrderPaymentFailedEmail(
@@ -199,4 +218,13 @@ export async function sendPayPalSubscriptionEventEmail({
     return sendSubscriptionStatusEmail({ subscription, status });
   }
   return false;
+}
+
+/** Sends a test message and throws with the delivery error when it fails. */
+export async function sendSetupTestEmail(userId: string, to: string) {
+  const store = await getStoreEmailContext(userId);
+  return sendCloudflareEmailStrict(
+    buildSetupTestEmail(to, store.name),
+    store.sender
+  );
 }

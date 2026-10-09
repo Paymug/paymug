@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { getSessionUser } from "@/lib/auth";
 import { getRequestOrigin } from "@/lib/request-origin.utils";
 import { getSetupChecklist } from "@/lib/setup-checklist";
+import { SetupEmailTest } from "./SetupEmailTest";
 
 export default async function SetupPage() {
   const user = await getSessionUser();
@@ -150,6 +151,7 @@ export default async function SetupPage() {
                         ))}
                       </ul>
                     )}
+                    {item.id === "email-configuration" && <SetupEmailTest />}
                   </div>
 
                   {item.complete ? (

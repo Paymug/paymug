@@ -176,6 +176,21 @@ export function buildPurchaseConfirmationEmail(
   };
 }
 
+export function buildSetupTestEmail(
+  to: string,
+  storeName: string
+): TransactionalEmailContent {
+  const layout = renderEmailLayout({
+    storeName,
+    eyebrow: "Email check",
+    title: "Email delivery works",
+    intro:
+      "This test message confirms Paymug can send transactional emails such as purchase confirmations from your installation.",
+    rows: [{ label: "Sent", value: formatEmailDate() }],
+  });
+  return { to, subject: `${storeName} email delivery test`, ...layout };
+}
+
 export function buildOrderPaymentFailedEmail(
   input: OrderPaymentFailedEmailInput,
   storeName: string,
