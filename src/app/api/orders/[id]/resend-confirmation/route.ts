@@ -29,7 +29,12 @@ export async function POST(request: Request, ctx: Ctx) {
     });
   } catch (error) {
     console.error("Purchase confirmation resend failed", error);
-    return jsonError("Could not send the confirmation email", 502);
+    return jsonError(
+      error instanceof Error
+        ? error.message
+        : "Could not send the confirmation email",
+      502
+    );
   }
   return Response.json({ sent: true, to: order.customerEmail });
 }

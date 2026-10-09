@@ -25,11 +25,12 @@ export async function sendCloudflareEmailStrict(
   const fromEmail = stripEmailDisplayName(configuredFrom);
   const fromName = getEmailDisplayName(configuredFrom);
   const senderName = sender?.name || fromName;
-  const replyTo =
+  const replyTo = stripEmailDisplayName(
     sender?.replyTo ||
-    env.EMAIL_REPLY_TO ||
-    process.env.EMAIL_REPLY_TO ||
-    configuredFrom;
+      env.EMAIL_REPLY_TO ||
+      process.env.EMAIL_REPLY_TO ||
+      configuredFrom
+  );
   await env.EMAIL.send({
     to: content.to,
     from: senderName

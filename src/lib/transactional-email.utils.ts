@@ -19,8 +19,11 @@ export function getEmailDisplayName(value: string) {
 
 export function formatEmailDate(value?: string, timeZone = "UTC") {
   return new Date(value || Date.now()).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZoneName: "short",
     timeZone,
   });
