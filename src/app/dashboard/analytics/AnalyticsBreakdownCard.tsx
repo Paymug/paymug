@@ -9,7 +9,7 @@ export function AnalyticsBreakdownCard({
   emptyLabel = "No visitor data in this period",
 }: AnalyticsBreakdownCardProps) {
   return (
-    <section className="flex aspect-square min-h-72 flex-col overflow-hidden border-b border-r border-[#e8e8ee] bg-white">
+    <section className="flex h-80 min-w-0 flex-col overflow-hidden border-b border-r border-[#e8e8ee] bg-white">
       <h2 className="border-b border-[#e8e8ee] px-5 py-4 text-base font-semibold">
         {title}
       </h2>

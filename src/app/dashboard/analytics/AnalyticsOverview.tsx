@@ -219,7 +219,7 @@ export function AnalyticsOverview({
             triggerClassName="max-w-56 text-sm font-medium"
           />
         </div>
-        <div className="flex items-center gap-5 text-xs text-[#74748f]">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#74748f]">
           <span className="inline-flex items-center gap-2">
             <span
               className="h-2.5 w-2.5 rounded-full"
@@ -323,7 +323,7 @@ export function AnalyticsOverview({
         </div>
       )}
 
-      <div className="mt-10 grid border-l border-t border-[#e8e8ee] md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 border-l border-t border-[#e8e8ee] md:grid-cols-2 lg:grid-cols-3">
         <AnalyticsBreakdownCard
           title="Pages"
           dimension="pages"
