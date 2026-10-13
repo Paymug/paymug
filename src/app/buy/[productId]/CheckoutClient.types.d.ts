@@ -18,6 +18,10 @@ export interface CheckoutClientProps {
   extraSeatsPrice?: number;
   /** The order only adds seats to an existing license. */
   seatAddOn?: boolean;
+  /** Seat add-on only: most seats that can still be added. */
+  maxExtraSeats?: number;
+  /** Seat add-on only: changes the seat count without leaving the page. */
+  onExtraSeatsChange?(seats: number): void;
   /** Email of the license owner; the buyer cannot change it. */
   lockedEmail?: string;
   affiliateRef?: string;

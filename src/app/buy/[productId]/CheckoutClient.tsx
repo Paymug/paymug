@@ -43,6 +43,8 @@ export function CheckoutClient({
   extraSeatLabel,
   extraSeatsPrice = 0,
   seatAddOn = false,
+  maxExtraSeats,
+  onExtraSeatsChange,
   lockedEmail,
   defaultProductPrice,
   customAmountEnabled,
@@ -540,10 +542,15 @@ export function CheckoutClient({
         )}
         <div className="space-y-2 text-sm border-b border-border">
           {seatAddOn ? (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted">
-                {extraSeatLabel || "Extra seats"} × {extraSeats}
-              </span>
+            <div className="flex items-start justify-between gap-4 mt-4">
+              <ExtraSeatsPicker
+                key={extraSeats}
+                extraSeats={extraSeats}
+                label={extraSeatLabel}
+                min={1}
+                max={maxExtraSeats}
+                onChange={onExtraSeatsChange}
+              />
               <span>{formatProductPageMoney(extraSeatsPrice, currency)}</span>
             </div>
           ) : (

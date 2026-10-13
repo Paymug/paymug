@@ -108,6 +108,7 @@ export function CustomerPurchaseModal({
           <CustomerSeatCheckout
             purchase={purchase}
             seats={seatCheckout}
+            onSeatsChange={setSeatCheckout}
             onBack={() => setSeatCheckout(null)}
             onClose={() => {
               setClosing(true);

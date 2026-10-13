@@ -4,23 +4,27 @@ import { ArrowLeft, Package, X } from "@phosphor-icons/react";
 import { CheckoutClient } from "@/app/buy/[productId]/CheckoutClient";
 import {
   calculateSeatAddOnPrice,
+  maxExtraSeats,
   extraSeatsCustomKey,
   seatAddOnCustomKey,
 } from "@/lib/extra-seats";
-import { formatMoney } from "@/lib/format";
 import { calculateTransactionFee } from "@/lib/product-pricing";
-import { getCustomerStatusClass } from "./customer-portal.utils";
 import type { CustomerSeatCheckoutProps } from "./CustomerSeatCheckout.types";
 
 /** Drawer content that replaces the purchase details while buying seats. */
 export function CustomerSeatCheckout({
   purchase,
   seats,
+  onSeatsChange,
   onBack,
   onClose,
 }: CustomerSeatCheckoutProps) {
   const seatAddOn = purchase.seatAddOn;
   if (!seatAddOn) return null;
+  const maxSeats = maxExtraSeats - seatAddOn.currentExtraSeats;
+  function setClamped(value: number) {
+    onSeatsChange(Math.min(maxSeats, Math.max(1, Math.floor(value) || 1)));
+  }
   const price = calculateSeatAddOnPrice(
     seatAddOn.tiers,
     seatAddOn.currentExtraSeats,
@@ -77,22 +81,17 @@ export function CustomerSeatCheckout({
               {purchase.storeName}
             </p>
           </div>
-          <div className="shrink-0 text-right">
-            <p className="font-semibold">
-              {formatMoney(purchase.amount, purchase.currency)}
-            </p>
-            <span
-              className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getCustomerStatusClass(purchase.status)}`}
-            >
-              {purchase.status}
-            </span>
-          </div>
+          <p className="shrink-0 font-semibold">
+            ×{seats} {seats === 1 ? "seat" : "seats"}
+          </p>
         </div>
+        <p className="mt-3 text-sm text-[#85859d]">
+          Extra seats will be added to your current license.
+        </p>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <CheckoutClient
-          key={seats}
           storeId={seatAddOn.storeId}
           productId={seatAddOn.productId}
           productName={purchase.productName}
@@ -105,6 +104,8 @@ export function CustomerSeatCheckout({
             [extraSeatsCustomKey]: String(seats),
           }}
           seatAddOn
+          maxExtraSeats={maxSeats}
+          onExtraSeatsChange={setClamped}
           lockedEmail={seatAddOn.customerEmail}
           extraSeats={seats}
           extraSeatLabel={seatAddOn.label}
