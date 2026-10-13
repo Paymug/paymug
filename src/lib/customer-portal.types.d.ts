@@ -1,6 +1,7 @@
 import type { ProductFile } from "./product-files.types";
 import type { Order } from "./types";
 import type { LicenseAuthorityActivation } from "./app-license.types";
+import type { ProductExtraSeatTier } from "./extra-seats.types";
 
 export interface CustomerPortalLicense {
   key: string;
@@ -12,6 +13,22 @@ export interface CustomerPortalLicense {
   updatesActive: boolean;
   seatLimit: number | null;
   activations: LicenseAuthorityActivation[];
+}
+
+export interface CustomerPortalSeatAddOn {
+  productId: string;
+  storeId: string;
+  /** Email of the original purchase; the add-on checkout is locked to it. */
+  customerEmail: string;
+  transactionFeeType: "fixed" | "percentage";
+  transactionFeeValue: number;
+  paypalClientId?: string;
+  stripeEnabled: boolean;
+  mode: "sandbox" | "live";
+  label: string;
+  tiers: ProductExtraSeatTier[];
+  /** Extra seats the license already has. */
+  currentExtraSeats: number;
 }
 
 export interface CustomerPortalBranding {
@@ -45,6 +62,8 @@ export interface CustomerPortalPurchase {
   deliveryContent?: string;
   productFiles: ProductFile[];
   license?: CustomerPortalLicense;
+  /** Set when the customer can buy more seats for this license. */
+  seatAddOn?: CustomerPortalSeatAddOn;
   githubRepository?: string;
   githubUsername?: string;
   githubAccessStatus?: Order["githubAccessStatus"];

@@ -16,6 +16,13 @@ import type {
   CustomerPortalSubscription,
 } from "./customer-portal.types";
 import { getAppLicenseStatus } from "./app-license";
+import {
+  canSellExtraSeats,
+  defaultExtraSeatLabel,
+  maxExtraSeats,
+  parseExtraSeatTiers,
+} from "./extra-seats";
+import { getPayPalCredentials, getStripeCredentials } from "./payment-credentials";
 import { loadCustomerPortalResources } from "./customer-portal.queries";
 
 function parseRecordData(value: string): Record<string, FeatureRecordValue> {
@@ -28,17 +35,18 @@ function parseRecordData(value: string): Record<string, FeatureRecordValue> {
 
 export async function getCustomerPortalData(
   email: string,
+  environment: "live" | "sandbox" = "live",
 ): Promise<CustomerPortalData> {
   const db = await getDb();
   const normalizedEmail = email.trim().toLowerCase();
   const [licenseStatus, orderRows, records] = await Promise.all([
     getAppLicenseStatus(),
     db.query.orders.findMany({
-      where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = 'live' AND ${orders.status} IN ('paid', 'refunded')`,
+      where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = ${environment} AND ${orders.status} IN ('paid', 'refunded')`,
       orderBy: [desc(orders.createdAt)],
     }),
     db.query.featureRecords.findMany({
-      where: sql`lower(${featureRecords.subtitle}) = ${normalizedEmail} AND ${featureRecords.environment} = 'live' AND (${featureRecords.feature} = 'licenses' OR ${featureRecords.feature} = 'subscriptions')`,
+      where: sql`lower(${featureRecords.subtitle}) = ${normalizedEmail} AND ${featureRecords.environment} = ${environment} AND (${featureRecords.feature} = 'licenses' OR ${featureRecords.feature} = 'subscriptions')`,
       orderBy: [desc(featureRecords.updatedAt)],
     }),
   ]);
@@ -60,6 +68,31 @@ export async function getCustomerPortalData(
         typeof data.storeId === "string" ? [data.storeId] : [],
       ),
     ],
+  );
+  // Payment setup for orders that can buy more seats, keyed by order id.
+  const paymentByOrderId = new Map<
+    string,
+    { paypalClientId?: string; stripeEnabled: boolean; mode: "sandbox" | "live" }
+  >();
+  await Promise.all(
+    orderRows.map(async (order) => {
+      const product = productsById.get(order.productId);
+      const store = order.storeId ? storesById.get(order.storeId) : undefined;
+      if (!product?.extraSeatsEnabled || !store) return;
+      const [paypal, stripe] = await Promise.all([
+        store.paymentGateway === "paypal"
+          ? getPayPalCredentials(product.userId, product.environment, product.storeId ?? undefined)
+          : undefined,
+        store.paymentGateway === "stripe"
+          ? getStripeCredentials(product.userId, product.environment, product.storeId ?? undefined)
+          : undefined,
+      ]);
+      paymentByOrderId.set(order.id, {
+        paypalClientId: paypal?.clientId,
+        stripeEnabled: Boolean(stripe),
+        mode: paypal?.mode || stripe?.mode || product.environment,
+      });
+    }),
   );
   const purchases = orderRows.map((order): CustomerPortalPurchase => {
       const orderProductFiles = parseProductFiles(order.productFiles);
@@ -96,6 +129,38 @@ export async function getCustomerPortalData(
         : orderProductFiles.length
           ? orderProductFiles
           : currentProductFiles;
+      const extraSeatTiers = parseExtraSeatTiers(product?.extraSeatTiers ?? "[]");
+      const currentExtraSeats = Math.max(
+        0,
+        Number(license?.data.extraSeats) || 0,
+      );
+      const seatAddOn: CustomerPortalPurchase["seatAddOn"] =
+        product &&
+        order.status === "paid" &&
+        license?.record.status === "active" &&
+        parseLicenseSeatLimit(license.data.seatLimit) !== null &&
+        product.status === "published" &&
+        product.billingType !== "subscription" &&
+        paymentByOrderId.has(order.id) &&
+        currentExtraSeats < maxExtraSeats &&
+        canSellExtraSeats({
+          generateLicense: product.generateLicense,
+          licenseSeatLimit: product.licenseSeatLimit,
+          extraSeatsEnabled: product.extraSeatsEnabled,
+          extraSeatTiers,
+        })
+          ? {
+              productId: product.id,
+              storeId: order.storeId ?? product.storeId ?? "",
+              customerEmail: order.customerEmail,
+              transactionFeeType: product.transactionFeeType,
+              transactionFeeValue: product.transactionFeeValue,
+              ...paymentByOrderId.get(order.id)!,
+              label: product.extraSeatLabel || defaultExtraSeatLabel,
+              tiers: extraSeatTiers,
+              currentExtraSeats,
+            }
+          : undefined;
       return {
         id: order.id,
         productName: order.productName,
@@ -150,6 +215,7 @@ export async function getCustomerPortalData(
               ),
             }
           : undefined,
+        seatAddOn,
         githubRepository: githubUnlocked &&
           (order.githubRepoOwner || product?.githubRepoOwner) &&
           (order.githubRepoName || product?.githubRepoName)

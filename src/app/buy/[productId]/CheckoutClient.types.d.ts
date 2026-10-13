@@ -16,6 +16,10 @@ export interface CheckoutClientProps {
   extraSeatLabel?: string;
   /** Cost of the extra seats in cents, already included in productPrice. */
   extraSeatsPrice?: number;
+  /** The order only adds seats to an existing license. */
+  seatAddOn?: boolean;
+  /** Email of the license owner; the buyer cannot change it. */
+  lockedEmail?: string;
   affiliateRef?: string;
   initialDiscountCode?: string;
   initialTransactionFeeAmount: number;

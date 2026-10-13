@@ -21,6 +21,14 @@ export interface ProductBundle {
   choices: ProductBundleChoice[];
 }
 
+/** An existing license an order is adding seats to. */
+export interface SeatAddOnContext {
+  /** Order the license was originally issued for. */
+  orderId: string;
+  /** Extra seats the license already has. */
+  existingExtraSeats: number;
+}
+
 export interface ResolvedProductConfiguration {
   price: number;
   selectedOption?: ProductOption;

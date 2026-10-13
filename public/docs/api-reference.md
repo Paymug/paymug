@@ -49,6 +49,13 @@ in, and the first tier always starts at `from: 1`. Extra seats require a finite
 `custom: { "extra_seats": "3" }` in checkout requests). The server calculates the
 price; ignore any client-side total.
 
+To add seats to an existing license (what the customer portal does), send the
+checkout custom fields `seat_addon_order` (the original order ID) and
+`extra_seats` (seats to add). Only the new seats are charged, priced after the
+license's current extra seats; options and bundles are ignored. The email must
+match the original purchase, and subscription products are rejected. When the
+order is paid, the license `seatLimit` and `extraSeats` increase by that count.
+
 ## Authentication example
 
 ```bash

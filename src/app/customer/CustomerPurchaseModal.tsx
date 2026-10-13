@@ -29,6 +29,8 @@ import {
 } from "./customer-portal.utils";
 import { CustomerGitHubAccessCard } from "./CustomerGitHubAccessCard";
 import { CustomerLicenseActivations } from "./CustomerLicenseActivations";
+import { CustomerSeatAddOn } from "./CustomerSeatAddOn";
+import { CustomerSeatCheckout } from "./CustomerSeatCheckout";
 
 export function CustomerPurchaseModal({
   purchase,
@@ -40,6 +42,7 @@ export function CustomerPurchaseModal({
   const [closing, setClosing] = useState(false);
   const [activeTab, setActiveTab] =
     useState<CustomerPurchaseModalTab>("payments");
+  const [seatCheckout, setSeatCheckout] = useState<number | null>(null);
   const titleId = useId();
 
   useEffect(() => {
@@ -97,11 +100,23 @@ export function CustomerPurchaseModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`ml-auto flex h-dvh w-full max-w-[43rem] flex-col overflow-hidden border-l border-[#e5e5eb] bg-white shadow-[-22px_0_60px_rgba(25,24,31,0.16)] transition-transform duration-300 ease-out ${
+        className={`ml-auto flex h-dvh w-full ${seatCheckout !== null ? "max-w-[25rem]" : "max-w-[43rem]"} flex-col overflow-hidden border-l border-[#e5e5eb] bg-white shadow-[-22px_0_60px_rgba(25,24,31,0.16)] transition-transform duration-300 ease-out ${
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="shrink-0 px-5 pb-4 pt-5 sm:px-7 sm:pt-6">
+        {seatCheckout !== null && (
+          <CustomerSeatCheckout
+            purchase={purchase}
+            seats={seatCheckout}
+            onBack={() => setSeatCheckout(null)}
+            onClose={() => {
+              setClosing(true);
+              setVisible(false);
+            }}
+          />
+        )}
+        <div className={seatCheckout !== null ? "hidden" : "contents"}>
+        <header className="shrink-0 px-5 pt-4 pb-2">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 id={titleId} className="text-xl font-semibold tracking-[-0.025em]">
@@ -124,7 +139,8 @@ export function CustomerPurchaseModal({
             </button>
           </div>
 
-          <div className="mt-5 flex items-center gap-4 rounded-xl border border-[#e6e6ec] p-3.5 sm:p-4">
+          <div className="mt-5 overflow-hidden rounded-xl border border-[#e6e6ec]">
+            <div className="flex items-center gap-4 p-3.5 sm:p-4">
             {purchase.productImageUrl ? (
               <img
                 src={purchase.productImageUrl}
@@ -152,6 +168,14 @@ export function CustomerPurchaseModal({
                 {purchase.status}
               </span>
             </div>
+            </div>
+            {purchase.seatAddOn && (
+              <CustomerSeatAddOn
+                currency={purchase.currency}
+                seatAddOn={purchase.seatAddOn}
+                onCheckout={setSeatCheckout}
+              />
+            )}
           </div>
         </header>
 
@@ -392,6 +416,7 @@ export function CustomerPurchaseModal({
                   ) : null}
                   <CustomerLicenseActivations
                     orderId={purchase.id}
+                    environment={purchase.environment}
                     seatLimit={purchase.license.seatLimit}
                     initialActivations={purchase.license.activations}
                   />
@@ -421,6 +446,7 @@ export function CustomerPurchaseModal({
             </div>
             </section>
           )}
+        </div>
         </div>
       </section>
     </div>,

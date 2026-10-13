@@ -28,7 +28,7 @@ import {
   appendCheckoutCustomData,
   checkoutCustomDataSchema,
 } from "@/lib/checkout-custom-data";
-import { resolveProductConfiguration } from "@/lib/product-configurations";
+import { assertSeatAddOnOrder, resolveCheckoutConfiguration, SeatAddOnError } from "@/lib/seat-addons";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -63,10 +63,18 @@ export async function POST(req: Request) {
       product,
       parsed.data.customAmount,
     );
-    const configuration = resolveProductConfiguration(
+    const { configuration, seatAddOn } = await resolveCheckoutConfiguration(
       product,
       parsed.data.custom,
       basePrice,
+    );
+    if (seatAddOn && !parsed.data.customerEmail) {
+      return jsonError("Email is required to buy extra seats", 400);
+    }
+    assertSeatAddOnOrder(
+      seatAddOn,
+      configuration,
+      parsed.data.customerEmail ?? "",
     );
     const checkoutPrice = configuration.price;
     const store = await getStoreById(product.storeId, product.userId);

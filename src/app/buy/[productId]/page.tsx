@@ -39,9 +39,14 @@ import {
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
 import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
+import { getProductPublicPath } from "@/lib/product-paths";
 import { canSellExtraSeats } from "@/lib/extra-seats";
 import { ProductConfigurationPicker } from "@/components/ProductConfigurationPicker";
-import { resolveProductConfiguration } from "@/lib/product-configurations";
+import {
+  resolveCheckoutConfiguration,
+  SeatAddOnError,
+} from "@/lib/seat-addons";
+import { extraSeatsCustomKey } from "@/lib/extra-seats";
 import PaymentSheet from "./PaymentSheet";
 
 export const generateMetadata = generateProductMetadata;
@@ -78,11 +83,23 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   } catch {
     notFound();
   }
-  const configuration = resolveProductConfiguration(
-    product,
-    custom,
-    checkoutPrice,
-  );
+  let resolved: Awaited<ReturnType<typeof resolveCheckoutConfiguration>>;
+  try {
+    resolved = await resolveCheckoutConfiguration(product, custom, checkoutPrice);
+  } catch (error) {
+    if (error instanceof SeatAddOnError) notFound();
+    throw error;
+  }
+  const { configuration, seatAddOn } = resolved;
+  if (seatAddOn && configuration.extraSeats < 1) {
+    const params = new URLSearchParams(
+      Object.entries(resolvedSearchParams).flatMap(([key, value]) =>
+        typeof value === "string" ? [[key, value]] : [],
+      ),
+    );
+    params.set(`[custom][${extraSeatsCustomKey}]`, "1");
+    redirect(`${getProductPublicPath(product)}?${params.toString()}`);
+  }
   checkoutPrice = configuration.price;
 
   const customer = await getCustomerSession();
@@ -228,6 +245,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                 </p>
               ) : null}
 
+              {!seatAddOn && (
               <ProductConfigurationPicker
                 options={product.options}
                 bundles={product.bundles}
@@ -242,6 +260,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                 )}
                 currency={product.currency}
               />
+              )}
 
               {product.imageUrl && (
                 <img
@@ -300,6 +319,8 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   extraSeats={configuration.extraSeats}
                   extraSeatLabel={product.extraSeatLabel}
                   extraSeatsPrice={configuration.extraSeatsPrice}
+                  seatAddOn={Boolean(seatAddOn)}
+                  lockedEmail={seatAddOn?.customerEmail}
                   affiliateRef={ref?.trim() || undefined}
                   initialDiscountCode={discount?.trim() || undefined}
                   initialTransactionFeeAmount={

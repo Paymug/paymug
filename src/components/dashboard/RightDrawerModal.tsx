@@ -81,7 +81,7 @@ export const RightDrawerModal = forwardRef<
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="shrink-0 border-b border-[#f0f0f4] px-5 pb-4 pt-5">
+        <header className="shrink-0 border-b border-[#f0f0f4] px-5 pt-4 pb-2">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               {eyebrow && (

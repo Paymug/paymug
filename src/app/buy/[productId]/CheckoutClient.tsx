@@ -42,6 +42,8 @@ export function CheckoutClient({
   extraSeats = 0,
   extraSeatLabel,
   extraSeatsPrice = 0,
+  seatAddOn = false,
+  lockedEmail,
   defaultProductPrice,
   customAmountEnabled,
   allowNote,
@@ -70,7 +72,7 @@ export function CheckoutClient({
     [initialDiscountCode],
   );
   const configurationKey = JSON.stringify(custom);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(lockedEmail ?? "");
   const [name, setName] = useState("");
   const [noteVisible, setNoteVisible] = useState(false);
   const [note, setNote] = useState("");
@@ -92,7 +94,7 @@ export function CheckoutClient({
   const [discountCode, setDiscountCode] = useState(
     normalizedInitialDiscountCode,
   );
-  const [marketingOptIn, setMarketingOptIn] = useState(true);
+  const [marketingOptIn, setMarketingOptIn] = useState(!seatAddOn);
   const [touched, setTouched] = useState(false);
   const [discountStatus, setDiscountStatus] = useState<
     "idle" | "checking" | "valid" | "invalid"
@@ -319,6 +321,16 @@ export function CheckoutClient({
 
   function requestCheckoutEmail(): Promise<string | null> {
     if (emailOk) return Promise.resolve(null);
+    // Browser autofill can fill the field without React seeing a change, so
+    // check what the buyer actually sees before asking again.
+    const visibleEmail = (
+      document.querySelector<HTMLInputElement>('input[name="email"]')?.value ??
+      ""
+    ).trim();
+    if (isValidCheckoutEmail(visibleEmail)) {
+      setEmail(visibleEmail);
+      return Promise.resolve(visibleEmail);
+    }
     return new Promise((resolve) => {
       emailPromptResolveRef.current = resolve;
       setPromptEmail(email.trim());
@@ -342,7 +354,10 @@ export function CheckoutClient({
 
   return (
     <div className="divide-y divide-border">
+      {!seatAddOn && (
       <section className="space-y-4 p-6">
+        {!seatAddOn && (
+          <>
         <Input
           label="Email"
           type="email"
@@ -350,6 +365,7 @@ export function CheckoutClient({
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          readOnly={Boolean(lockedEmail)}
           onBlur={() => setTouched(true)}
           placeholder="you@example.com"
           required
@@ -369,6 +385,8 @@ export function CheckoutClient({
           onChange={(e) => setName(e.target.value)}
           placeholder="Jane Doe"
         />
+          </>
+        )}
 
         {allowNote && (
           <div className="space-y-2">
@@ -415,6 +433,7 @@ export function CheckoutClient({
           </div>
         )}
 
+        {!seatAddOn && (
         <label className="flex items-start gap-2 text-xs leading-5 text-muted">
           <input
             type="checkbox"
@@ -424,8 +443,9 @@ export function CheckoutClient({
           />
           Send me product updates and offers from this store.
         </label>
+        )}
 
-        {customAmountEnabled ? null :
+        {customAmountEnabled || seatAddOn ? null :
           !discountVisible ? (
             <button
               type="button"
@@ -475,8 +495,9 @@ export function CheckoutClient({
             </div>
           )}
       </section>
+      )}
 
-      <section className="space-y-3 p-6">
+      <section className="space-y-3 p-6 pt-3">
 
         {customAmountEnabled && (
           <div className="space-y-1 pb-2">
@@ -518,22 +539,32 @@ export function CheckoutClient({
           <p className="text-xs text-muted">{billingSummary}</p>
         )}
         <div className="space-y-2 text-sm border-b border-border">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-muted">{productName}</span>
-            <span>
-              {formatProductPageMoney(
-                pricing.subtotal - extraSeatsPrice,
-                currency,
-              )}
-              {priceSuffix}
-            </span>
-          </div>
+          {seatAddOn ? (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted">
+                {extraSeatLabel || "Extra seats"} × {extraSeats}
+              </span>
+              <span>{formatProductPageMoney(extraSeatsPrice, currency)}</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted">{productName}</span>
+              <span>
+                {formatProductPageMoney(
+                  pricing.subtotal - extraSeatsPrice,
+                  currency,
+                )}
+                {priceSuffix}
+              </span>
+            </div>
+          )}
           {extraSeatsEnabled && (
             <div className="flex items-start justify-between gap-4 mt-4">
               <ExtraSeatsPicker
                 key={extraSeats}
                 extraSeats={extraSeats}
                 label={extraSeatLabel}
+                min={seatAddOn ? 1 : 0}
               />
               <span>
                 {formatProductPageMoney(extraSeatsPrice, currency)}

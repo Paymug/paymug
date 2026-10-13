@@ -4,9 +4,10 @@ import type { CustomerLicenseActivationResponse } from "./CustomerLicenseActivat
 export async function deleteCustomerLicenseActivation(
   orderId: string,
   instanceId: string,
+  environment: "live" | "sandbox" = "live",
 ): Promise<LicenseAuthorityActivation[]> {
   const response = await fetch(
-    `/api/customer/orders/${encodeURIComponent(orderId)}/license-activations/${encodeURIComponent(instanceId)}`,
+    `/api/customer/orders/${encodeURIComponent(orderId)}/license-activations/${encodeURIComponent(instanceId)}${environment === "sandbox" ? "?env=test" : ""}`,
     { method: "DELETE" },
   );
   const data = (await response.json()) as CustomerLicenseActivationResponse;

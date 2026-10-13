@@ -1,6 +1,9 @@
 import type { CheckoutCustomData } from "./checkout-custom-data.types";
 import {
   calculateExtraSeatsPrice,
+  calculateSeatAddOnPrice,
+  maxExtraSeats,
+  seatAddOnCustomKey,
   canSellExtraSeats,
   extraSeatsCustomKey,
   parseExtraSeatCount,
@@ -10,6 +13,7 @@ import type {
   ProductBundle,
   ProductOption,
   ResolvedProductConfiguration,
+  SeatAddOnContext,
 } from "./product-configurations.types";
 
 export const productOptionCustomKey = "product_option";
@@ -60,7 +64,32 @@ export function resolveProductConfiguration(
   product: ConfigurableProduct,
   custom: CheckoutCustomData = {},
   basePrice = product.price,
+  seatAddOn?: SeatAddOnContext,
 ): ResolvedProductConfiguration {
+  if (seatAddOn && product.extraSeatTiers) {
+    // Seat add-on: only the extra seats are charged, priced after the seats
+    // the license already has.
+    const extraSeats = Math.min(
+      parseExtraSeatCount(custom),
+      Math.max(0, maxExtraSeats - seatAddOn.existingExtraSeats),
+    );
+    const extraSeatsPrice = calculateSeatAddOnPrice(
+      product.extraSeatTiers,
+      seatAddOn.existingExtraSeats,
+      extraSeats,
+    );
+    return {
+      price: extraSeatsPrice,
+      selectedBundleChoices: [],
+      extraSeats,
+      extraSeatsPrice,
+      custom: {
+        [seatAddOnCustomKey]: seatAddOn.orderId,
+        ...(extraSeats > 0 ? { [extraSeatsCustomKey]: String(extraSeats) } : {}),
+      },
+    };
+  }
+
   const selectedOption = product.options.length
     ? product.options.find(
         (option) => option.id === custom[productOptionCustomKey],

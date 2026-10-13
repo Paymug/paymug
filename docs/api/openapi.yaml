@@ -109,7 +109,7 @@ components:
           description: Buyer-facing name for extra seats. Empty uses the default.
         extraSeatTiers:
           type: array
-          description: Accumulating per-seat prices. Each extra seat is charged at the tier it falls in. Buyers choose a count with the checkout custom field extra_seats.
+          description: Accumulating per-seat prices. Each extra seat is charged at the tier it falls in. Buyers choose a count with the checkout custom field extra_seats. To add seats to an existing license, also send the custom field seat_addon_order with the original order ID; only the new seats are charged and the license seat limit grows once the order is paid.
           items:
             $ref: '#/components/schemas/ExtraSeatTier'
   securitySchemes:

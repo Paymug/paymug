@@ -6,6 +6,8 @@ import type {
 
 export const extraSeatsCustomKey = "extra_seats";
 export const maxExtraSeats = 1000;
+/** Custom key marking an order that adds seats to an existing license. */
+export const seatAddOnCustomKey = "seat_addon_order";
 export const maxExtraSeatLabelLength = 40;
 export const defaultExtraSeatLabel = "Extra seats";
 export const maxExtraSeatTiers = 10;
@@ -93,6 +95,18 @@ export function calculateExtraSeatsPrice(
     if (end >= start) total += (end - start + 1) * tiers[index].price;
   }
   return total;
+}
+
+/** Price (cents) of `count` more seats for a license that already has `existing` extra seats. */
+export function calculateSeatAddOnPrice(
+  tiers: ProductExtraSeatTier[],
+  existing: number,
+  count: number,
+): number {
+  return (
+    calculateExtraSeatsPrice(tiers, existing + count) -
+    calculateExtraSeatsPrice(tiers, existing)
+  );
 }
 
 /** Seat limit a new license gets: base seats plus purchased extra seats. */

@@ -2,6 +2,7 @@ import type { LicenseAuthorityActivation } from "@/lib/app-license.types";
 
 export interface CustomerLicenseActivationsProps {
   orderId: string;
+  environment?: "live" | "sandbox";
   seatLimit: number | null;
   initialActivations: LicenseAuthorityActivation[];
 }

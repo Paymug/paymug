@@ -49,6 +49,13 @@ When the product sells extra seats, the license seat limit is the product seat
 limit plus the extra seats bought at checkout (stored on the license as
 `extraSeats`).
 
+Customers can buy more seats for an existing license from the customer portal.
+The add-on is an ordinary paid order whose custom data contains
+`seat_addon_order` (the original order ID) and `extra_seats` (the number of new
+seats). Once the order is paid, the license `seatLimit` and `extraSeats` grow by
+that count. The order must use the original purchase email, and add-ons are not
+available for subscription products.
+
 Customers can open the licensed purchase at `/customer` to view active devices
 and remove one. A removed device fails its next validation.
 

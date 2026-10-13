@@ -20,6 +20,8 @@ import {
   extraSeatsCustomKey,
   parseExtraSeatCount,
   resolveLicenseSeatLimit,
+  seatAddOnCustomKey,
+  maxExtraSeats,
 } from "./extra-seats";
 import { grantGitHubOrderAccess } from "./github-access";
 import { calculateAffiliateCommission } from "./affiliate-settings.utils";
@@ -31,6 +33,7 @@ import {
   isPerpetualLicenseProduct,
 } from "./license-entitlements";
 import { hasProFeature } from "./app-license";
+import { parseLicenseSeatLimit } from "./license-activations.utils";
 
 export async function resolveDiscount(
   userId: string,
@@ -185,6 +188,7 @@ export async function completeCommerceFeatures(
       await issueLicense(order, product);
     }
     if (
+      !order.custom[seatAddOnCustomKey] &&
       order.githubAccessStatus !== "invited" &&
       order.githubAccessStatus !== "existing"
     ) {
@@ -325,7 +329,47 @@ async function upsertCustomer(order: Order): Promise<void> {
   });
 }
 
+/** Adds the seats of a paid add-on order to the license of the original order. */
+async function applySeatAddOn(order: Order): Promise<void> {
+  const license = await getOrderLicense(
+    order.userId,
+    order.custom[seatAddOnCustomKey]
+  );
+  if (
+    !license ||
+    String(license.subtitle || "").toLowerCase() !==
+      order.customerEmail.toLowerCase()
+  ) {
+    console.error(`Seat add-on order ${order.id} has no matching license`);
+    return;
+  }
+  const processed = Array.isArray(license.data.seatAddOnOrderIds)
+    ? (license.data.seatAddOnOrderIds as string[])
+    : [];
+  if (processed.includes(order.id)) return;
+  const currentExtra = Math.max(0, Number(license.data.extraSeats) || 0);
+  const added = Math.min(
+    parseExtraSeatCount(order.custom),
+    Math.max(0, maxExtraSeats - currentExtra)
+  );
+  // Same parsing as activation, so licenses issued before seat limits existed
+  // (no stored seatLimit) count as the seat they enforce.
+  const currentLimit = parseLicenseSeatLimit(license.data.seatLimit);
+  await updateFeatureRecord(license.id, order.userId, {
+    data: {
+      ...license.data,
+      extraSeats: currentExtra + added,
+      ...(currentLimit !== null ? { seatLimit: currentLimit + added } : {}),
+      seatAddOnOrderIds: [...processed, order.id].slice(-100),
+    },
+  });
+}
+
 async function issueLicense(order: Order, product: Product): Promise<void> {
+  if (order.custom[seatAddOnCustomKey]) {
+    await applySeatAddOn(order);
+    return;
+  }
   const licenses = await listFeatureRecords(
     order.userId,
     "licenses",

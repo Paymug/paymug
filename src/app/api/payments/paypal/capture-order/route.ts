@@ -1,3 +1,4 @@
+import { seatAddOnCustomKey } from "@/lib/extra-seats";
 import { z } from "zod";
 import {
   completeCommerceFeatures,
@@ -123,7 +124,10 @@ export async function POST(req: Request) {
       return jsonError("PayPal payment currency mismatch", 400);
     }
 
-    const resolvedEmail = parsed.data.customerEmail || order.customerEmail;
+    // Seat add-ons must stay tied to the license owner's email.
+    const resolvedEmail = order.custom[seatAddOnCustomKey]
+      ? order.customerEmail
+      : parsed.data.customerEmail || order.customerEmail;
     const paidAt = new Date().toISOString();
     const updated = await updateOrder(order.id, {
       status: "paid",

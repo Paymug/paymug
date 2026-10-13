@@ -13,14 +13,14 @@ import type { ExtraSeatsPickerProps } from "./ExtraSeatsPicker.types";
 const buttonClass =
   "grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition bg-[#f0f0f5] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent";
 
-export function ExtraSeatsPicker({ extraSeats, label }: ExtraSeatsPickerProps) {
+export function ExtraSeatsPicker({ extraSeats, label, min = 0 }: ExtraSeatsPickerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [draft, setDraft] = useState(String(extraSeats));
 
   function commit(value: number) {
-    const next = Math.min(maxExtraSeats, Math.max(0, Math.floor(value) || 0));
+    const next = Math.min(maxExtraSeats, Math.max(min, Math.floor(value) || 0));
     setDraft(String(next));
     if (next === extraSeats) return;
     const params = new URLSearchParams(searchParams.toString());
@@ -42,7 +42,7 @@ export function ExtraSeatsPicker({ extraSeats, label }: ExtraSeatsPickerProps) {
           type="button"
           aria-label="Remove an extra seat"
           className={buttonClass}
-          disabled={extraSeats <= 0}
+          disabled={extraSeats <= min}
           onClick={() => commit(extraSeats - 1)}
         >
           <Minus size={14} weight="bold" />
@@ -52,7 +52,7 @@ export function ExtraSeatsPicker({ extraSeats, label }: ExtraSeatsPickerProps) {
           aria-label={label || defaultExtraSeatLabel}
           type="number"
           inputMode="numeric"
-          min={0}
+          min={min}
           max={maxExtraSeats}
           step={1}
           value={draft}

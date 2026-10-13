@@ -33,7 +33,7 @@ import {
   appendCheckoutCustomData,
   checkoutCustomDataSchema,
 } from "@/lib/checkout-custom-data";
-import { resolveProductConfiguration } from "@/lib/product-configurations";
+import { assertSeatAddOnOrder, resolveCheckoutConfiguration, SeatAddOnError } from "@/lib/seat-addons";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -60,11 +60,12 @@ export async function POST(request: Request) {
       product,
       parsed.data.customAmount,
     );
-    const configuration = resolveProductConfiguration(
+    const { configuration, seatAddOn } = await resolveCheckoutConfiguration(
       product,
       parsed.data.custom,
       basePrice,
     );
+    assertSeatAddOnOrder(seatAddOn, configuration, parsed.data.customerEmail);
     const checkoutPrice = configuration.price;
     const store = await getStoreById(product.storeId, product.userId);
     if (store?.paymentGateway !== "stripe") {
@@ -262,6 +263,7 @@ export async function POST(request: Request) {
     });
     return Response.json({ orderId: order.id, checkoutUrl: session.url });
   } catch (error) {
+    if (error instanceof SeatAddOnError) return jsonError(error.message, 400);
     const message =
       error instanceof Error ? error.message : "Failed to start Stripe Checkout";
     console.error("stripe create-session error:", message);

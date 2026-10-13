@@ -33,6 +33,16 @@ to let buyers add seats at checkout:
 The license is issued with the product seat limit plus the purchased extra
 seats. Extra seats are not available with unlimited device seats.
 
+Customers can buy more seats later from `/customer`. In the purchase details of
+an active license, the extra seats section at the bottom lets them choose a
+number of seats and select **Checkout**. The drawer then switches to a
+checkout view (details on top, payment below) without leaving the portal. They pay only for the new seats, priced
+after the seats the license already has (so tiers continue where they left off),
+and the checkout is locked to the email of the original purchase. When the
+payment completes, the license seat limit and `extraSeats` increase
+automatically, through the same Stripe/PayPal confirmation as any other order.
+This is available for one-time licensed products, not subscriptions.
+
 Customers can manage devices from `/customer`:
 
 1. Open the purchase details.

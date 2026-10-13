@@ -7,7 +7,7 @@ import type { CustomerLicenseActivationRouteContext } from "./route.types";
 const instanceIdSchema = z.string().uuid();
 
 export async function removeCustomerDevice(
-  _request: Request,
+  request: Request,
   context: CustomerLicenseActivationRouteContext,
 ): Promise<Response> {
   const customer = await getCustomerSession();
@@ -22,6 +22,9 @@ export async function removeCustomerDevice(
         id,
         customer.email,
         parsedInstanceId.data,
+        new URL(request.url).searchParams.get("env") === "test"
+          ? "sandbox"
+          : "live",
       ),
     );
   } catch (error) {

@@ -25,6 +25,7 @@ import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
 import { jsonError, uid } from "@/lib/utils";
 import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
 import { resolveProductConfiguration } from "@/lib/product-configurations";
+import { seatAddOnCustomKey } from "@/lib/extra-seats";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -53,6 +54,9 @@ export async function POST(req: Request) {
     const cadence = getProductBillingCadence(product);
     if (!cadence) {
       return jsonError("Subscription billing interval is not configured", 400);
+    }
+    if (parsed.data.custom?.[seatAddOnCustomKey]) {
+      return jsonError("Extra seats cannot be added to subscriptions", 400);
     }
     const configuration = resolveProductConfiguration(
       product,

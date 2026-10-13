@@ -5,7 +5,7 @@ import { calculateCheckoutPricing } from "@/lib/product-pricing";
 import { jsonError } from "@/lib/utils";
 import { resolveProductCheckoutPrice } from "@/lib/custom-product-amount";
 import { checkoutCustomDataSchema } from "@/lib/checkout-custom-data";
-import { resolveProductConfiguration } from "@/lib/product-configurations";
+import { resolveCheckoutConfiguration } from "@/lib/seat-addons";
 
 const schema = z.object({
   productId: z.string().min(1),
@@ -29,11 +29,9 @@ export async function POST(req: Request) {
       product,
       parsed.data.customAmount,
     );
-    const checkoutPrice = resolveProductConfiguration(
-      product,
-      parsed.data.custom,
-      basePrice,
-    ).price;
+    const checkoutPrice = (
+      await resolveCheckoutConfiguration(product, parsed.data.custom, basePrice)
+    ).configuration.price;
 
     const discount = await resolveDiscount(
       product.userId,

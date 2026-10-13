@@ -19,6 +19,21 @@ the seller's dashboard credentials.
 Access belongs to the store that received the purchase. If the order is missing,
 confirm the email address, store URL, payment status, and test/live mode.
 
+## Buy more seats
+
+1. Open a purchase that includes an active license key for a product that sells
+   extra seats.
+2. Use the extra seats section at the bottom of the purchase details to pick the
+   number of seats; the price shown covers only the new seats.
+3. Select Checkout. The drawer switches to a checkout view with the details on
+   top and payment below; use the back arrow to return. The checkout uses the
+   email of the original purchase.
+4. After payment, the license seat limit increases by the seats bought. Refresh
+   the purchase details to see the new limit.
+
+If the seat limit did not change, confirm the payment completed and the order is
+paid. Subscription products do not offer extra seats in the portal.
+
 ## Manage licensed devices
 
 1. Open a purchase that includes a license key.

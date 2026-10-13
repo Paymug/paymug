@@ -25,7 +25,10 @@ import type {
   CompleteFreePurchaseResponse,
 } from "./route.types";
 import { resolveProductCheckoutPrice } from "@/lib/custom-product-amount";
-import { resolveProductConfiguration } from "@/lib/product-configurations";
+import {
+  assertSeatAddOnOrder,
+  resolveCheckoutConfiguration,
+} from "@/lib/seat-addons";
 
 export async function completeFreePurchase(
   input: CompleteFreePurchaseInput,
@@ -39,11 +42,12 @@ export async function completeFreePurchase(
     product,
     input.customAmount,
   );
-  const configuration = resolveProductConfiguration(
+  const { configuration, seatAddOn } = await resolveCheckoutConfiguration(
     product,
     input.custom,
     basePrice,
   );
+  assertSeatAddOnOrder(seatAddOn, configuration, input.customerEmail);
   const checkoutPrice = configuration.price;
   const seller = await findUserById(product.userId);
   if (!seller) throw new Error("Product owner not found");

@@ -51,13 +51,14 @@ export async function removeCustomerLicenseActivation(
   orderId: string,
   customerEmail: string,
   instanceId: string,
+  environment: "live" | "sandbox" = "live",
 ): Promise<CustomerLicenseActivationRemovalResult> {
   const db = await getDb();
   const normalizedEmail = customerEmail.trim().toLowerCase();
   const order = await db.query.orders.findFirst({
     where: and(
       eq(orders.id, orderId),
-      eq(orders.environment, "live"),
+      eq(orders.environment, environment),
       inArray(orders.status, ["paid", "refunded"]),
       sql`lower(${orders.customerEmail}) = ${normalizedEmail}`,
     ),
@@ -67,7 +68,7 @@ export async function removeCustomerLicenseActivation(
   const licenses = await db.query.featureRecords.findMany({
     where: and(
       eq(featureRecords.feature, "licenses"),
-      eq(featureRecords.environment, "live"),
+      eq(featureRecords.environment, environment),
       sql`lower(${featureRecords.subtitle}) = ${normalizedEmail}`,
     ),
   });

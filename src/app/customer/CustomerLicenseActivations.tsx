@@ -10,6 +10,7 @@ import type { CustomerLicenseActivationsProps } from "./CustomerLicenseActivatio
 
 export function CustomerLicenseActivations({
   orderId,
+  environment,
   seatLimit,
   initialActivations,
 }: CustomerLicenseActivationsProps) {
@@ -70,6 +71,7 @@ export function CustomerLicenseActivations({
                   void deleteCustomerLicenseActivation(
                     orderId,
                     activation.instanceId,
+                    environment,
                   )
                     .then((nextActivations) => {
                       setActivations(nextActivations);
