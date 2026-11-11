@@ -1,11 +1,11 @@
+'use client';
+
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Camera01Icon,
   Delete02Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
-'use client';
-
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Input } from '@/components/ui';
