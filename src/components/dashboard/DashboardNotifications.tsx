@@ -1,7 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Notification01Icon,
+} from "@hugeicons/core-free-icons";
 
 import Link from "next/link";
-import { BellSimple } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useTimeZone } from "./TimeZoneProvider";
 import {
@@ -50,7 +53,7 @@ export function DashboardNotifications({
         }
         aria-expanded={open}
       >
-        {!hasUnread && <BellSimple size={20} weight="regular" aria-hidden />}
+        {!hasUnread && <HugeiconsIcon icon={Notification01Icon} size={20} aria-hidden />}
         {hasUnread &&
           (unreadCount !== undefined ? (
             <span className="flex min-h-6 min-w-6 items-center justify-center rounded-full bg-[#f14e76] px-1.5 text-xs font-semibold leading-none text-white">

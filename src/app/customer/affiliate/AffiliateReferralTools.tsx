@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
@@ -98,7 +101,7 @@ export function AffiliateReferralTools({
             {error && <Alert>{error}</Alert>}
             {saved && (
               <p className="flex items-center gap-1.5 text-sm text-emerald-700">
-                <Check size={15} /> Referral username saved.
+                <HugeiconsIcon icon={Tick02Icon} size={15} /> Referral username saved.
               </p>
             )}
             <Button type="submit" disabled={saving}>

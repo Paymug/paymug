@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -36,18 +40,18 @@ export function DashboardNavGroup({
         {icon}
         <span>{group.label}</span>
         {isOpen ? (
-          <CaretUp
+          <HugeiconsIcon
+            icon={ArrowUp01Icon}
             size={14}
-            weight="bold"
             className="ml-auto text-[#9191aa]"
-            aria-hidden
+            aria-hidden strokeWidth={2}
           />
         ) : (
-          <CaretDown
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
             size={12}
-            weight="bold"
             className="ml-auto text-[#9191aa]"
-            aria-hidden
+            aria-hidden strokeWidth={2}
           />
         )}
       </button>

@@ -1,5 +1,5 @@
 import type { FeatureRecord } from "@/lib/feature-records.types";
-import type { Order, Product } from "@/lib/types";
+import type { OrderMetric, Product } from "@/lib/types";
 import type { ChartPoint } from "@/components/dashboard/charts.types";
 import type { ReactNode } from "react";
 
@@ -166,7 +166,7 @@ export interface DashboardMetricPreferenceEventDetail {
 }
 
 export interface BuildDashboardOverviewInput {
-  orders: Order[];
+  orders: OrderMetric[];
   subscriptions: FeatureRecord[];
   subscribers: FeatureRecord[];
   campaigns: FeatureRecord[];

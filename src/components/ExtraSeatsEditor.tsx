@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Trash } from "@phosphor-icons/react";
 import { Fragment } from "react";
 import { formatMoney } from "@/lib/format";
 import {
@@ -134,7 +137,7 @@ export function ExtraSeatsEditor({
                     className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600"
                     aria-label={`Remove tier ${index + 1}`}
                   >
-                    <Trash size={17} />
+                    <HugeiconsIcon icon={Delete02Icon} size={17} />
                   </button>
                 ) : (
                   <span aria-hidden />

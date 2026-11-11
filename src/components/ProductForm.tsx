@@ -1,4 +1,8 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  SquareArrowUpRightIcon,
+} from "@hugeicons/core-free-icons";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -35,7 +39,6 @@ import type {
   ProductFormProps,
   ProductTransactionFeeSelection,
 } from "./ProductForm.types";
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { FormSwitch } from "./FormSwitch";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
 import { ExtraSeatsEditor } from "./ExtraSeatsEditor";
@@ -427,7 +430,7 @@ export function ProductForm({
             target="_blank"
             className="absolute right-4 top-4 z-10 rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-accent-dark shadow-sm backdrop-blur hover:underline"
           >
-            <ArrowSquareOutIcon />
+            <HugeiconsIcon icon={SquareArrowUpRightIcon} />
           </Link>
 
           {error && (

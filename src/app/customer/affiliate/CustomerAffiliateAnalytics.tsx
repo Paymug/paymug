@@ -1,14 +1,15 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ChartUpIcon,
+  Copy01Icon,
+  CursorPointer01Icon,
+  Invoice01Icon,
+  Money01Icon,
+} from "@hugeicons/core-free-icons";
 
 import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
 import { formatDateInTimeZone } from "@/lib/timezone";
-import {
-  ChartLineUp,
-  Copy,
-  CursorClick,
-  Money,
-  Receipt,
-} from "@phosphor-icons/react";
 import { useState } from "react";
 import { AreaChart } from "@/components/dashboard/charts";
 import { formatMoney } from "@/lib/format";
@@ -139,7 +140,7 @@ export function CustomerAffiliateAnalytics({
               Math.round(analytics.processedPurchaseAmount * 100),
               program.currency,
             ),
-            icon: Receipt,
+            icon: Invoice01Icon,
           },
           {
             label: "Total earnings",
@@ -148,19 +149,19 @@ export function CustomerAffiliateAnalytics({
               program.currency,
             ),
             detail: `${formatMoney(Math.round(analytics.unpaidEarnings * 100), program.currency)} unpaid`,
-            icon: Money,
+            icon: Money01Icon,
           },
           {
             label: "Link clicks",
             value: analytics.clicks.toLocaleString(),
             detail: "All tracked visits",
-            icon: CursorClick,
+            icon: CursorPointer01Icon,
           },
           {
             label: "Conversion rate",
             value: `${analytics.conversionRate.toFixed(1)}%`,
             detail: `${analytics.payouts} payout${analytics.payouts === 1 ? "" : "s"}`,
-            icon: ChartLineUp,
+            icon: ChartUpIcon,
           },
         ].map(({ label, value, detail, icon: Icon }) => (
           <div
@@ -170,7 +171,7 @@ export function CustomerAffiliateAnalytics({
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-[#85859d]">{label}</p>
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-                <Icon size={17} />
+                <HugeiconsIcon icon={Icon} size={17} />
               </span>
             </div>
             <p className="mt-4 text-2xl font-semibold tracking-[-0.035em]">
@@ -215,7 +216,7 @@ export function CustomerAffiliateAnalytics({
               {affiliate.trackingPath}
             </p>
           </div>
-          <Copy size={17} className="shrink-0 text-[#9b7600]" />
+          <HugeiconsIcon icon={Copy01Icon} size={17} className="shrink-0 text-[#9b7600]" />
           <span className="sr-only">
             {copied ? "Copied" : "Copy referral link"}
           </span>

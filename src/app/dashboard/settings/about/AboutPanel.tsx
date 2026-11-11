@@ -1,13 +1,14 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowClockwise,
-  ArrowSquareOut,
-  Check,
-  DownloadSimple,
-  UploadSimple,
-  Warning,
-} from "@phosphor-icons/react";
+  Alert02Icon,
+  Download01Icon,
+  RefreshIcon,
+  SquareArrowUpRightIcon,
+  Tick02Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button } from "@/components/ui";
@@ -108,7 +109,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
             </p>
           </div>
           <Button type="button" onClick={() => void checkForUpdate()} disabled={checking}>
-            <ArrowClockwise size={16} className={checking ? "animate-spin" : ""} />
+            <HugeiconsIcon icon={RefreshIcon} size={16} className={checking ? "animate-spin" : ""} />
             {checking ? "Checking…" : "Check for update"}
           </Button>
         </div>
@@ -124,9 +125,9 @@ export function AboutPanel({ status }: AboutPanelProps) {
           >
             <div className="flex items-start gap-3">
               {update.isLatest ? (
-                <Check size={20} className="mt-0.5 shrink-0 text-emerald-700" />
+                <HugeiconsIcon icon={Tick02Icon} size={20} className="mt-0.5 shrink-0 text-emerald-700" />
               ) : (
-                <Warning size={20} className="mt-0.5 shrink-0 text-amber-700" />
+                <HugeiconsIcon icon={Alert02Icon} size={20} className="mt-0.5 shrink-0 text-amber-700" />
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
@@ -146,7 +147,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
                     rel="noreferrer"
                     className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-dark transition hover:bg-accent-hover"
                   >
-                    Open update workflow <ArrowSquareOut size={14} />
+                    Open update workflow <HugeiconsIcon icon={SquareArrowUpRightIcon} size={14} />
                   </a>
                 )}
               </div>
@@ -178,7 +179,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
               disabled={exporting}
               onClick={() => void exportBackup()}
             >
-              <DownloadSimple size={16} />
+              <HugeiconsIcon icon={Download01Icon} size={16} />
               {exporting ? "Exporting…" : "Download backup"}
             </Button>
           </div>
@@ -219,7 +220,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
               disabled={!backupFile || importing}
               onClick={() => void importBackup()}
             >
-              <UploadSimple size={16} />
+              <HugeiconsIcon icon={Upload01Icon} size={16} />
               {importing ? "Importing…" : "Import backup"}
             </Button>
           </div>
@@ -268,7 +269,7 @@ export function AboutPanel({ status }: AboutPanelProps) {
                     : "bg-amber-50 text-amber-700"
                 }`}
               >
-                {item.configured ? <Check size={15} /> : <Warning size={15} />}
+                {item.configured ? <HugeiconsIcon icon={Tick02Icon} size={15} /> : <HugeiconsIcon icon={Alert02Icon} size={15} />}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

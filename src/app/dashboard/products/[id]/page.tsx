@@ -1,3 +1,7 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  SquareArrowUpRightIcon,
+} from "@hugeicons/core-free-icons";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ProductForm } from "@/components/ProductForm";
@@ -6,7 +10,6 @@ import { getSessionUser } from "@/lib/auth";
 import { findProductById } from "@/lib/db";
 import { getActiveStoreForUser } from "@/lib/stores";
 import { listProductCategories } from "@/lib/product-categories";
-import { ArrowSquareOutIcon } from "@phosphor-icons/react/ssr";
 
 type Props = { params: Promise<{ id: string }> };
 

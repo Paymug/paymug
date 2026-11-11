@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check, Copy, X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
@@ -187,9 +192,9 @@ export function LicenseDetailsDrawer({
                   title={copied ? "Copied" : "Copy license key"}
                 >
                   {copied ? (
-                    <Check size={16} weight="bold" className="text-emerald-600" />
+                    <HugeiconsIcon icon={Tick02Icon} size={16} className="text-emerald-600" strokeWidth={2} />
                   ) : (
-                    <Copy size={16} />
+                    <HugeiconsIcon icon={Copy01Icon} size={16} />
                   )}
                 </button>
               </div>
@@ -203,7 +208,7 @@ export function LicenseDetailsDrawer({
               className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition hover:bg-[#f4f4f7] hover:text-foreground"
               aria-label="Close license details"
             >
-              <X size={18} />
+              <HugeiconsIcon icon={Cancel01Icon} size={18} />
             </button>
           </div>
         </header>

@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Copy01Icon,
+  MoreHorizontalIcon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Copy, DotsThree, Eye } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getCustomerActionsMenuPosition } from "./customer-actions-menu.utils";
@@ -70,7 +75,7 @@ export function CustomerActionsMenu({
         }}
         className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-[#77778e] transition hover:bg-[#f7f7f8] hover:text-foreground"
       >
-        <DotsThree size={20} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={20} aria-hidden strokeWidth={2} />
       </button>
 
       {open &&
@@ -93,7 +98,7 @@ export function CustomerActionsMenu({
               }}
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8]"
             >
-              <Eye size={16} aria-hidden />
+              <HugeiconsIcon icon={ViewIcon} size={16} aria-hidden />
               View details
             </button>
             <button
@@ -102,7 +107,7 @@ export function CustomerActionsMenu({
               onClick={() => void copyEmail()}
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8]"
             >
-              <Copy size={16} aria-hidden />
+              <HugeiconsIcon icon={Copy01Icon} size={16} aria-hidden />
               {copied ? "Copied" : "Copy email"}
             </button>
           </div>,

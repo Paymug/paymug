@@ -1,19 +1,20 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  DotsThree,
-  EnvelopeSimple,
-  Eye,
-  EyeSlash,
-  GearSix,
-  House,
-  Network,
-  Plus,
-  SidebarSimple,
-  SignOut,
-  SlidersHorizontal,
-  Storefront,
-} from "@phosphor-icons/react";
+  Home01Icon,
+  Logout01Icon,
+  Mail01Icon,
+  MoreHorizontalIcon,
+  NetworkIcon,
+  PlusSignIcon,
+  Settings01Icon,
+  SidebarLeftIcon,
+  SlidersHorizontalIcon,
+  Store01Icon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@hugeicons/core-free-icons";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -98,10 +99,10 @@ export function DashboardNav({
   }
 
   const groupIcons = {
-    store: <Storefront size={17} weight="regular" aria-hidden />,
-    email: <EnvelopeSimple size={17} weight="regular" aria-hidden />,
-    affiliates: <Network size={17} weight="regular" aria-hidden />,
-    settings: <GearSix size={17} weight="regular" aria-hidden />,
+    store: <HugeiconsIcon icon={Store01Icon} size={17} aria-hidden />,
+    email: <HugeiconsIcon icon={Mail01Icon} size={17} aria-hidden />,
+    affiliates: <HugeiconsIcon icon={NetworkIcon} size={17} aria-hidden />,
+    settings: <HugeiconsIcon icon={Settings01Icon} size={17} aria-hidden />,
   };
 
   return (
@@ -124,7 +125,7 @@ export function DashboardNav({
             {collapsed ? (
               <AppIcon size={28} />
             ) : (
-              <SidebarSimple size={19} weight="regular" aria-hidden />
+              <HugeiconsIcon icon={SidebarLeftIcon} size={19} aria-hidden />
             )}
           </button>
         </div>
@@ -145,7 +146,7 @@ export function DashboardNav({
                   : "text-[#333] hover:bg-[#f7f7f8]"
               }`}
             >
-              <House size={19} weight="regular" aria-hidden />
+              <HugeiconsIcon icon={Home01Icon} size={19} aria-hidden />
             </Link>
 
             {visibleNavGroups.map((group) => {
@@ -213,7 +214,7 @@ export function DashboardNav({
                   : "text-[#333] hover:bg-[#f7f7f8]"
               }`}
             >
-              <SlidersHorizontal size={18} weight="regular" aria-hidden />
+              <HugeiconsIcon icon={SlidersHorizontalIcon} size={18} aria-hidden />
             </Link>
 
           </div>
@@ -241,7 +242,7 @@ export function DashboardNav({
                 : "text-[#333] hover:bg-[#f7f7f8] [&_svg]:text-[#9191aa]"
             }`}
           >
-            <House size={18} weight="regular" />
+            <HugeiconsIcon icon={Home01Icon} size={18} />
             {dashboardHomeLink.label}
           </Link>
 
@@ -267,7 +268,7 @@ export function DashboardNav({
                 : "text-[#333] hover:bg-[#f7f7f8]"
             }`}
           >
-            <SlidersHorizontal size={17} weight="regular" />
+            <HugeiconsIcon icon={SlidersHorizontalIcon} size={17} />
             {dashboardSetupLink.label}
             <span className="ml-auto grid min-w-9 place-items-center rounded-full px-1.5 py-0.5 font-semibold text-[10px] bg-accent">
               {setupProgress}%
@@ -300,7 +301,7 @@ export function DashboardNav({
                         onClick={() => void switchStore(store.id, store.isActive)}
                         className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-sm disabled:cursor-default"
                       >
-                        <Storefront size={16} className="shrink-0" />
+                        <HugeiconsIcon icon={Store01Icon} size={16} className="shrink-0" />
                         <span className="min-w-0 flex-1 truncate">
                           {store.name}
                         </span>
@@ -323,7 +324,7 @@ export function DashboardNav({
                   onClick={() => setAccountMenuOpen(false)}
                   className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-[#f7f7f8]"
                 >
-                  <Plus size={16} />
+                  <HugeiconsIcon icon={PlusSignIcon} size={16} />
                   Add store
                 </Link>
                 {hasInactiveStores && (
@@ -332,7 +333,7 @@ export function DashboardNav({
                     onClick={() => setShowInactiveStores((visible) => !visible)}
                     className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-muted hover:bg-[#f7f7f8] hover:text-foreground"
                   >
-                    {showInactiveStores ? <EyeSlash size={16} /> : <Eye size={16} />}
+                    {showInactiveStores ? <HugeiconsIcon icon={ViewOffIcon} size={16} /> : <HugeiconsIcon icon={ViewIcon} size={16} />}
                     {showInactiveStores
                       ? "Hide inactive stores"
                       : "Show inactive stores"}
@@ -345,7 +346,7 @@ export function DashboardNav({
                   onClick={logout}
                   className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                 >
-                  <SignOut size={16} />
+                  <HugeiconsIcon icon={Logout01Icon} size={16} />
                   Log out
                 </button>
               </div>
@@ -369,7 +370,7 @@ export function DashboardNav({
             aria-label={`Open account menu for ${userName}`}
             aria-expanded={accountMenuOpen}
           >
-            <DotsThree size={20} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={MoreHorizontalIcon} size={20} aria-hidden strokeWidth={2} />
           </button>
         </div>
         </div>

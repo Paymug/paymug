@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, lte, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   githubConnections as githubConnectionsTable,
@@ -15,8 +15,10 @@ import type { CreateUserInput, UpdateProductInput } from "./db.types";
 import type {
   GitHubConnection,
   Order,
+  OrderMetric,
   PayPalConnection,
   Product,
+  ProductSummary,
   StripeConnection,
   User,
 } from "./types";
@@ -408,6 +410,31 @@ export async function listProductsByUser(
   return rows.map((row) => rowToProduct(row, categoryIds.get(row.id)));
 }
 
+/** Lean product rows (no category lookup, no heavy columns). */
+export async function listProductSummariesByUser(
+  userId: string,
+  storeId?: string,
+  environment?: Product["environment"]
+): Promise<ProductSummary[]> {
+  const db = await getDb();
+  return db
+    .select({
+      id: productsTable.id,
+      name: productsTable.name,
+      slug: productsTable.slug,
+      status: productsTable.status,
+    })
+    .from(productsTable)
+    .where(
+      and(
+        eq(productsTable.userId, userId),
+        ...(storeId ? [eq(productsTable.storeId, storeId)] : []),
+        ...(environment ? [eq(productsTable.environment, environment)] : [])
+      )
+    )
+    .orderBy(desc(productsTable.createdAt));
+}
+
 export async function findProductById(id: string): Promise<Product | undefined> {
   const db = await getDb();
   const row = await db.query.products.findFirst({
@@ -681,6 +708,125 @@ export async function listOrdersByUser(
     orderBy: [desc(ordersTable.createdAt)],
   });
   return rows.map(rowToOrder);
+}
+
+/**
+ * Lean order rows for dashboard metrics. Skips heavy columns (delivery
+ * content, files, custom data, GitHub state) and optionally bounds the
+ * result to orders whose `paidAt || createdAt` falls within [from, to]
+ * (UTC `YYYY-MM-DD`, inclusive). Callers should pad the range by a day to
+ * absorb timezone shifts.
+ */
+export async function listOrderMetricsByUser(
+  userId: string,
+  storeId?: string,
+  environment?: Order["environment"],
+  range?: { from?: string; to?: string }
+): Promise<OrderMetric[]> {
+  const db = await getDb();
+  const effectiveDate = sql`coalesce(${ordersTable.paidAt}, ${ordersTable.createdAt})`;
+  const rows = await db
+    .select({
+      id: ordersTable.id,
+      productId: ordersTable.productId,
+      amount: ordersTable.amount,
+      currency: ordersTable.currency,
+      status: ordersTable.status,
+      customerEmail: ordersTable.customerEmail,
+      transactionFeeAmount: ordersTable.transactionFeeAmount,
+      affiliateId: ordersTable.affiliateId,
+      environment: ordersTable.environment,
+      createdAt: ordersTable.createdAt,
+      paidAt: ordersTable.paidAt,
+    })
+    .from(ordersTable)
+    .where(
+      and(
+        eq(ordersTable.userId, userId),
+        ...(storeId ? [eq(ordersTable.storeId, storeId)] : []),
+        ...(environment ? [eq(ordersTable.environment, environment)] : []),
+        // createdAt <= paidAt, so this upper bound is index-friendly and safe.
+        ...(range?.to
+          ? [lte(ordersTable.createdAt, `${range.to}T23:59:59.999Z`)]
+          : []),
+        ...(range?.from
+          ? [sql`${effectiveDate} >= ${`${range.from}T00:00:00.000Z`}`]
+          : []),
+        ...(range?.to
+          ? [sql`${effectiveDate} <= ${`${range.to}T23:59:59.999Z`}`]
+          : [])
+      )
+    )
+    .orderBy(desc(ordersTable.createdAt));
+  return rows.map((row) => ({
+    ...row,
+    affiliateId: row.affiliateId ?? undefined,
+    paidAt: row.paidAt ?? undefined,
+  }));
+}
+
+/** Most recent orders, limited in SQL. */
+export async function listRecentOrdersByUser(
+  userId: string,
+  storeId: string | undefined,
+  environment: Order["environment"] | undefined,
+  limit: number
+): Promise<Order[]> {
+  const db = await getDb();
+  const rows = await db.query.orders.findMany({
+    where: and(
+      eq(ordersTable.userId, userId),
+      ...(storeId ? [eq(ordersTable.storeId, storeId)] : []),
+      ...(environment ? [eq(ordersTable.environment, environment)] : [])
+    ),
+    orderBy: [desc(ordersTable.createdAt)],
+    limit,
+  });
+  return rows.map(rowToOrder);
+}
+
+/** Whether any paid order exists for the scope (single indexed lookup). */
+export async function hasPaidOrder(
+  userId: string,
+  storeId: string | undefined,
+  environment: Order["environment"]
+): Promise<boolean> {
+  const db = await getDb();
+  const row = await db
+    .select({ id: ordersTable.id })
+    .from(ordersTable)
+    .where(
+      and(
+        eq(ordersTable.userId, userId),
+        ...(storeId ? [eq(ordersTable.storeId, storeId)] : []),
+        eq(ordersTable.environment, environment),
+        eq(ordersTable.status, "paid")
+      )
+    )
+    .limit(1);
+  return row.length > 0;
+}
+
+/** Earliest order `createdAt` (UTC ISO) for the scope, if any. */
+export async function getEarliestOrderDate(
+  userId: string,
+  storeId?: string,
+  environment?: Order["environment"]
+): Promise<string | undefined> {
+  const db = await getDb();
+  const [row] = await db
+    .select({
+      earliest: sql<string | null>`min(${ordersTable.createdAt})`,
+    })
+    .from(ordersTable)
+    .where(
+      and(
+        eq(ordersTable.userId, userId),
+        ...(storeId ? [eq(ordersTable.storeId, storeId)] : []),
+        ...(environment ? [eq(ordersTable.environment, environment)] : [])
+      )
+    );
+  return row?.earliest ?? undefined;
 }
 
 export async function findOrderById(id: string): Promise<Order | undefined> {

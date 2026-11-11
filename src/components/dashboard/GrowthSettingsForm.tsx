@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  LockIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Lock, Plus, Trash } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input, Select } from "@/components/ui";
@@ -21,7 +26,7 @@ import type {
 function ProLockBadge() {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a6800]">
-      <Lock size={11} weight="fill" aria-hidden /> Pro
+      <HugeiconsIcon icon={LockIcon} size={11} aria-hidden /> Pro
     </span>
   );
 }
@@ -371,7 +376,7 @@ export function GrowthSettingsForm({
                       className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg text-[#85859d] transition hover:bg-red-50 hover:text-red-600"
                       aria-label={`Remove option ${index + 1}`}
                     >
-                      <Trash size={15} />
+                      <HugeiconsIcon icon={Delete02Icon} size={15} />
                     </button>
                   </div>
                 ))}
@@ -383,7 +388,7 @@ export function GrowthSettingsForm({
                 }
                 className="mt-2 inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-accent-hover hover:underline"
               >
-                <Plus size={14} weight="bold" />
+                <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2} />
                 Add option
               </button>
             </div>

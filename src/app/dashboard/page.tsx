@@ -6,10 +6,15 @@ import {
 } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
 import {
-  listOrdersByUser,
-  listProductsByUser,
+  getEarliestOrderDate,
+  listOrderMetricsByUser,
+  listProductSummariesByUser,
 } from "@/lib/db";
-import { listFeatureRecords } from "@/lib/feature-records";
+import {
+  getEarliestFeatureActivityDate,
+  listFeatureRecords,
+  listFeatureRecordsInRange,
+} from "@/lib/feature-records";
 import { getPayPalCredentials, getStripeCredentials } from "@/lib/payment-credentials";
 import { DashboardOverview } from "./DashboardOverview";
 import {
@@ -22,7 +27,12 @@ import {
 } from "./dashboard-overview.utils";
 import type { DashboardPageProps } from "./dashboard.types";
 import { getStoreById } from "@/lib/stores";
-import { shiftToWallClock } from "@/lib/timezone";
+import {
+  getUtcQueryRange,
+  shiftToWallClock,
+  toWallClockIso,
+} from "@/lib/timezone";
+import { getPreviousAnalyticsRange } from "@/lib/visitor-analytics.utils";
 
 export default async function DashboardPage({
   searchParams,
@@ -38,6 +48,16 @@ export default async function DashboardPage({
     timeZone,
   );
   const filter = parseDashboardFilterState(params, savedFilter, timeZone);
+  // Range-only sources are fetched for the previous + current window, padded
+  // a day on each side so wall-clock shifting never drops a boundary record.
+  // Orders, subscriptions and subscribers stay full-history: returning
+  // customers, MRR, churn and subscriber counts are point-in-time metrics.
+  const previousRange = getPreviousAnalyticsRange(
+    filter.startDate,
+    filter.endDate,
+  );
+  const queryRange = getUtcQueryRange(previousRange.startDate, filter.endDate);
+  const env = user.environment;
   const [
     rawOrders,
     products,
@@ -47,19 +67,51 @@ export default async function DashboardPage({
     rawAffiliateClicks,
     rawAffiliateReferrals,
     rawAffiliatePayouts,
+    earliestOrderDate,
+    earliestFeatureDate,
     paypal,
     stripe,
     store,
   ] =
     await Promise.all([
-      listOrdersByUser(user.id, user.activeStoreId, user.environment),
-      listProductsByUser(user.id, user.activeStoreId, user.environment),
-      listFeatureRecords(user.id, "subscriptions", user.environment),
-      listFeatureRecords(user.id, "subscribers", user.environment),
-      listFeatureRecords(user.id, "campaigns", user.environment),
-      listFeatureRecords(user.id, "affiliate-clicks", user.environment),
-      listFeatureRecords(user.id, "affiliate-referrals", user.environment),
-      listFeatureRecords(user.id, "affiliate-payouts", user.environment),
+      listOrderMetricsByUser(user.id, user.activeStoreId, env),
+      listProductSummariesByUser(user.id, user.activeStoreId, env),
+      listFeatureRecords(user.id, "subscriptions", env),
+      listFeatureRecords(user.id, "subscribers", env),
+      listFeatureRecordsInRange(
+        user.id,
+        "campaigns",
+        env,
+        queryRange.startDate,
+        queryRange.endDate,
+      ),
+      listFeatureRecordsInRange(
+        user.id,
+        "affiliate-clicks",
+        env,
+        queryRange.startDate,
+        queryRange.endDate,
+      ),
+      listFeatureRecordsInRange(
+        user.id,
+        "affiliate-referrals",
+        env,
+        queryRange.startDate,
+        queryRange.endDate,
+      ),
+      listFeatureRecordsInRange(
+        user.id,
+        "affiliate-payouts",
+        env,
+        queryRange.startDate,
+        queryRange.endDate,
+      ),
+      getEarliestOrderDate(user.id, user.activeStoreId, env),
+      getEarliestFeatureActivityDate(
+        user.id,
+        ["campaigns", "affiliate-clicks", "affiliate-referrals", "affiliate-payouts"],
+        env,
+      ),
       getPayPalCredentials(user.id, undefined, user.activeStoreId),
       getStripeCredentials(user.id, undefined, user.activeStoreId),
       getStoreById(user.activeStoreId, user.id),
@@ -91,19 +143,11 @@ export default async function DashboardPage({
     productId: selectedProductId,
   });
   const earliestDate = [
-    ...orders.map((order) => order.createdAt),
+    ...[earliestOrderDate, earliestFeatureDate].flatMap((date) =>
+      date ? [toWallClockIso(date, timeZone)] : []
+    ),
     ...subscriptions.map((subscription) => subscription.createdAt),
     ...subscribers.map((subscriber) => subscriber.createdAt),
-    ...campaigns.map((campaign) =>
-      String(campaign.data.sentAt || campaign.createdAt)
-    ),
-    ...affiliateClicks.map((click) =>
-      String(click.data.clickedAt || click.createdAt)
-    ),
-    ...affiliateReferrals.map((referral) => referral.createdAt),
-    ...affiliatePayouts.map((payout) =>
-      String(payout.data.paidAt || payout.createdAt)
-    ),
   ]
     .map((date) => date.slice(0, 10))
     .sort()[0];

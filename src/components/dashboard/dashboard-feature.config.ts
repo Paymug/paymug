@@ -152,6 +152,7 @@ const rootFeatures: Record<string, DashboardFeatureConfig> = {
       },
       { name: "value", label: "Value (% or currency amount)", type: "number", source: "data", required: true },
       { name: "usageLimit", label: "Usage limit", type: "number", source: "data" },
+      { name: "startsAt", label: "Start date (optional)", type: "date", source: "data" },
       { name: "expiresAt", label: "Expires", type: "date", source: "data" },
     ],
     listFields: [

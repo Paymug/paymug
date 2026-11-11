@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  Image01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ImageSquare, Trash, UploadSimple } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { uploadProductCoverImage } from "@/components/product-form.utils";
 import type { PageCoverUploaderProps } from "./PageEditor.types";
@@ -42,7 +47,7 @@ export function PageCoverUploader({
           className="grid aspect-[2.4/1] w-full place-items-center text-[#aaa9a4] hover:text-[#77756f]"
         >
           <span className="flex items-center gap-2 text-sm font-medium">
-            <ImageSquare size={20} /> Add cover
+            <HugeiconsIcon icon={Image01Icon} size={20} /> Add cover
           </span>
         </button>
       )}
@@ -53,7 +58,7 @@ export function PageCoverUploader({
           disabled={uploading}
           className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-medium shadow"
         >
-          <UploadSimple size={14} /> {uploading ? "Uploading…" : "Replace"}
+          <HugeiconsIcon icon={Upload01Icon} size={14} /> {uploading ? "Uploading…" : "Replace"}
         </button>
         {imageUrl && (
           <button
@@ -62,7 +67,7 @@ export function PageCoverUploader({
             className="grid h-8 w-8 place-items-center rounded-full bg-white text-red-600 shadow"
             aria-label="Remove cover"
           >
-            <Trash size={14} />
+            <HugeiconsIcon icon={Delete02Icon} size={14} />
           </button>
         )}
       </div>

@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Trash } from "@phosphor-icons/react";
 import Link from "next/link";
 import { AreaChart } from "@/components/dashboard/charts";
 import { CustomSelect } from "@/components/CustomSelect";
@@ -57,7 +60,7 @@ export function DashboardMetricChart({
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-[15px] leading-5 text-danger outline-none transition hover:bg-red-50"
               aria-label={`Remove ${metric.label} graph`}
             >
-              <Trash size={16} weight="bold" aria-hidden />
+              <HugeiconsIcon icon={Delete02Icon} size={16} aria-hidden strokeWidth={2} />
               Remove
             </button>
           }

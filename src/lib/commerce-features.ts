@@ -70,6 +70,11 @@ export async function resolveDiscount(
     throw new Error("Discount code is not valid for this product");
   }
 
+  const startsAt = String(discount.data.startsAt || "");
+  if (startsAt && new Date(startsAt) > new Date()) {
+    throw new Error("Discount code is not active yet");
+  }
+
   const expiresAt = String(discount.data.expiresAt || "");
   if (expiresAt && new Date(expiresAt) < new Date()) {
     throw new Error("Discount code has expired");

@@ -1,7 +1,8 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowSquareOut,
-  Check,
-} from "@phosphor-icons/react/ssr";
+  SquareArrowUpRightIcon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { getSessionUser } from "@/lib/auth";
@@ -86,7 +87,7 @@ export default async function SetupPage() {
                     }`}
                   >
                     {item.complete ? (
-                      <Check size={18} weight="bold" />
+                      <HugeiconsIcon icon={Tick02Icon} size={18} strokeWidth={2} />
                     ) : (
                       index + 1
                     )}
@@ -121,7 +122,7 @@ export default async function SetupPage() {
                               }`}
                             >
                               {check.complete ? (
-                                <Check size={14} weight="bold" />
+                                <HugeiconsIcon icon={Tick02Icon} size={14} strokeWidth={2} />
                               ) : (
                                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                               )}
@@ -156,7 +157,7 @@ export default async function SetupPage() {
 
                   {item.complete ? (
                     <span className="inline-flex min-w-24 items-center justify-center gap-1.5 rounded-lg bg-[#e8f8ef] px-3 py-2 text-sm font-semibold text-[#178f55]">
-                      <Check size={15} weight="bold" />
+                      <HugeiconsIcon icon={Tick02Icon} size={15} strokeWidth={2} />
                       Complete
                     </span>
                   ) : item.href && item.actionLabel ? (
@@ -168,7 +169,7 @@ export default async function SetupPage() {
                     >
                       {item.actionLabel}
                       {item.external && (
-                        <ArrowSquareOut size={15} weight="bold" />
+                        <HugeiconsIcon icon={SquareArrowUpRightIcon} size={15} strokeWidth={2} />
                       )}
                     </Link>
                   ) : (

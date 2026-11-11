@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   apiKeys as apiKeysTable,
@@ -78,6 +78,81 @@ export async function listFeatureRecords(
     orderBy: [desc(featureRecordsTable.createdAt)],
   });
   return rows.map(mapFeatureRecord);
+}
+
+/** JSON field in `data` that overrides `createdAt` as the activity date. */
+const featureActivityDateField: Partial<Record<DashboardFeatureKey, string>> = {
+  campaigns: "sentAt",
+  "affiliate-clicks": "clickedAt",
+  "affiliate-payouts": "paidAt",
+};
+
+function featureActivityDate(feature: DashboardFeatureKey): SQL<string> {
+  const field = featureActivityDateField[feature];
+  if (!field) return sql<string>`${featureRecordsTable.createdAt}`;
+  // Mirrors `String(data.<field> || createdAt)` in the dashboard utils.
+  return sql<string>`coalesce(nullif(json_extract(${featureRecordsTable.data}, ${`$.${field}`}), ''), ${featureRecordsTable.createdAt})`;
+}
+
+/**
+ * Feature records whose activity date (see `featureActivityDateField`) falls
+ * within [from, to] (UTC `YYYY-MM-DD`, inclusive). Callers should pad the
+ * range by a day to absorb timezone shifts.
+ */
+export async function listFeatureRecordsInRange(
+  userId: string,
+  feature: DashboardFeatureKey,
+  environment: FeatureRecord["environment"] | undefined,
+  from: string,
+  to: string
+): Promise<FeatureRecord[]> {
+  const db = await getDb();
+  const activityDate = featureActivityDate(feature);
+  const rows = await db.query.featureRecords.findMany({
+    where: and(
+      eq(featureRecordsTable.userId, userId),
+      eq(featureRecordsTable.feature, feature),
+      ...(environment
+        ? [eq(featureRecordsTable.environment, environment)]
+        : []),
+      sql`${activityDate} >= ${`${from}T00:00:00.000Z`}`,
+      sql`${activityDate} <= ${`${to}T23:59:59.999Z`}`
+    ),
+    orderBy: [desc(featureRecordsTable.createdAt)],
+  });
+  return rows.map(mapFeatureRecord);
+}
+
+/** Earliest activity date (UTC ISO) across the given features, in one query. */
+export async function getEarliestFeatureActivityDate(
+  userId: string,
+  features: DashboardFeatureKey[],
+  environment?: FeatureRecord["environment"]
+): Promise<string | undefined> {
+  if (features.length === 0) return undefined;
+  const db = await getDb();
+  const overrides = features.filter((feature) => featureActivityDateField[feature]);
+  const activityDate = overrides.length
+    ? sql<string>`case ${featureRecordsTable.feature} ${sql.join(
+        overrides.map(
+          (feature) => sql`when ${feature} then ${featureActivityDate(feature)}`
+        ),
+        sql` `
+      )} else ${featureRecordsTable.createdAt} end`
+    : sql<string>`${featureRecordsTable.createdAt}`;
+  const [row] = await db
+    .select({ earliest: sql<string | null>`min(${activityDate})` })
+    .from(featureRecordsTable)
+    .where(
+      and(
+        eq(featureRecordsTable.userId, userId),
+        inArray(featureRecordsTable.feature, features),
+        ...(environment
+          ? [eq(featureRecordsTable.environment, environment)]
+          : [])
+      )
+    );
+  return row?.earliest ?? undefined;
 }
 
 export async function findFeatureRecord(

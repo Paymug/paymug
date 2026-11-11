@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { CaretDown, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
@@ -95,7 +100,7 @@ export function DashboardDateRangePicker({
         {showCustomInputs || !activePreset
           ? `${formatRangeDate(startDate)} — ${formatRangeDate(endDate)}`
           : activePreset.label}
-        <CaretDown size={14} weight="bold" className="text-[#9191aa]" />
+        <HugeiconsIcon icon={ArrowDown01Icon} size={14} className="text-[#9191aa]" strokeWidth={2} />
       </button>
 
       {open && (
@@ -152,7 +157,7 @@ export function DashboardDateRangePicker({
                     className="grid h-9 w-9 place-items-center rounded-lg text-[#85859d] hover:bg-[#f7f7f8]"
                     aria-label="Previous months"
                   >
-                    <CaretLeft size={18} weight="bold" />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={2} />
                   </button>
                   <p className="text-sm text-muted">
                     Select a start date, then an end date
@@ -163,7 +168,7 @@ export function DashboardDateRangePicker({
                     className="grid h-9 w-9 place-items-center rounded-lg text-[#85859d] hover:bg-[#f7f7f8]"
                     aria-label="Next months"
                   >
-                    <CaretRight size={18} weight="bold" />
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} strokeWidth={2} />
                   </button>
                 </div>
                 <div className="flex divide-x divide-[#e8e8ee]">

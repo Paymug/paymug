@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Plus, Trash } from "@phosphor-icons/react";
 import { Button, Input, Select } from "./ui";
 import type { ProductConfigurationEditorProps } from "./ProductConfigurationEditor.types";
 
@@ -44,7 +48,7 @@ export function ProductConfigurationEditor({
             ])
           }
         >
-          <Plus size={18} className="absolute" />
+          <HugeiconsIcon icon={PlusSignIcon} size={18} className="absolute" />
         </Button>
       </div>
 
@@ -90,7 +94,7 @@ export function ProductConfigurationEditor({
             className="mt-6 grid h-10 w-10 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600"
             aria-label={`Delete ${option.name}`}
           >
-            <Trash size={17} />
+            <HugeiconsIcon icon={Delete02Icon} size={17} />
           </button>
         </div>
       ))}
@@ -119,7 +123,7 @@ export function ProductConfigurationEditor({
               ])
             }
           >
-            <Plus size={18} className="absolute" />
+            <HugeiconsIcon icon={PlusSignIcon} size={18} className="absolute" />
           </Button>
         </div>
       </div>
@@ -172,7 +176,7 @@ export function ProductConfigurationEditor({
               className="mt-6 grid h-10 w-10 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600"
               aria-label={`Delete ${bundle.name}`}
             >
-              <Trash size={17} />
+              <HugeiconsIcon icon={Delete02Icon} size={17} />
             </button>
           </div>
 
@@ -246,7 +250,7 @@ export function ProductConfigurationEditor({
                 className="mt-6 grid h-10 w-10 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600"
                 aria-label={`Delete ${choice.name}`}
               >
-                <Trash size={17} />
+                <HugeiconsIcon icon={Delete02Icon} size={17} />
               </button>
             </div>
           ))}
@@ -274,7 +278,7 @@ export function ProductConfigurationEditor({
               )
             }
           >
-            <Plus size={15} /> Add extra
+            <HugeiconsIcon icon={PlusSignIcon} size={15} /> Add extra
           </Button>
         </div>
       ))}

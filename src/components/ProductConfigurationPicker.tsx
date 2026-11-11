@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check } from "@phosphor-icons/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { formatMoney } from "@/lib/format";
 import {
@@ -51,7 +54,7 @@ export function ProductConfigurationPicker({
                 >
                   <span className="flex items-center justify-between gap-2">
                     <span className="font-medium">{option.name}</span>
-                    {selected && <Check size={16} weight="bold" />}
+                    {selected && <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2} />}
                   </span>
                   <span className="mt-1 block text-sm text-muted">
                     {formatMoney(option.price, currency)}
@@ -103,7 +106,7 @@ export function ProductConfigurationPicker({
                   >
                     <span className="flex items-center gap-2">
                       <span className="grid h-5 w-5 place-items-center rounded border border-current">
-                        {selected && <Check size={13} weight="bold" />}
+                        {selected && <HugeiconsIcon icon={Tick02Icon} size={13} strokeWidth={2} />}
                       </span>
                       {choice.name}
                     </span>

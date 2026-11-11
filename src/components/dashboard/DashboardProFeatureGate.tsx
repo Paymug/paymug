@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  CrownIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Crown } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -33,7 +36,7 @@ export function DashboardProFeatureGate({
             className="w-full max-w-md rounded-2xl border border-[#e8e8ee] bg-white p-7 text-center shadow-[0_24px_70px_rgba(24,22,32,0.18)]"
           >
             <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-accent-soft text-[#8a6800]">
-              <Crown size={24} weight="fill" />
+              <HugeiconsIcon icon={CrownIcon} size={24} />
             </span>
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-[#9b7600]">
               Paymug Pro

@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Copy01Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Copy, DotsThree } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { dashboardButtonBaseClass } from "./dashboard.styles";
 import type {
@@ -63,7 +67,7 @@ export function EnvironmentCopyMenu({
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
       >
-        <DotsThree size={18} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={18} aria-hidden strokeWidth={2} />
         More
       </button>
       {open && (
@@ -74,7 +78,7 @@ export function EnvironmentCopyMenu({
             disabled={!selectedIds.length || copying}
             onClick={() => void copySelected()}
           >
-            <Copy size={16} aria-hidden />
+            <HugeiconsIcon icon={Copy01Icon} size={16} aria-hidden />
             Copy selected to {targetLabel}
           </button>
           {!selectedIds.length && (

@@ -1,4 +1,7 @@
-import { CaretDown } from "@phosphor-icons/react/ssr";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+} from "@hugeicons/core-free-icons";
 import type { StatCardProps } from "./StatCard.types";
 
 export function StatCard({
@@ -17,7 +20,7 @@ export function StatCard({
     <div className="min-w-0 py-5 md:px-6 md:first:pl-0 md:[&+&]:border-l md:[&+&]:border-[#e8e8ee]">
       <p className="flex items-center gap-1.5 text-sm text-[#333]">
         {label}
-        <CaretDown size={13} weight="bold" className="text-[#9191aa]" aria-hidden />
+        <HugeiconsIcon icon={ArrowDown01Icon} size={13} className="text-[#9191aa]" aria-hidden strokeWidth={2} />
       </p>
       <div className="flex flex-wrap items-center justify-between">
         <p className="mt-2 text-xl font-medium leading-none tracking-[-0.04em] tabular-nums text-[#333] flex-1">

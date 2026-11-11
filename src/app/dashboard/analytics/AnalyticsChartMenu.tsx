@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MoreHorizontalIcon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check, DotsThree } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import type {
   AnalyticsChartMenuProps,
@@ -45,7 +49,7 @@ export function AnalyticsChartMenu({ value, onChange }: AnalyticsChartMenuProps)
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <DotsThree size={22} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={22} aria-hidden strokeWidth={2} />
       </button>
       {open && (
         <div
@@ -73,7 +77,7 @@ export function AnalyticsChartMenu({ value, onChange }: AnalyticsChartMenuProps)
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[#f7f7f8]"
               >
                 <span className="grid w-4 place-items-center">
-                  {selected && <Check size={15} weight="bold" aria-hidden />}
+                  {selected && <HugeiconsIcon icon={Tick02Icon} size={15} aria-hidden strokeWidth={2} />}
                 </span>
                 {option.label}
               </button>

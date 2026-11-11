@@ -1,12 +1,13 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowDown,
-  ArrowUp,
-  PencilSimple,
-  Plus,
-  Trash,
-} from "@phosphor-icons/react";
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+  Delete02Icon,
+  PencilEdit01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Alert, Button } from "@/components/ui";
@@ -94,7 +95,7 @@ export function CategoriesWorkspace({
           Group products into storefront collections with their own public URL.
         </p>
         <Button type="button" onClick={() => setModalCategory(null)}>
-          <Plus size={16} weight="bold" />
+          <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} />
           Add category
         </Button>
       </div>
@@ -138,7 +139,7 @@ export function CategoriesWorkspace({
                         className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground disabled:opacity-30"
                         aria-label={`Move ${category.name} up`}
                       >
-                        <ArrowUp size={17} />
+                        <HugeiconsIcon icon={ArrowUp02Icon} size={17} />
                       </button>
                       <button
                         type="button"
@@ -147,7 +148,7 @@ export function CategoriesWorkspace({
                         className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground disabled:opacity-30"
                         aria-label={`Move ${category.name} down`}
                       >
-                        <ArrowDown size={17} />
+                        <HugeiconsIcon icon={ArrowDown02Icon} size={17} />
                       </button>
                       <button
                         type="button"
@@ -155,7 +156,7 @@ export function CategoriesWorkspace({
                         className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground"
                         aria-label={`Edit ${category.name}`}
                       >
-                        <PencilSimple size={17} />
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={17} />
                       </button>
                       <button
                         type="button"
@@ -164,7 +165,7 @@ export function CategoriesWorkspace({
                         className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                         aria-label={`Delete ${category.name}`}
                       >
-                        <Trash size={17} />
+                        <HugeiconsIcon icon={Delete02Icon} size={17} />
                       </button>
                     </div>
                   </td>

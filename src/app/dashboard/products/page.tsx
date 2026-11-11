@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
-import { listOrdersByUser, listProductsByUser } from "@/lib/db";
+import { listOrderMetricsByUser, listProductsByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
 import { getUtcQueryRange, shiftToWallClock } from "@/lib/timezone";
 import { listVisitorEvents } from "@/lib/visitor-analytics";
@@ -37,7 +37,7 @@ export default async function ProductsPage({
   const queryRange = getUtcQueryRange(filter.startDate, filter.endDate);
   const [products, rawOrders, rawEvents] = await Promise.all([
     listProductsByUser(user.id, store.id, user.environment),
-    listOrdersByUser(user.id, store.id, user.environment),
+    listOrderMetricsByUser(user.id, store.id, user.environment),
     listVisitorEvents(store.id, queryRange.startDate, queryRange.endDate),
   ]);
   // Count orders and visits by the user's local day.

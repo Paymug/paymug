@@ -1,11 +1,12 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowCounterClockwise,
-  Check,
-  DotsThree,
-  Plus,
-} from "@phosphor-icons/react";
+  MoreHorizontalIcon,
+  PlusSignIcon,
+  Tick02Icon,
+  Undo02Icon,
+} from "@hugeicons/core-free-icons";
+
 import { useEffect, useRef, useState } from "react";
 import type { DashboardGraphMenuProps } from "./dashboard-overview.types";
 
@@ -44,7 +45,7 @@ export function DashboardGraphMenu({
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <DotsThree size={22} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={22} aria-hidden strokeWidth={2} />
       </button>
 
       {open && (
@@ -69,7 +70,7 @@ export function DashboardGraphMenu({
           >
             <span className="grid w-4 place-items-center">
               {showAccumulatedValues && (
-                <Check size={15} weight="bold" aria-hidden />
+                <HugeiconsIcon icon={Tick02Icon} size={15} aria-hidden strokeWidth={2} />
               )}
             </span>
             Show accumulated values
@@ -83,7 +84,7 @@ export function DashboardGraphMenu({
             }}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[#f7f7f8]"
           >
-            <ArrowCounterClockwise size={16} aria-hidden />
+            <HugeiconsIcon icon={Undo02Icon} size={16} aria-hidden />
             Reset graphs
           </button>
           <button
@@ -93,7 +94,7 @@ export function DashboardGraphMenu({
             onClick={() => setShowAddGraphs((current) => !current)}
             className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[#f7f7f8] disabled:opacity-45"
           >
-            <Plus size={16} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={PlusSignIcon} size={16} aria-hidden strokeWidth={2} />
             Add graph
           </button>
           {showAddGraphs && availableMetrics.length > 0 && (

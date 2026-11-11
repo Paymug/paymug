@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MinusSignIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Minus, Plus } from "@phosphor-icons/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
@@ -55,7 +59,7 @@ export function ExtraSeatsPicker({
           disabled={extraSeats <= min}
           onClick={() => commit(extraSeats - 1)}
         >
-          <Minus size={14} weight="bold" />
+          <HugeiconsIcon icon={MinusSignIcon} size={14} strokeWidth={2} />
         </button>
         <input
           id="extra-seats"
@@ -83,7 +87,7 @@ export function ExtraSeatsPicker({
           disabled={extraSeats >= max}
           onClick={() => commit(extraSeats + 1)}
         >
-          <Plus size={14} weight="bold" />
+          <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2} />
         </button>
       </div>
     </div>

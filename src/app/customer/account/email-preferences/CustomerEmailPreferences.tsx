@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  LockIcon,
+} from "@hugeicons/core-free-icons";
 
-import { LockSimple } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Alert, Button, Select } from "@/components/ui";
 import type { CustomerStoreEmailPreferences } from "@/lib/customer-email-preferences.types";

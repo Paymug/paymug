@@ -1,6 +1,11 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Camera01Icon,
+  Delete02Icon,
+  UserCircleIcon,
+} from "@hugeicons/core-free-icons";
 'use client';
 
-import { Camera, Trash, UserCircle } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Input } from '@/components/ui';
@@ -86,10 +91,10 @@ export function CustomerProfileDetails({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <UserCircle size={38} weight="thin" />
+                <HugeiconsIcon icon={UserCircleIcon} size={38} />
               )}
               <span className="absolute inset-0 grid place-items-center bg-black/40 text-white opacity-0 transition group-hover:opacity-100">
-                <Camera size={20} />
+                <HugeiconsIcon icon={Camera01Icon} size={20} />
               </span>
             </label>
             <input
@@ -106,7 +111,7 @@ export function CustomerProfileDetails({
                 className="absolute -right-1 -top-1 grid h-7 w-7 place-items-center rounded-full border border-[#eeeeF2] bg-white text-red-600 shadow-sm"
                 aria-label="Remove profile image"
               >
-                <Trash size={13} />
+                <HugeiconsIcon icon={Delete02Icon} size={13} />
               </button>
             )}
           </div>

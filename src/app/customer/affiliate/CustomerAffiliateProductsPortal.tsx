@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowRight02Icon,
+  PackageIcon,
+} from "@hugeicons/core-free-icons";
 
-import { ArrowRight, Package } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import { formatMoney } from "@/lib/format";
@@ -52,10 +56,10 @@ export function CustomerAffiliateProductsPortal({
 
         {program.state !== "active" ? (
           <div className="rounded-2xl border border-[#e8e8ee] bg-[#fafafd] p-8 text-center">
-            <Package size={28} className="mx-auto text-[#b08500]" />
+            <HugeiconsIcon icon={PackageIcon} size={28} className="mx-auto text-[#b08500]" />
             <h3 className="mt-4 text-xl font-semibold">Product links become available after approval</h3>
             <p className="mt-2 text-sm text-[#85859d]">Check your application and referral status from Affiliate Overview.</p>
-            <Link href="/customer/affiliate" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#8a6800]">Open overview <ArrowRight size={15} /></Link>
+            <Link href="/customer/affiliate" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#8a6800]">Open overview <HugeiconsIcon icon={ArrowRight02Icon} size={15} /></Link>
           </div>
         ) : program.products.length ? (
           <div className="overflow-x-auto rounded-2xl border border-[#e8e8ee] bg-white">
@@ -126,7 +130,7 @@ export function CustomerAffiliateProductsPortal({
                           : "Set username first"}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <ArrowRight size={18} className="ml-auto text-[#a0a0b2]" />
+                        <HugeiconsIcon icon={ArrowRight02Icon} size={18} className="ml-auto text-[#a0a0b2]" />
                       </td>
                     </tr>
                   );

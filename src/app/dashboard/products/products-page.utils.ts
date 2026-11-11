@@ -1,4 +1,4 @@
-import type { Order, Product } from "@/lib/types";
+import type { OrderMetric as Order, Product } from "@/lib/types";
 import type { VisitorEvent } from "@/lib/visitor-analytics.types";
 import type {
   ProductPerformance,

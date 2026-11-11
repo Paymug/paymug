@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  PlusSignIcon,
+  Store01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check, Plus, Storefront } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
@@ -68,11 +73,11 @@ export function StoresWorkspace({
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#f7f7f8]">
-                  <Storefront size={20} />
+                  <HugeiconsIcon icon={Store01Icon} size={20} />
                 </span>
                 {active && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                    <Check size={13} weight="bold" /> Active
+                    <HugeiconsIcon icon={Tick02Icon} size={13} strokeWidth={2} /> Active
                   </span>
                 )}
               </div>
@@ -113,7 +118,7 @@ export function StoresWorkspace({
             required
           />
           <Button type="submit" disabled={working}>
-            <Plus size={16} /> Add store
+            <HugeiconsIcon icon={PlusSignIcon} size={16} /> Add store
           </Button>
         </div>
         {error && <div className="mt-4"><Alert>{error}</Alert></div>}

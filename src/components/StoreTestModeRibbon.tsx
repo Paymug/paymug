@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 
 export function StoreTestModeRibbon() {
@@ -50,7 +53,7 @@ export function StoreTestModeRibbon() {
                 className="grid h-8 w-8 place-items-center rounded-full text-[#77778a] transition hover:bg-[#f4f4f7] hover:text-[#333]"
                 aria-label="Close test mode information"
               >
-                <X size={17} aria-hidden />
+                <HugeiconsIcon icon={Cancel01Icon} size={17} aria-hidden />
               </button>
             </header>
             <div className="px-5 py-5 text-sm leading-6 text-muted">

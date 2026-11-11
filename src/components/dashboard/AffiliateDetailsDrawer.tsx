@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check, X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatDateTimeInTimeZone } from "@/lib/timezone";
@@ -145,7 +149,7 @@ export function AffiliateDetailsDrawer({
             className="grid h-9 w-9 place-items-center rounded-full text-muted transition hover:bg-[#f4f4f7] hover:text-foreground"
             aria-label="Close affiliate details"
           >
-            <X size={18} />
+            <HugeiconsIcon icon={Cancel01Icon} size={18} />
           </button>
         </header>
 
@@ -195,10 +199,10 @@ export function AffiliateDetailsDrawer({
             ) : (
               <>
                 <Button type="button" variant="outline" onClick={() => setRejecting(true)} disabled={saving}>
-                  <X size={15} /> Reject
+                  <HugeiconsIcon icon={Cancel01Icon} size={15} /> Reject
                 </Button>
                 <Button type="button" onClick={() => void decide("active")} disabled={saving}>
-                  <Check size={15} /> {saving ? "Approving…" : "Approve"}
+                  <HugeiconsIcon icon={Tick02Icon} size={15} /> {saving ? "Approving…" : "Approve"}
                 </Button>
               </>
             )}

@@ -1,6 +1,6 @@
 import { pctChange } from "@/lib/analytics.utils";
 import type { FeatureRecord } from "@/lib/feature-records.types";
-import type { Order } from "@/lib/types";
+import type { OrderMetric as Order } from "@/lib/types";
 import { addDays } from "./dashboard-filter.utils";
 import type {
   BuildDashboardOverviewInput,
@@ -109,21 +109,43 @@ function createBuckets(
   return buckets;
 }
 
+/**
+ * Buckets are contiguous and ascending (see `createBuckets`), so the owning
+ * bucket is the last one whose start is <= key, provided key <= its end.
+ */
+function findBucketIndex(buckets: DashboardSeriesBucket[], key: string) {
+  let low = 0;
+  let high = buckets.length - 1;
+  let match = -1;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    if (buckets[mid].startDate <= key) {
+      match = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return match >= 0 && key <= buckets[match].endDate ? match : -1;
+}
+
+function toBucketKey(date: string, hourly: boolean) {
+  if (hourly) {
+    const time = Date.parse(date);
+    if (!Number.isNaN(time)) return new Date(time).toISOString();
+  }
+  return date.slice(0, 10);
+}
+
 function addValueToBucket(
   buckets: DashboardSeriesBucket[],
   date: string,
   value: number
 ) {
-  const hourly = buckets[0]?.startDate.includes("T") || false;
-  const parsedDate = new Date(date);
-  const dateKey = hourly && !Number.isNaN(parsedDate.getTime())
-    ? parsedDate.toISOString()
-    : date.slice(0, 10);
-  const bucket = buckets.find(
-    (candidate) =>
-      dateKey >= candidate.startDate && dateKey <= candidate.endDate
-  );
-  if (bucket) bucket.value += value;
+  if (!buckets.length) return;
+  const hourly = buckets[0].startDate.includes("T");
+  const index = findBucketIndex(buckets, toBucketKey(date, hourly));
+  if (index >= 0) buckets[index].value += value;
 }
 
 function toChartPoints(buckets: DashboardSeriesBucket[]) {
@@ -222,44 +244,43 @@ function buildRateBuckets(
   }));
 }
 
-function buildReturningCustomerBuckets(
-  orders: Order[],
-  startDate: string,
-  endDate: string,
-  interval: DashboardInterval
-) {
-  const buckets = createBuckets(startDate, endDate, interval);
-  const seenCustomers = new Set<string>();
-  const customersByBucket = buckets.map(() => new Set<string>());
-  const returningByBucket = buckets.map(() => new Set<string>());
-  const paidOrders = orders
+/** Paid orders sorted by `paidAt || createdAt`, computed once per overview. */
+function sortPaidOrders(orders: Order[]) {
+  return orders
     .filter((order) => order.status === "paid")
     .sort((left, right) =>
       (left.paidAt || left.createdAt).localeCompare(
         right.paidAt || right.createdAt
       )
     );
+}
+
+function buildReturningCustomerBuckets(
+  paidOrders: Order[],
+  startDate: string,
+  endDate: string,
+  interval: DashboardInterval
+) {
+  const buckets = createBuckets(startDate, endDate, interval);
+  const hourly = interval === "hourly";
+  const seenCustomers = new Set<string>();
+  const customersByBucket = buckets.map(() => new Set<string>());
+  const returningByBucket = buckets.map(() => new Set<string>());
 
   for (const order of paidOrders) {
     const date = order.paidAt || order.createdAt;
     const day = date.slice(0, 10);
+    // Sorted ascending, so nothing later can land in range or matter.
+    if (day > endDate) break;
     const customer = order.customerEmail.trim().toLowerCase();
-    const parsedDate = new Date(date);
-    const comparableDate =
-      interval === "hourly" && !Number.isNaN(parsedDate.getTime())
-        ? parsedDate.toISOString()
-        : day;
-    const bucketIndex = buckets.findIndex(
-      (bucket) =>
-        comparableDate >= bucket.startDate && comparableDate <= bucket.endDate
-    );
+    const bucketIndex = findBucketIndex(buckets, toBucketKey(date, hourly));
     if (bucketIndex >= 0) {
       customersByBucket[bucketIndex].add(customer);
       if (seenCustomers.has(customer)) {
         returningByBucket[bucketIndex].add(customer);
       }
     }
-    if (day <= endDate) seenCustomers.add(customer);
+    seenCustomers.add(customer);
   }
 
   return buckets.map((bucket, index) => ({
@@ -271,29 +292,23 @@ function buildReturningCustomerBuckets(
 }
 
 function getReturningCustomerRate(
-  orders: Order[],
+  paidOrders: Order[],
   startDate: string,
   endDate: string
 ) {
   const seenCustomers = new Set<string>();
   const periodCustomers = new Set<string>();
   const returningCustomers = new Set<string>();
-  const paidOrders = orders
-    .filter((order) => order.status === "paid")
-    .sort((left, right) =>
-      (left.paidAt || left.createdAt).localeCompare(
-        right.paidAt || right.createdAt
-      )
-    );
 
   for (const order of paidOrders) {
     const date = (order.paidAt || order.createdAt).slice(0, 10);
+    if (date > endDate) break;
     const customer = order.customerEmail.trim().toLowerCase();
-    if (date >= startDate && date <= endDate) {
+    if (date >= startDate) {
       periodCustomers.add(customer);
       if (seenCustomers.has(customer)) returningCustomers.add(customer);
     }
-    if (date <= endDate) seenCustomers.add(customer);
+    seenCustomers.add(customer);
   }
 
   return periodCustomers.size
@@ -521,6 +536,7 @@ export function buildDashboardOverview(
       : input.subscriptions.filter(
           (subscription) => subscription.data.productId === input.productId
         );
+  const paidOrdersByDate = sortPaidOrders(orders);
   const marketplaceOrderData = orders.filter(
     (order) => order.transactionFeeAmount > 0
   );
@@ -637,13 +653,13 @@ export function buildDashboardOverview(
         : 0
   );
   const currentReturnCustomerRate = buildReturningCustomerBuckets(
-    orders,
+    paidOrdersByDate,
     input.startDate,
     input.endDate,
     input.interval
   );
   const previousReturnCustomerRate = buildReturningCustomerBuckets(
-    orders,
+    paidOrdersByDate,
     previous.startDate,
     previous.endDate,
     input.interval
@@ -966,9 +982,9 @@ export function buildDashboardOverview(
     "percent",
     currentReturnCustomerRate,
     previousReturnCustomerRate,
-    getReturningCustomerRate(orders, input.startDate, input.endDate),
+    getReturningCustomerRate(paidOrdersByDate, input.startDate, input.endDate),
     getReturningCustomerRate(
-      orders,
+      paidOrdersByDate,
       previous.startDate,
       previous.endDate
     )

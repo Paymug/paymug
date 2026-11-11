@@ -6,7 +6,7 @@ import {
 } from "@/components/dashboard/dashboard.styles";
 import { parseAnalyticsCommerceMetrics } from "@/lib/analytics-commerce.utils";
 import { getSessionUser } from "@/lib/auth";
-import { listOrdersByUser, listProductsByUser } from "@/lib/db";
+import { listOrderMetricsByUser, listProductSummariesByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
 import {
   getUtcQueryRange,
@@ -66,11 +66,16 @@ export default async function AnalyticsPage({
     filter.endDate,
   );
   const queryRange = getUtcQueryRange(previousRange.startDate, filter.endDate);
+  // Orders are only shown for the current range; pad a day for tz shifts.
+  const orderRange = getUtcQueryRange(filter.startDate, filter.endDate);
   const [rawEvents, rawEarliestDate, products, rawOrders] = await Promise.all([
     listVisitorEvents(store.id, queryRange.startDate, queryRange.endDate),
     getEarliestVisitorEventDate(store.id),
-    listProductsByUser(user.id, store.id, user.environment),
-    listOrdersByUser(user.id, store.id, user.environment),
+    listProductSummariesByUser(user.id, store.id, user.environment),
+    listOrderMetricsByUser(user.id, store.id, user.environment, {
+      from: orderRange.startDate,
+      to: orderRange.endDate,
+    }),
   ]);
   const events = shiftToWallClock(rawEvents, user.timezone);
   const orders = shiftToWallClock(rawOrders, user.timezone);

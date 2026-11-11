@@ -1,9 +1,10 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  MagnifyingGlass,
-  Plus,
-} from "@phosphor-icons/react";
+  PlusSignIcon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DashboardNotifications } from "./DashboardNotifications";
@@ -29,7 +30,7 @@ export function DashboardTopbar({
           className="relative grid h-9 w-9 place-items-center text-[#8b8ba3] transition hover:text-accent-hover"
           aria-label="Search"
         >
-          <MagnifyingGlass size={20} weight="regular" aria-hidden />
+          <HugeiconsIcon icon={Search01Icon} size={20} aria-hidden />
         </button>
         <DashboardNotifications
           initialNotifications={initialNotifications}
@@ -41,7 +42,7 @@ export function DashboardTopbar({
           className="ml-1 grid h-10 w-10 place-items-center rounded-full bg-accent text-dark transition hover:-translate-y-px hover:bg-accent-hover"
           aria-label="Create a new product"
         >
-          <Plus size={22} weight="regular" aria-hidden />
+          <HugeiconsIcon icon={PlusSignIcon} size={22} aria-hidden />
         </Link>
       </div>
     </header>

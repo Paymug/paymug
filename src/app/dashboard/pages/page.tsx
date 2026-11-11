@@ -1,4 +1,8 @@
-import { ArrowRight, Plus } from "@phosphor-icons/react/ssr";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowRight02Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
 import { EmptyState } from "@/components/ui";
@@ -27,7 +31,7 @@ export default async function PagesPage() {
           href="/page-editor/new"
           className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-dark hover:bg-accent-hover"
         >
-          <Plus size={16} weight="bold" /> New page
+          <HugeiconsIcon icon={PlusSignIcon} size={16} strokeWidth={2} /> New page
         </Link>
       </div>
 
@@ -78,7 +82,7 @@ export default async function PagesPage() {
                     {page.navigation === "none" ? "Not in menu" : `${page.navigation} menu`}
                   </p>
                 </div>
-                <ArrowRight size={18} className="text-muted" />
+                <HugeiconsIcon icon={ArrowRight02Icon} size={18} className="text-muted" />
               </Link>
             ))}
           </div>

@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft02Icon,
+  Cancel01Icon,
+  PackageIcon,
+} from "@hugeicons/core-free-icons";
 
-import { ArrowLeft, Package, X } from "@phosphor-icons/react";
 import { CheckoutClient } from "@/app/buy/[productId]/CheckoutClient";
 import {
   calculateSeatAddOnPrice,
@@ -47,7 +52,7 @@ export function CustomerSeatCheckout({
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#77778a] transition hover:bg-[#f4f4f7] hover:text-[#333]"
               aria-label="Back to purchase details"
             >
-              <ArrowLeft size={18} />
+              <HugeiconsIcon icon={ArrowLeft02Icon} size={18} />
             </button>
             <h2 className="text-lg font-medium">
               {seatAddOn.label}
@@ -59,7 +64,7 @@ export function CustomerSeatCheckout({
             className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#77778a] transition hover:bg-[#f4f4f7] hover:text-[#333]"
             aria-label="Close"
           >
-            <X size={18} />
+            <HugeiconsIcon icon={Cancel01Icon} size={18} />
           </button>
         </div>
 
@@ -72,7 +77,7 @@ export function CustomerSeatCheckout({
             />
           ) : (
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-              <Package size={24} />
+              <HugeiconsIcon icon={PackageIcon} size={24} />
             </span>
           )}
           <div className="min-w-0 flex-1">

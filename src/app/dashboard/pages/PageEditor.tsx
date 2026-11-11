@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft02Icon,
+  Delete02Icon,
+  SquareArrowUpRightIcon,
+} from "@hugeicons/core-free-icons";
 
-import { ArrowLeft, ArrowSquareOut, Trash } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -112,7 +117,7 @@ export function PageEditor({ page }: PageEditorProps) {
               href="/dashboard/pages"
               className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-foreground"
             >
-              <ArrowLeft size={16} /> Pages
+              <HugeiconsIcon icon={ArrowLeft02Icon} size={16} /> Pages
             </Link>
           </div>
           <article className="mx-auto mt-4 max-w-4xl px-5 sm:px-8">
@@ -165,7 +170,7 @@ export function PageEditor({ page }: PageEditorProps) {
                     target="_blank"
                     className="inline-flex items-center gap-1.5 rounded-full border border-[#dedee7] px-3 py-1.5 text-xs font-semibold hover:bg-[#f5f5f2]"
                   >
-                    <ArrowSquareOut size={14} />
+                    <HugeiconsIcon icon={SquareArrowUpRightIcon} size={14} />
                   </Link>
                 ) : (
                   <button
@@ -174,7 +179,7 @@ export function PageEditor({ page }: PageEditorProps) {
                     title="Publish and save the page to preview it"
                     className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full border border-[#dedee7] px-3 py-1.5 text-xs font-semibold opacity-45"
                   >
-                    <ArrowSquareOut size={14} />
+                    <HugeiconsIcon icon={SquareArrowUpRightIcon} size={14} />
                   </button>
                 )}
               </div>
@@ -260,7 +265,7 @@ export function PageEditor({ page }: PageEditorProps) {
                   onClick={() => void remove()}
                   className="p-2 text-sm font-medium text-red-600 hover:text-red-700"
                 >
-                  <Trash size={16} />
+                  <HugeiconsIcon icon={Delete02Icon} size={16} />
                 </button>
               )}
 

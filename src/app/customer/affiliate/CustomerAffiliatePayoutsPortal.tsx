@@ -1,7 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  DollarCircleIcon,
+} from "@hugeicons/core-free-icons";
 
 import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
-import { CurrencyDollar } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import { formatMoney } from "@/lib/format";
@@ -56,7 +59,7 @@ export function CustomerAffiliatePayoutsPortal({
 
         {program.state !== "active" ? (
           <div className="mt-7 rounded-2xl border border-[#e8e8ee] bg-[#fafafd] p-9 text-center">
-            <CurrencyDollar size={30} className="mx-auto text-[#b08500]" />
+            <HugeiconsIcon icon={DollarCircleIcon} size={30} className="mx-auto text-[#b08500]" />
             <h3 className="mt-4 text-xl font-semibold">Payout reports appear after approval</h3>
             <Link href="/customer/affiliate" className="mt-4 inline-block text-sm font-semibold text-[#8a6800]">Open Affiliate Overview</Link>
           </div>
@@ -108,7 +111,7 @@ export function CustomerAffiliatePayoutsPortal({
               ) : (
                 <div className="grid min-h-56 place-items-center p-8 text-center">
                   <div>
-                    <CurrencyDollar size={28} className="mx-auto text-[#b08500]" />
+                    <HugeiconsIcon icon={DollarCircleIcon} size={28} className="mx-auto text-[#b08500]" />
                     <h3 className="mt-3 font-semibold">No payout yet</h3>
                     <p className="mt-2 text-sm text-[#85859d]">Your payout reports will appear here when the store processes your commissions.</p>
                   </div>

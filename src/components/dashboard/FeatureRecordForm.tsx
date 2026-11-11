@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { X } from "@phosphor-icons/react";
 import { Alert, Button, Input, Select, Textarea } from "@/components/ui";
 import { FeatureMultiSelect } from "./FeatureMultiSelect";
 import { DiscountValueInput } from "./DiscountValueInput";
@@ -49,7 +52,7 @@ export function FeatureRecordForm({
             onClick={onClose}
             aria-label="Close form"
           >
-            <X size={16} aria-hidden />
+            <HugeiconsIcon icon={Cancel01Icon} size={16} aria-hidden />
           </button>
         </div>
       )}

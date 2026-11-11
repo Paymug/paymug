@@ -1,10 +1,11 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  PencilSimple,
-  Plus,
-  Trash,
-} from "@phosphor-icons/react";
+  Delete02Icon,
+  PencilEdit01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Button, Spinner } from "@/components/ui";
 import { AffiliateDetailsDrawer } from "./AffiliateDetailsDrawer";
@@ -238,7 +239,7 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
       <div className="flex items-start justify-end gap-2">
         {feature.allowCreate && !formOpen && (
           <Button type="button" onClick={startCreate}>
-            <Plus size={15} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
             {feature.createLabel}
           </Button>
         )}
@@ -504,7 +505,7 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
                             }}
                             aria-label={`Edit ${record.title}`}
                           >
-                            <PencilSimple size={15} aria-hidden />
+                            <HugeiconsIcon icon={PencilEdit01Icon} size={15} aria-hidden />
                           </button>
                         )}
                         <button
@@ -513,7 +514,7 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
                           onClick={() => void removeRecord(record)}
                           aria-label={`Delete ${record.title}`}
                         >
-                          <Trash size={15} aria-hidden />
+                          <HugeiconsIcon icon={Delete02Icon} size={15} aria-hidden />
                         </button>
                       </div>
                     </td>

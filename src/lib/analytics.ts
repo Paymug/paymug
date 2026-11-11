@@ -1,4 +1,4 @@
-import type { Order } from "./types";
+import type { OrderMetric as Order } from "./types";
 import type {
   AnalyticsBucket,
   DayPoint,

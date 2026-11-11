@@ -1,4 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Download01Icon,
+  GithubIcon,
+  Key01Icon,
+  PackageIcon,
+} from "@hugeicons/core-free-icons";
 
 import {
   DataTableColgroup,
@@ -8,12 +15,6 @@ import {
 } from "@/components/dashboard/data-table/DataTableParts";
 import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
 import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
-import {
-  DownloadSimple,
-  GithubLogo,
-  Key,
-  Package,
-} from "@phosphor-icons/react";
 import { useState } from "react";
 import { ProductDescription } from "@/components/ProductDescription";
 import { RightDrawerModal } from "@/components/dashboard/RightDrawerModal";
@@ -105,7 +106,7 @@ function OrderDetailDrawer({
 
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <Package size={16} className="text-[#9a9aaf]" weight="bold" />
+            <HugeiconsIcon icon={PackageIcon} size={16} className="text-[#9a9aaf]" strokeWidth={2} />
             <h3 className="text-sm font-semibold text-[#2a2a33]">
               Product details
             </h3>
@@ -222,7 +223,7 @@ function OrderDetailDrawer({
             {!!order.productFiles.length && (
               <div className="rounded-xl border border-[#ececf1] p-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#2a2a33]">
-                  <DownloadSimple size={16} className="text-[#9b7600]" />
+                  <HugeiconsIcon icon={Download01Icon} size={16} className="text-[#9b7600]" />
                   Downloads
                 </div>
                 <div className="mt-3 space-y-2">
@@ -246,7 +247,7 @@ function OrderDetailDrawer({
               <div className="rounded-xl border border-[#ececf1] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-sm font-semibold text-[#2a2a33]">
-                    <Key size={16} className="text-[#9b7600]" />
+                    <HugeiconsIcon icon={Key01Icon} size={16} className="text-[#9b7600]" />
                     License key
                   </div>
                   <span className="rounded-full bg-[#f2f2f6] px-2 py-0.5 text-xs font-medium capitalize text-[#6f6f84]">
@@ -279,7 +280,7 @@ function OrderDetailDrawer({
             {order.githubRepository && (
               <div className="rounded-xl border border-[#ececf1] p-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#2a2a33]">
-                  <GithubLogo size={16} />
+                  <HugeiconsIcon icon={GithubIcon} size={16} />
                   Repository access
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-lg bg-[#f7f7f8] px-3 py-2.5 text-sm">

@@ -1,6 +1,12 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+  Delete02Icon,
+  Image01Icon,
+  PencilEdit01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ImageSquare, PencilSimple, Trash, X } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -191,7 +197,7 @@ export function StoreSettingsForm({
                 : "bg-white/90 text-foreground hover:bg-white"
             }`}
           >
-            {editing ? <X size={17} /> : <PencilSimple size={17} />}
+            {editing ? <HugeiconsIcon icon={Cancel01Icon} size={17} /> : <HugeiconsIcon icon={PencilEdit01Icon} size={17} />}
           </button>
         </div>
         <div className="relative">
@@ -207,11 +213,11 @@ export function StoreSettingsForm({
               />
             ) : (
               <div className="grid aspect-3/1 w-full rounded-tl-2xl place-items-center bg-accent-soft text-accent-hover">
-                <ImageSquare size={30} />
+                <HugeiconsIcon icon={Image01Icon} size={30} />
               </div>
             )}
             <span className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 text-sm font-medium text-foreground shadow-sm backdrop-blur transition group-hover:bg-white">
-              <ImageSquare size={17} />
+              <HugeiconsIcon icon={Image01Icon} size={17} />
               {coverUploading
                 ? "Uploading…"
                 : coverImageUrl
@@ -234,7 +240,7 @@ export function StoreSettingsForm({
               className="absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-lg bg-white/90 text-red-600 shadow-sm backdrop-blur hover:bg-white"
               aria-label="Remove store cover"
             >
-              <Trash size={17} />
+              <HugeiconsIcon icon={Delete02Icon} size={17} />
             </button>
           )}
         </div>
@@ -278,7 +284,7 @@ export function StoreSettingsForm({
                 className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-white text-red-600 shadow-sm"
                 aria-label="Remove store logo"
               >
-                <Trash size={12} />
+                <HugeiconsIcon icon={Delete02Icon} size={12} />
               </button>
             )}
           </div>

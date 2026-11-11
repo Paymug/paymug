@@ -1,12 +1,13 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ChartLineUp,
-  CurrencyDollar,
-  House,
-  Package,
-  UserCircle,
-} from "@phosphor-icons/react";
+  ChartUpIcon,
+  DollarCircleIcon,
+  Home01Icon,
+  PackageIcon,
+  UserCircleIcon,
+} from "@hugeicons/core-free-icons";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
@@ -16,8 +17,8 @@ import type { CustomerPortalNavProps } from "./CustomerPortalNav.types";
 import Powered from "@/components/PoweredBy";
 
 const navItems = [
-  { href: "/customer", label: "Home", icon: House },
-  // { href: "/customer#purchases", label: "Purchases", icon: Package },
+  { href: "/customer", label: "Home", icon: Home01Icon },
+  // { href: "/customer#purchases", label: "Purchases", icon: PackageIcon },
   // {
   //   href: "/customer#subscriptions",
   //   label: "Subscriptions",
@@ -29,24 +30,24 @@ const affiliateNavItems = [
   {
     href: "/customer/affiliate",
     label: "Overview",
-    icon: ChartLineUp,
+    icon: ChartUpIcon,
   },
   {
     href: "/customer/affiliate/products",
     label: "Products",
-    icon: Package,
+    icon: PackageIcon,
   },
   {
     href: "/customer/affiliate/payouts",
     label: "Payouts",
-    icon: CurrencyDollar,
+    icon: DollarCircleIcon,
   },
 ];
 
 const accountNavItem = {
   href: "/customer/account",
   label: "Account",
-  icon: UserCircle,
+  icon: UserCircleIcon,
 };
 
 export function CustomerPortalNav({
@@ -97,7 +98,7 @@ export function CustomerPortalNav({
                   : "text-[#555563] hover:bg-[#f7f7f8]"
               }`}
             >
-              <Icon size={18} weight="regular" className="text-[#9191aa]" />
+              <HugeiconsIcon icon={Icon} size={18} className="text-[#9191aa]" />
               {label}
             </Link>
           ))}
@@ -116,7 +117,7 @@ export function CustomerPortalNav({
                       : "text-[#555563] hover:bg-[#f7f7f8]"
                   }`}
                 >
-                  <Icon size={18} weight="regular" className="text-[#9191aa]" />
+                  <HugeiconsIcon icon={Icon} size={18} className="text-[#9191aa]" />
                   {label}
                 </Link>
               ))}

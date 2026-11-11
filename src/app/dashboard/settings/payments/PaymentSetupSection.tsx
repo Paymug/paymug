@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { CaretDown, Check } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { PaymentSetupSectionProps } from "./page.types";
 
@@ -33,7 +37,7 @@ export function PaymentSetupSection({
           aria-label={complete ? `${title} complete` : `${title} incomplete`}
         >
           {complete ? (
-            <Check size={18} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={Tick02Icon} size={18} aria-hidden strokeWidth={2} />
           ) : (
             stepNumber
           )}
@@ -54,16 +58,16 @@ export function PaymentSetupSection({
                 : "bg-[#f7f7f8] font-medium text-[#85859d]"
             }`}
           >
-            {complete && <Check size={15} weight="bold" aria-hidden />}
+            {complete && <HugeiconsIcon icon={Tick02Icon} size={15} aria-hidden strokeWidth={2} />}
             {complete ? "Complete" : "Pending"}
           </span>
-          <CaretDown
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
             size={17}
-            weight="bold"
             className={`shrink-0 text-[#85859d] transition-transform ${
               open ? "rotate-180" : ""
             }`}
-            aria-hidden
+            aria-hidden strokeWidth={2}
           />
         </span>
       </button>

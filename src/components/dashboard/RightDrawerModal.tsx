@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { X } from "@phosphor-icons/react";
 import {
   forwardRef,
   useEffect,
@@ -104,7 +107,7 @@ export const RightDrawerModal = forwardRef<
               className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[#9a9aaf] transition hover:bg-[#f5f5f8] hover:text-[#2a2a33]"
               aria-label="Close"
             >
-              <X size={16} weight="bold" />
+              <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
             </button>
           </div>
           {(description || descriptionAction) && (

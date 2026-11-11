@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Share08Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ShareNetwork } from "@phosphor-icons/react";
 import { useState } from "react";
 import { shareDashboardView } from "./dashboard-share.utils";
 import type { DashboardShareButtonProps } from "./dashboard-overview.types";
@@ -25,7 +28,7 @@ export function DashboardShareButton(props: DashboardShareButtonProps) {
       onClick={share}
       className="inline-flex items-center gap-2 text-sm font-medium text-[#333] hover:text-accent-hover"
     >
-      <ShareNetwork size={16} aria-hidden />
+      <HugeiconsIcon icon={Share08Icon} size={16} aria-hidden />
       {copied ? "Copied" : "Share"}
     </button>
   );

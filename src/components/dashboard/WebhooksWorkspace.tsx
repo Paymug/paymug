@@ -1,16 +1,17 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  PauseIcon,
+  PlayIcon,
+  PlusSignIcon,
+  RefreshIcon,
+  TestTube01Icon,
+  WebhookIcon,
+} from "@hugeicons/core-free-icons";
 
 import { formatDateTimeInTimeZone } from "@/lib/timezone";
 import { useTimeZone } from "./TimeZoneProvider";
-import {
-  ArrowClockwise,
-  Flask,
-  Pause,
-  Play,
-  Plus,
-  Trash,
-  WebhooksLogo,
-} from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { OutboundWebhookRecord } from "@/lib/outbound-webhooks.types";
@@ -162,7 +163,7 @@ export function WebhooksWorkspace() {
           href="/dashboard/settings/webhooks/new"
           className={buttonBaseClass + " " + buttonVariantClasses.primary}
         >
-          <Plus size={15} weight="bold" aria-hidden />
+          <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
           Add webhook
         </Link>
       </div>
@@ -182,7 +183,7 @@ export function WebhooksWorkspace() {
         ) : webhooks.length === 0 ? (
           <div className="flex min-h-56 items-center justify-center p-8 text-center">
             <div className="max-w-sm">
-              <WebhooksLogo className="mx-auto text-muted" size={32} aria-hidden />
+              <HugeiconsIcon icon={WebhookIcon} className="mx-auto text-muted" size={32} aria-hidden />
               <h2 className="mt-3 text-sm font-semibold">No webhook endpoints yet</h2>
               <p className="mt-2 text-sm leading-5 text-muted">
                 Add an endpoint to receive commerce events in real time.
@@ -249,7 +250,7 @@ export function WebhooksWorkspace() {
                       onClick={() => void sendTest(webhook)}
                       aria-label={"Test " + webhook.name}
                     >
-                      <Flask size={16} aria-hidden />
+                      <HugeiconsIcon icon={TestTube01Icon} size={16} aria-hidden />
                       {testingWebhookId === webhook.id ? "Sending…" : "Send test"}
                     </Button>
                     <button
@@ -262,9 +263,9 @@ export function WebhooksWorkspace() {
                       }
                     >
                       {webhook.status === "active" ? (
-                        <Pause size={16} aria-hidden />
+                        <HugeiconsIcon icon={PauseIcon} size={16} aria-hidden />
                       ) : (
-                        <Play size={16} aria-hidden />
+                        <HugeiconsIcon icon={PlayIcon} size={16} aria-hidden />
                       )}
                     </button>
                     <button
@@ -273,7 +274,7 @@ export function WebhooksWorkspace() {
                       onClick={() => void removeWebhook(webhook)}
                       aria-label={"Delete " + webhook.name}
                     >
-                      <Trash size={16} aria-hidden />
+                      <HugeiconsIcon icon={Delete02Icon} size={16} aria-hidden />
                     </button>
                   </div>
                 </div>
@@ -387,7 +388,7 @@ export function WebhooksWorkspace() {
                             "Resend " + getWebhookEventLabel(delivery.eventName)
                           }
                         >
-                          <ArrowClockwise size={15} aria-hidden />
+                          <HugeiconsIcon icon={RefreshIcon} size={15} aria-hidden />
                           {resendingDeliveryId === delivery.id
                             ? "Resending…"
                             : "Resend"}

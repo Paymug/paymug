@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  GithubIcon,
+  SentIcon,
+  UserRemove01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { GithubLogo, PaperPlaneTilt, UserMinus } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { CustomerGitHubAccessCardProps } from "./CustomerGitHubAccessCard.types";
@@ -96,7 +101,7 @@ export function CustomerGitHubAccessCard({
   return (
     <div className="rounded-xl border border-[#e8e8ee] p-4">
       <div className="flex items-center gap-2 text-sm font-semibold">
-        <GithubLogo size={18} />
+        <HugeiconsIcon icon={GithubIcon} size={18} />
         Private repository access
       </div>
       <div className="mt-3 flex items-center justify-between gap-4 rounded-lg bg-[#f7f7f8] px-3 py-2.5 text-sm">
@@ -120,7 +125,7 @@ export function CustomerGitHubAccessCard({
             onClick={() => void revokeAccess()}
             className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-red-200 px-3 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <UserMinus size={15} />
+            <HugeiconsIcon icon={UserRemove01Icon} size={15} />
             {submitting ? "Revoking…" : "Revoke access"}
           </button>
         </div>
@@ -148,7 +153,7 @@ export function CustomerGitHubAccessCard({
               disabled={submitting || !identity.trim()}
               className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-[#333] px-3 text-xs font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <PaperPlaneTilt size={15} />
+              <HugeiconsIcon icon={SentIcon} size={15} />
               {submitting ? "Sending…" : "Send invite"}
             </button>
           </div>

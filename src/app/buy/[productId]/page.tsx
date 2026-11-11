@@ -293,7 +293,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
 
           <PaymentSheet
             title={product.name}
-            buttonLabel={`Buy now · ${formatProductPageMoney(checkoutPrice, product.currency)}${priceSuffix}`}
+            buttonLabel={`Buy now · ${formatProductPageMoney(initialPricing.total, product.currency)}${priceSuffix}`}
             defaultOpen={Boolean(cancelled)}
           >
             <div id="payment" className="w-full lg:w-86 lg:shrink-0">

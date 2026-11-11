@@ -1,8 +1,14 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  BlockedIcon,
+  Copy01Icon,
+  Key01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 
 import { formatDateTimeInTimeZone } from "@/lib/timezone";
 import { useTimeZone } from "./TimeZoneProvider";
-import { Copy, Key, Plus, Prohibit } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Input, Spinner } from "@/components/ui";
 import {
@@ -134,7 +140,7 @@ export function ApiKeysWorkspace() {
       <div className="flex justify-end">
         {!formOpen && (
           <Button type="button" onClick={() => setFormOpen(true)}>
-            <Plus size={15} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
             Create API key
           </Button>
         )}
@@ -154,7 +160,7 @@ export function ApiKeysWorkspace() {
               onClick={() => void navigator.clipboard.writeText(secret)}
               aria-label="Copy API key"
             >
-              <Copy size={15} aria-hidden />
+              <HugeiconsIcon icon={Copy01Icon} size={15} aria-hidden />
             </button>
           </div>
         </Alert>
@@ -247,7 +253,7 @@ export function ApiKeysWorkspace() {
         ) : keys.length === 0 ? (
           <div className="flex min-h-56 items-center justify-center p-8 text-center">
             <div className="max-w-sm">
-              <Key className="mx-auto text-muted" size={30} aria-hidden />
+              <HugeiconsIcon icon={Key01Icon} className="mx-auto text-muted" size={30} aria-hidden />
               <h2 className="mt-3 text-sm font-semibold">No API keys yet</h2>
               <p className="mt-2 text-sm leading-5 text-muted">
                 Create a key to authenticate requests to the Paymug API.
@@ -295,7 +301,7 @@ export function ApiKeysWorkspace() {
                           onClick={() => void revokeKey(key)}
                           aria-label={`Revoke ${key.name}`}
                         >
-                          <Prohibit size={15} aria-hidden />
+                          <HugeiconsIcon icon={BlockedIcon} size={15} aria-hidden />
                         </button>
                       )}
                     </td>

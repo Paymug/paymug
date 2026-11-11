@@ -1,14 +1,15 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Check,
-  DotsThree,
-  Copy,
-  File,
-  GlobeSimple,
-  PencilSimple,
-  Trash,
-} from "@phosphor-icons/react";
+  Copy01Icon,
+  Delete02Icon,
+  File01Icon,
+  GlobalIcon,
+  MoreHorizontalIcon,
+  PencilEdit01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -166,7 +167,7 @@ export function ProductActionsMenu({
         }}
         className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-[#77778e] transition hover:bg-[#f7f7f8] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-55"
       >
-        <DotsThree size={20} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={20} aria-hidden strokeWidth={2} />
       </button>
 
       {open &&
@@ -184,7 +185,7 @@ export function ProductActionsMenu({
               role="menuitem"
               className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8]"
             >
-              <PencilSimple size={16} aria-hidden />
+              <HugeiconsIcon icon={PencilEdit01Icon} size={16} aria-hidden />
               Edit
             </Link>
             <div className="my-2 border-t border-[#e8e8ee]" />
@@ -198,10 +199,10 @@ export function ProductActionsMenu({
               onClick={() => void changeStatus("published")}
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:opacity-55"
             >
-              <GlobeSimple size={16} aria-hidden />
+              <HugeiconsIcon icon={GlobalIcon} size={16} aria-hidden />
               <span className="flex-1 text-left">Published</span>
               {status === "published" && (
-                <Check size={15} weight="bold" className="text-accent-hover" aria-hidden />
+                <HugeiconsIcon icon={Tick02Icon} size={15} className="text-accent-hover" aria-hidden strokeWidth={2} />
               )}
             </button>
             <button
@@ -211,10 +212,10 @@ export function ProductActionsMenu({
               onClick={() => void changeStatus("draft")}
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:opacity-55"
             >
-              <File size={16} aria-hidden />
+              <HugeiconsIcon icon={File01Icon} size={16} aria-hidden />
               <span className="flex-1 text-left">Draft</span>
               {status === "draft" && (
-                <Check size={15} weight="bold" className="text-accent-hover" aria-hidden />
+                <HugeiconsIcon icon={Tick02Icon} size={15} className="text-accent-hover" aria-hidden strokeWidth={2} />
               )}
             </button>
             <div className="mt-2 border-t border-[#e8e8ee] pt-2">
@@ -225,7 +226,7 @@ export function ProductActionsMenu({
                 onClick={() => void duplicateProduct()}
                 className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:opacity-55"
               >
-                <Copy size={16} aria-hidden />
+                <HugeiconsIcon icon={Copy01Icon} size={16} aria-hidden />
                 Duplicate
               </button>
               <button
@@ -235,7 +236,7 @@ export function ProductActionsMenu({
                 onClick={() => void deleteProduct()}
                 className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-danger transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-55"
               >
-                <Trash size={16} aria-hidden />
+                <HugeiconsIcon icon={Delete02Icon} size={16} aria-hidden />
                 {loading ? "Working…" : "Delete"}
               </button>
             </div>

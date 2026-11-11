@@ -1,4 +1,7 @@
-import { Check } from "@phosphor-icons/react/ssr";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppIcon } from "@/components/dashboard/Icon";
@@ -142,7 +145,7 @@ export default async function AffiliateProgramPage({
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#dff4dc] text-[#267a4c]">
-                      <Check size={14} weight="bold" aria-hidden />
+                      <HugeiconsIcon icon={Tick02Icon} size={14} aria-hidden strokeWidth={2} />
                     </span>
                     <p className="text-sm leading-6 text-[#55534d]">{item}</p>
                   </div>

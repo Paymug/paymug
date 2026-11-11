@@ -1,13 +1,14 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowRight02Icon,
+  PackageIcon,
+  RepeatIcon,
+  Store01Icon,
+} from "@hugeicons/core-free-icons";
 
 import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
 import { formatDateInTimeZone } from "@/lib/timezone";
-import {
-  ArrowRight,
-  ArrowsClockwise,
-  Package,
-  Storefront,
-} from "@phosphor-icons/react";
 import { useState } from "react";
 import { formatMoney } from "@/lib/format";
 import type { CustomerPortalPurchase } from "@/lib/customer-portal.types";
@@ -62,17 +63,17 @@ export function CustomerPortalView({
                 {
                   label: "Purchases",
                   value: portal.purchases.length,
-                  icon: Package,
+                  icon: PackageIcon,
                 },
                 {
                   label: "Active subscriptions",
                   value: activeSubscriptions,
-                  icon: ArrowsClockwise,
+                  icon: RepeatIcon,
                 },
                 {
                   label: "Stores",
                   value: storeCount,
-                  icon: Storefront,
+                  icon: Store01Icon,
                 },
               ].map(({ label, value, icon: Icon }) => (
                 <div
@@ -82,7 +83,7 @@ export function CustomerPortalView({
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-[#85859d]">{label}</p>
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-                      <Icon size={17} />
+                      <HugeiconsIcon icon={Icon} size={17} />
                     </span>
                   </div>
                   <p className="mt-4 text-2xl font-semibold tracking-tight">
@@ -111,7 +112,7 @@ export function CustomerPortalView({
             <div className="mt-5 overflow-hidden rounded-xl border border-[#e8e8ee] bg-white">
               {portal.purchases.length === 0 ? (
                 <div className="px-6 py-14 text-center">
-                  <Package size={30} className="mx-auto text-[#b8b8c6]" />
+                  <HugeiconsIcon icon={PackageIcon} size={30} className="mx-auto text-[#b8b8c6]" />
                   <p className="mt-3 text-sm font-semibold">No purchases found</p>
                   <p className="mt-1 text-sm text-[#85859d]">
                     Completed purchases associated with this email will appear here.
@@ -142,7 +143,7 @@ export function CustomerPortalView({
                           />
                         ) : (
                           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-                            <Package size={20} />
+                            <HugeiconsIcon icon={PackageIcon} size={20} />
                           </span>
                         )}
                         <span className="min-w-0">
@@ -169,7 +170,7 @@ export function CustomerPortalView({
                         {purchase.status}
                       </span>
                       <span className="grid h-8 w-8 place-items-center rounded-full text-[#9999aa] transition group-hover:bg-[#fff6d1] group-hover:text-[#9b7600]">
-                        <ArrowRight size={16} />
+                        <HugeiconsIcon icon={ArrowRight02Icon} size={16} />
                       </span>
                       <span className="col-span-2 flex items-center gap-2 pl-14 text-xs text-[#85859d] md:hidden">
                         <span>{formatMoney(purchase.amount, purchase.currency)}</span>
@@ -199,7 +200,7 @@ export function CustomerPortalView({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#f7f7f8] text-[#77778b]">
-                        <ArrowsClockwise size={18} />
+                        <HugeiconsIcon icon={RepeatIcon} size={18} />
                       </span>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getCustomerStatusClass(subscription.status)}`}

@@ -1,4 +1,7 @@
-import { CaretDown } from "@phosphor-icons/react/ssr";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { badgeBaseClass, badgeVariantClasses } from "@/components/ui.styles";
 import type {
@@ -22,7 +25,7 @@ export function RangePills({
     <details className="relative">
       <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-[#333] [&::-webkit-details-marker]:hidden">
         {startLabel} — {endLabel}
-        <CaretDown size={13} weight="bold" className="text-[#9191aa]" aria-hidden />
+        <HugeiconsIcon icon={ArrowDown01Icon} size={13} className="text-[#9191aa]" aria-hidden strokeWidth={2} />
       </summary>
       <div className="absolute left-0 top-[calc(100%+0.75rem)] z-30 grid w-40 gap-1 rounded-xl border border-[#e8e8ee] bg-white p-2 shadow-[0_12px_30px_rgb(42_38_63/12%)]">
         {options.map((option) => (

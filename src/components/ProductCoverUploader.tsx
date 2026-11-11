@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  Image01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ImageSquare, Trash, UploadSimple } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { uploadProductCoverImage } from "./product-form.utils";
 import type { ProductCoverUploaderProps } from "./ProductCoverUploader.types";
@@ -42,7 +47,7 @@ export function ProductCoverUploader({
           disabled={uploading}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium hover:border-accent disabled:cursor-not-allowed disabled:opacity-50 absolute bottom-2 left-2 z-10 bg-white shadow"
         >
-          <UploadSimple size={14} aria-hidden />
+          <HugeiconsIcon icon={Upload01Icon} size={14} aria-hidden />
           {uploading ? "Uploading…" : imageUrl ? "Replace" : "Upload"}
         </button>
         <input
@@ -67,7 +72,7 @@ export function ProductCoverUploader({
             className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/95 text-[#77778e] shadow-sm hover:text-danger"
             aria-label="Remove cover photo"
           >
-            <Trash size={15} aria-hidden />
+            <HugeiconsIcon icon={Delete02Icon} size={15} aria-hidden />
           </button>
         </div>
       )}
@@ -80,7 +85,7 @@ export function ProductCoverUploader({
           className="mt-3 grid aspect-[16/9] w-full place-items-center rounded-xl border border-dashed border-[#d9d9e2] bg-[#fafafa] text-[#9a9aae] transition hover:border-accent hover:text-accent-hover"
           aria-label="Upload a product cover photo"
         >
-          <ImageSquare size={28} aria-hidden />
+          <HugeiconsIcon icon={Image01Icon} size={28} aria-hidden />
         </button>
       )}
     </div>

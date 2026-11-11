@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { CaretDown, Check } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { labelClass } from "./ui.styles";
 import {
@@ -132,13 +136,13 @@ export function CustomSelect({
         } cursor-pointer disabled:cursor-not-allowed disabled:opacity-55 ${triggerClassName}`}
       >
         <span className="truncate">{selectedOption?.label || "Select"}</span>
-        <CaretDown
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
           size={14}
-          weight="bold"
           className={`shrink-0 text-[#656b78] transition-transform ${
             open ? "rotate-180" : ""
           }`}
-          aria-hidden
+          aria-hidden strokeWidth={2}
         />
       </button>
 
@@ -206,7 +210,7 @@ export function CustomSelect({
                 `}
               >
                 <span className="grid w-4 shrink-0 place-items-center">
-                  {selected && <Check size={14} weight="bold" aria-hidden />}
+                  {selected && <HugeiconsIcon icon={Tick02Icon} size={14} aria-hidden strokeWidth={2} />}
                 </span>
                 <span className="">{option.label}</span>
               </button>

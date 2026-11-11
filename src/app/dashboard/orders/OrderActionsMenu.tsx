@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Mail01Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons";
 
-import { DotsThree, EnvelopeSimple } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getCustomerActionsMenuPosition } from "../customers/customer-actions-menu.utils";
@@ -99,7 +103,7 @@ export function OrderActionsMenu({
         }}
         className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-[#9a9aaf] transition hover:bg-[#f5f5f8] hover:text-[#2a2a33]"
       >
-        <DotsThree size={20} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={20} aria-hidden strokeWidth={2} />
       </button>
 
       {open &&
@@ -120,7 +124,7 @@ export function OrderActionsMenu({
               onClick={() => void resendConfirmation()}
               className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-[#f7f7f8] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <EnvelopeSimple size={16} aria-hidden />
+              <HugeiconsIcon icon={Mail01Icon} size={16} aria-hidden />
               Resend confirmation
             </button>
           </div>,

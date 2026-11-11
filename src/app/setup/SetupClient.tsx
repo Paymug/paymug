@@ -1,10 +1,11 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowRight,
-  CaretDown,
-  Check,
-} from "@phosphor-icons/react";
+  ArrowDown01Icon,
+  ArrowRight02Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
+
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
@@ -135,10 +136,10 @@ export function SetupClient() {
                   className="flex w-full cursor-pointer items-center justify-between gap-3 bg-stone-50 px-4 py-3 text-left text-sm font-semibold"
                 >
                   Required environment variables
-                  <CaretDown
+                  <HugeiconsIcon
+                    icon={ArrowDown01Icon}
                     size={16}
-                    weight="bold"
-                    className={`transition-transform ${configurationOpen ? "rotate-180" : ""}`}
+                    className={`transition-transform ${configurationOpen ? "rotate-180" : ""}`} strokeWidth={2}
                   />
                 </button>
                 {configurationOpen && (
@@ -153,7 +154,7 @@ export function SetupClient() {
                           }`}
                         >
                           {item.configured ? (
-                            <Check size={12} weight="bold" />
+                            <HugeiconsIcon icon={Tick02Icon} size={12} strokeWidth={2} />
                           ) : (
                             <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           )}
@@ -218,7 +219,7 @@ export function SetupClient() {
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-dark transition hover:bg-accent-hover"
           >
             Continue to account setup
-            <ArrowRight size={16} weight="bold" />
+            <HugeiconsIcon icon={ArrowRight02Icon} size={16} strokeWidth={2} />
           </Link>
         ) : (
           <Button className="w-full" disabled>

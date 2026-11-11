@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ComputerIcon,
+  Delete02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Desktop, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { formatCustomerDateTime } from "./customers.utils";
@@ -66,7 +70,7 @@ export function CustomerLicenseActivations({
               className="flex items-start gap-3 rounded-lg bg-white p-3"
             >
               <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#f7f7f8] text-[#77778a]">
-                <Desktop size={17} />
+                <HugeiconsIcon icon={ComputerIcon} size={17} />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
@@ -88,7 +92,7 @@ export function CustomerLicenseActivations({
                 aria-label={`Remove device ${activation.instanceUrl}`}
                 title="Remove device"
               >
-                <Trash size={16} />
+                <HugeiconsIcon icon={Delete02Icon} size={16} />
               </button>
             </div>
           ))}

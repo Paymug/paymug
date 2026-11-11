@@ -1,5 +1,8 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft02Icon,
+} from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import { ArrowLeft } from "@phosphor-icons/react/ssr";
 import {
   dashboardButtonBaseClass,
   dashboardCardClass,
@@ -37,7 +40,7 @@ export default async function AbandonmentPage() {
         href="/dashboard/products"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"
       >
-        <ArrowLeft size={15} aria-hidden />
+        <HugeiconsIcon icon={ArrowLeft02Icon} size={15} aria-hidden />
         Back to products
       </Link>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">

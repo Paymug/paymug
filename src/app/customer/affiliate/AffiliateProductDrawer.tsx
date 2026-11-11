@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Check, Copy, X } from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { Alert } from "@/components/ui";
@@ -116,7 +121,7 @@ export function AffiliateProductDrawer({
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#77778a] transition hover:bg-[#f4f4f7]"
               aria-label="Close product details"
             >
-              <X size={18} />
+              <HugeiconsIcon icon={Cancel01Icon} size={18} />
             </button>
           </div>
         </header>
@@ -142,7 +147,7 @@ export function AffiliateProductDrawer({
                     onClick={() => void copy(trackingUrl, "link")}
                     className="flex items-center gap-2 rounded-lg border border-[#e8e8ee] px-3 py-2 text-xs font-semibold"
                   >
-                    {copied === "link" ? <Check size={15} /> : <Copy size={15} />}
+                    {copied === "link" ? <HugeiconsIcon icon={Tick02Icon} size={15} /> : <HugeiconsIcon icon={Copy01Icon} size={15} />}
                     {copied === "link" ? "Copied" : "Copy link"}
                   </button>
                 </div>
@@ -192,7 +197,7 @@ export function AffiliateProductDrawer({
                     onClick={() => void copy(embedCode, "html")}
                     className="flex items-center gap-2 rounded-lg border border-[#e8e8ee] px-3 py-2 text-xs font-semibold"
                   >
-                    {copied === "html" ? <Check size={15} /> : <Copy size={15} />}
+                    {copied === "html" ? <HugeiconsIcon icon={Tick02Icon} size={15} /> : <HugeiconsIcon icon={Copy01Icon} size={15} />}
                     {copied === "html" ? "Copied" : "Copy HTML"}
                   </button>
                 </div>

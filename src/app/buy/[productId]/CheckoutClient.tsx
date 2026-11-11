@@ -1,4 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  RefreshIcon,
+  Undo02Icon,
+} from "@hugeicons/core-free-icons";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -22,10 +27,6 @@ import type {
   CheckoutClientProps,
   CheckoutPricingPreview,
 } from "./CheckoutClient.types";
-import {
-  ArrowClockwiseIcon,
-  ArrowCounterClockwiseIcon,
-} from "@phosphor-icons/react";
 import {
   formatCustomCheckoutAmount,
   parseCustomCheckoutAmount,
@@ -483,7 +484,7 @@ export function CheckoutClient({
               />
               {discountStatus === "checking" && (
                 <p className="flex items-center gap-2 text-sm text-muted">
-                  <ArrowClockwiseIcon className="animate-spin" size={14} />
+                  <HugeiconsIcon icon={RefreshIcon} className="animate-spin" size={14} />
                   Checking discount code…
                 </p>
               )}

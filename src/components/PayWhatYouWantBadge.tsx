@@ -1,4 +1,7 @@
-import { Heart } from "@phosphor-icons/react/ssr";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  FavouriteIcon,
+} from "@hugeicons/core-free-icons";
 
 export function PayWhatYouWantBadge() {
   return (
@@ -6,7 +9,7 @@ export function PayWhatYouWantBadge() {
       className="group/pwyw relative inline-flex shrink-0 text-accent"
       aria-label="Pay what you want"
     >
-      <Heart size={17} weight="fill" aria-hidden />
+      <HugeiconsIcon icon={FavouriteIcon} size={17} aria-hidden />
       <span
         role="tooltip"
         aria-hidden="true"

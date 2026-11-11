@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Delete02Icon,
+  File01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { File, Trash, UploadSimple } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import type { ProductFile } from "@/lib/product-files.types";
 import { formatProductFileSize } from "@/lib/product-files.utils";
@@ -54,7 +59,7 @@ export function ProductFileUploader({
           disabled={uploading || files.length >= 20}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dedee7] px-2.5 py-1.5 text-xs font-medium hover:border-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <UploadSimple size={14} aria-hidden />
+          <HugeiconsIcon icon={Upload01Icon} size={14} aria-hidden />
           {uploading ? "Uploading…" : "Upload"}
         </button>
         <input
@@ -73,7 +78,7 @@ export function ProductFileUploader({
               key={file.id}
               className="flex items-center gap-2 rounded-lg bg-[#f7f7f8] px-2.5 py-2"
             >
-              <File size={15} className="shrink-0 text-[#85859d]" aria-hidden />
+              <HugeiconsIcon icon={File01Icon} size={15} className="shrink-0 text-[#85859d]" aria-hidden />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium">{file.name}</p>
                 <p className="text-[11px] text-muted">
@@ -88,7 +93,7 @@ export function ProductFileUploader({
                 className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-[#9191aa] hover:bg-white hover:text-danger"
                 aria-label={`Remove ${file.name}`}
               >
-                <Trash size={14} aria-hidden />
+                <HugeiconsIcon icon={Delete02Icon} size={14} aria-hidden />
               </button>
             </div>
           ))}

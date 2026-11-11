@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { X } from "@phosphor-icons/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { dashboardIconButtonClass } from "./dashboard.styles";
@@ -69,7 +72,7 @@ export function DashboardModal({
             onClick={onClose}
             aria-label="Close modal"
           >
-            <X size={17} aria-hidden />
+            <HugeiconsIcon icon={Cancel01Icon} size={17} aria-hidden />
           </button>
         </div>
         <div className="p-5 sm:p-6">{children}</div>

@@ -1,12 +1,13 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowRight,
-  ChartLineUp,
-  Check,
-  LinkSimple,
-  UsersThree,
-} from "@phosphor-icons/react";
+  ArrowRight02Icon,
+  ChartUpIcon,
+  Link01Icon,
+  Tick02Icon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input, Textarea } from "@/components/ui";
@@ -103,15 +104,15 @@ export function CustomerAffiliateJoin({
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
-                { icon: LinkSimple, label: "Personal referral link" },
-                { icon: ChartLineUp, label: "Live performance analytics" },
-                { icon: UsersThree, label: "Tracked commissions" },
+                { icon: Link01Icon, label: "Personal referral link" },
+                { icon: ChartUpIcon, label: "Live performance analytics" },
+                { icon: UserGroupIcon, label: "Tracked commissions" },
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
                   className="rounded-xl border border-white/10 bg-white/5 p-4"
                 >
-                  <Icon size={19} className="text-[#f5c518]" />
+                  <HugeiconsIcon icon={Icon} size={19} className="text-[#f5c518]" />
                   <p className="mt-3 text-sm font-medium text-[#eeece6]">
                     {label}
                   </p>
@@ -197,7 +198,7 @@ export function CustomerAffiliateJoin({
             ].map((item) => (
               <div key={item} className="flex items-start gap-2.5 text-sm text-[#555563]">
                 <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700">
-                  <Check size={12} weight="bold" />
+                  <HugeiconsIcon icon={Tick02Icon} size={12} strokeWidth={2} />
                 </span>
                 {item}
               </div>
@@ -251,7 +252,7 @@ export function CustomerAffiliateJoin({
             {error && <Alert>{error}</Alert>}
             <Button type="submit" disabled={submitting}>
               {submitting ? "Submitting…" : "Apply to join"}
-              {!submitting && <ArrowRight size={16} />}
+              {!submitting && <HugeiconsIcon icon={ArrowRight02Icon} size={16} />}
             </Button>
           </form>
         )}

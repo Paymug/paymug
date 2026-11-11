@@ -1,15 +1,16 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+  CheckmarkCircle02Icon,
+  CreditCardIcon,
+  Download01Icon,
+  Invoice01Icon,
+  Key01Icon,
+  PackageIcon,
+} from "@hugeicons/core-free-icons";
 
 import { useBrowserTimeZone } from "@/components/use-browser-time-zone";
-import {
-  CheckCircle,
-  CreditCard,
-  DownloadSimple,
-  Key,
-  Package,
-  Receipt,
-  X,
-} from "@phosphor-icons/react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { ProductDescription } from "@/components/ProductDescription";
@@ -136,7 +137,7 @@ export function CustomerPurchaseModal({
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#77778a] transition hover:bg-[#f4f4f7] hover:text-[#333]"
               aria-label="Close purchase details"
             >
-              <X size={18} />
+              <HugeiconsIcon icon={Cancel01Icon} size={18} />
             </button>
           </div>
 
@@ -150,7 +151,7 @@ export function CustomerPurchaseModal({
               />
             ) : (
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-                <Package size={24} />
+                <HugeiconsIcon icon={PackageIcon} size={24} />
               </span>
             )}
             <div className="min-w-0 flex-1">
@@ -223,7 +224,7 @@ export function CustomerPurchaseModal({
                 <div className="mt-4 rounded-xl border border-[#e8e8ee]">
                   <div className="flex items-center gap-3 border-b border-[#eeeeF2] p-4">
                     <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700">
-                      <CreditCard size={18} />
+                      <HugeiconsIcon icon={CreditCardIcon} size={18} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold capitalize">
@@ -336,7 +337,7 @@ export function CustomerPurchaseModal({
             <section role="tabpanel" className="pt-1">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#fff6d1] text-[#9b7600]">
-                <Receipt size={18} />
+                <HugeiconsIcon icon={Invoice01Icon} size={18} />
               </span>
               <div>
                 <h3 className="font-semibold">Your purchase benefits</h3>
@@ -350,7 +351,7 @@ export function CustomerPurchaseModal({
               {purchase.deliveryContent && (
                 <div className="rounded-xl border border-[#e8e8ee] p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold">
-                    <CheckCircle size={17} className="text-emerald-600" />
+                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={17} className="text-emerald-600" />
                     Included with your purchase
                   </div>
                   <ProductDescription
@@ -363,7 +364,7 @@ export function CustomerPurchaseModal({
               {!!purchase.productFiles.length && (
                 <div className="rounded-xl border border-[#e8e8ee] p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold">
-                    <DownloadSimple size={17} className="text-[#9b7600]" />
+                    <HugeiconsIcon icon={Download01Icon} size={17} className="text-[#9b7600]" />
                     Downloads
                   </div>
                   <div className="mt-3 space-y-2">
@@ -387,7 +388,7 @@ export function CustomerPurchaseModal({
                 <div className="rounded-xl border border-[#e8e8ee] p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm font-semibold">
-                      <Key size={17} className="text-[#9b7600]" />
+                      <HugeiconsIcon icon={Key01Icon} size={17} className="text-[#9b7600]" />
                       License key
                     </div>
                     <span

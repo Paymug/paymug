@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown01Icon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { CaretDown, Check } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import type { FeatureMultiSelectProps } from "./FeatureMultiSelect.types";
 
@@ -62,12 +66,12 @@ export function FeatureMultiSelect({
             ? selectedLabels.join(", ")
             : "All products"}
         </span>
-        <CaretDown
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
           size={14}
-          weight="bold"
           className={`shrink-0 text-[#656b78] transition-transform ${
             open ? "rotate-180" : ""
-          }`}
+          }`} strokeWidth={2}
         />
       </button>
       {open && (
@@ -94,7 +98,7 @@ export function FeatureMultiSelect({
                 }`}
               >
                 <span className="grid h-5 w-5 shrink-0 place-items-center">
-                  {checked && <Check size={19} weight="bold" />}
+                  {checked && <HugeiconsIcon icon={Tick02Icon} size={19} strokeWidth={2} />}
                 </span>
                 <span className="whitespace-nowrap">{option.label}</span>
               </button>

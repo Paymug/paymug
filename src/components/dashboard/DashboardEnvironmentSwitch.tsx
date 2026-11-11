@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  AlertCircleIcon,
+} from "@hugeicons/core-free-icons";
 
-import { WarningCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -83,7 +86,7 @@ export function DashboardEnvironmentSwitch({
           className="mb-2.5 flex items-start gap-1.5 rounded-lg bg-[#fff0f4] px-2.5 py-2 text-sm leading-snug text-[#c93757]"
           role="alert"
         >
-          <WarningCircle size={15} weight="fill" aria-hidden />
+          <HugeiconsIcon icon={AlertCircleIcon} size={15} aria-hidden />
           <p>
             {error}{" "}
             <Link

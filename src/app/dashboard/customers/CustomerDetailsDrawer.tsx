@@ -1,17 +1,18 @@
 "use client";
-
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  CaretDown,
-  CaretRight,
-  ChatCircleDots,
-  CurrencyDollar,
-  EnvelopeSimple,
-  Key,
-  Receipt,
-  User,
-  WarningCircle,
-  X,
-} from "@phosphor-icons/react";
+  AlertCircleIcon,
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  DollarCircleIcon,
+  Invoice01Icon,
+  Key01Icon,
+  Mail01Icon,
+  Message01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
+
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
@@ -39,16 +40,16 @@ const orderStatusVariant: Record<
   refunded: "muted",
 };
 
-const timelineIcons: Record<CustomerTimelineKind, typeof Receipt> = {
-  order: Receipt,
-  payment: CurrencyDollar,
-  refund: CurrencyDollar,
-  payment_failed: WarningCircle,
-  subscription: Receipt,
-  license: Key,
-  account: User,
-  email: EnvelopeSimple,
-  abandonment: ChatCircleDots,
+const timelineIcons: Record<CustomerTimelineKind, typeof Invoice01Icon> = {
+  order: Invoice01Icon,
+  payment: DollarCircleIcon,
+  refund: DollarCircleIcon,
+  payment_failed: AlertCircleIcon,
+  subscription: Invoice01Icon,
+  license: Key01Icon,
+  account: UserIcon,
+  email: Mail01Icon,
+  abandonment: Message01Icon,
 };
 
 const timelineTones: Record<
@@ -165,7 +166,7 @@ export function CustomerDetailsDrawer({
               className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition hover:bg-[#f4f4f7] hover:text-foreground"
               aria-label="Close customer details"
             >
-              <X size={18} />
+              <HugeiconsIcon icon={Cancel01Icon} size={18} />
             </button>
           </div>
 
@@ -198,9 +199,9 @@ export function CustomerDetailsDrawer({
               </span>
             </span>
             {ordersOpen ? (
-              <CaretDown size={16} className="text-muted" aria-hidden />
+              <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="text-muted" aria-hidden />
             ) : (
-              <CaretRight size={16} className="text-muted" aria-hidden />
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="text-muted" aria-hidden />
             )}
           </button>
           {ordersOpen &&
@@ -260,9 +261,9 @@ export function CustomerDetailsDrawer({
                 </span>
               </span>
               {licensesOpen ? (
-                <CaretDown size={16} className="text-muted" aria-hidden />
+                <HugeiconsIcon icon={ArrowDown01Icon} size={16} className="text-muted" aria-hidden />
               ) : (
-                <CaretRight size={16} className="text-muted" aria-hidden />
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="text-muted" aria-hidden />
               )}
             </button>
             {licensesOpen &&
@@ -298,13 +299,15 @@ export function CustomerDetailsDrawer({
                               {license.status}
                             </span>
                             {open ? (
-                              <CaretDown
+                              <HugeiconsIcon
+                                icon={ArrowDown01Icon}
                                 size={15}
                                 className="text-muted"
                                 aria-hidden
                               />
                             ) : (
-                              <CaretRight
+                              <HugeiconsIcon
+                                icon={ArrowRight01Icon}
                                 size={15}
                                 className="text-muted"
                                 aria-hidden
@@ -344,7 +347,7 @@ export function CustomerDetailsDrawer({
                         <span
                           className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${tone.background} ${tone.icon}`}
                         >
-                          <Icon size={14} weight="bold" aria-hidden />
+                          <HugeiconsIcon icon={Icon} size={14} strokeWidth={2} aria-hidden />
                         </span>
                         {!isLast && (
                           <span

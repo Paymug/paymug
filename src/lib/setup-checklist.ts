@@ -4,8 +4,8 @@ import { cache } from "react";
 import {
   getGitHubConnection,
   getGitHubOAuthHostname,
-  listOrdersByUser,
-  listProductsByUser,
+  hasPaidOrder,
+  listProductSummariesByUser,
 } from "./db";
 import { getGitHubCallbackUrlForHostname } from "./github-hostname.utils";
 import { getStoreById } from "./stores";
@@ -53,7 +53,7 @@ export const getSetupChecklist = cache(
       sepayLive,
       github,
       products,
-      orders,
+      sandboxPaidOrder,
       runtime,
       savedGitHubHostname,
       activeStore,
@@ -66,8 +66,11 @@ export const getSetupChecklist = cache(
         getSepayCredentials(userId, "sandbox", storeId),
         getSepayCredentials(userId, "live", storeId),
         getGitHubConnection(userId, storeId),
-        listProductsByUser(userId, storeId, environment),
-        listOrdersByUser(userId, storeId, environment),
+        listProductSummariesByUser(userId, storeId, environment),
+        // Only sandbox orders count; skip the query when scoped to live.
+        !environment || environment === "sandbox"
+          ? hasPaidOrder(userId, storeId, "sandbox")
+          : Promise.resolve(false),
         getRuntimeConfiguration(),
         getGitHubOAuthHostname(userId),
         storeId ? getStoreById(storeId, userId) : undefined,
@@ -108,10 +111,6 @@ export const getSetupChecklist = cache(
         : selectedProvider === "stripe"
           ? Boolean(stripeLive?.webhookSecret)
           : livePayPalWebhook === "active";
-    const sandboxPaidOrder = orders.some(
-      (order) =>
-        order.environment === "sandbox" && order.status === "paid"
-    );
     const appUrl = runtime.values.NEXT_PUBLIC_APP_URL;
     const githubRequestOrigin =
       requestOrigin || "http://localhost:3000";

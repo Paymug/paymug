@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons";
 
-import { DotsThree } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { DataTableColumn } from "./data-table.types";
@@ -132,7 +135,7 @@ export function DataTableSettingsHeadCell({
         aria-expanded={open}
         className="inline-grid h-8 w-8 place-items-center rounded-lg text-[#8b8ba3] transition hover:bg-[#f4f4f8] hover:text-[#2a2a33]"
       >
-        <DotsThree size={20} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={20} aria-hidden strokeWidth={2} />
       </button>
       {open &&
         createPortal(

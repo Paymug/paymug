@@ -1,17 +1,23 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  LockIcon,
+  Logout01Icon,
+  Mail01Icon,
+  UserCircleIcon,
+} from "@hugeicons/core-free-icons";
 
-import { EnvelopeSimple, Lock, SignOut, UserCircle } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const menuItems = [
-  { href: "/customer/account", label: "Profile details", icon: UserCircle },
-  { href: "/customer/account/password", label: "Passwords", icon: Lock },
+  { href: "/customer/account", label: "Profile details", icon: UserCircleIcon },
+  { href: "/customer/account/password", label: "Passwords", icon: LockIcon },
   {
     href: "/customer/account/email-preferences",
     label: "Email preferences",
-    icon: EnvelopeSimple,
+    icon: Mail01Icon,
   },
 ];
 
@@ -42,7 +48,7 @@ export function CustomerAccountMenu() {
               : "text-[#555563] hover:bg-[#f7f7f8]"
           }`}
         >
-          <Icon size={18} weight="regular" className="text-[#9191aa]" />
+          <HugeiconsIcon icon={Icon} size={18} className="text-[#9191aa]" />
           {label}
         </Link>
       ))}
@@ -52,7 +58,7 @@ export function CustomerAccountMenu() {
         disabled={signingOut}
         className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3.5 text-sm font-medium text-red-600 transition hover:bg-[#f7f7f8] disabled:opacity-60"
       >
-        <SignOut size={18} weight="regular" className="text-red-600" />
+        <HugeiconsIcon icon={Logout01Icon} size={18} className="text-red-600" />
         {signingOut ? "Signing out…" : "Sign out"}
       </button>
     </nav>

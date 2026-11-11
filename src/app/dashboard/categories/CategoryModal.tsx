@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { X } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Button, Input, Textarea } from "@/components/ui";
@@ -90,7 +93,7 @@ export function CategoryModal({
             className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:bg-[#f7f7f8] hover:text-foreground"
             aria-label="Close category dialog"
           >
-            <X size={18} weight="bold" />
+            <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={2} />
           </button>
         </div>
         <form onSubmit={save} className="space-y-5 p-6">

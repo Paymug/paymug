@@ -193,6 +193,25 @@ export interface ProductCategory {
   updatedAt: string;
 }
 
+/** Lean order projection used by dashboard metrics and charts. */
+export type OrderMetric = Pick<
+  Order,
+  | "id"
+  | "productId"
+  | "amount"
+  | "currency"
+  | "status"
+  | "customerEmail"
+  | "transactionFeeAmount"
+  | "affiliateId"
+  | "environment"
+  | "createdAt"
+  | "paidAt"
+>;
+
+/** Lean product projection for dashboard filters and counts. */
+export type ProductSummary = Pick<Product, "id" | "name" | "slug" | "status">;
+
 export interface Order {
   id: string;
   userId: string;

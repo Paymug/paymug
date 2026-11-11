@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ArrowDown, ArrowUp } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PayWhatYouWantBadge } from "@/components/PayWhatYouWantBadge";
@@ -347,7 +351,7 @@ export function StorefrontLayoutEditor({
                       className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-muted transition hover:bg-[#f7f7f8] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Move ${category.name} up`}
                     >
-                      <ArrowUp size={15} />
+                      <HugeiconsIcon icon={ArrowUp02Icon} size={15} />
                     </button>
                     <button
                       type="button"
@@ -358,7 +362,7 @@ export function StorefrontLayoutEditor({
                       className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-muted transition hover:bg-[#f7f7f8] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Move ${category.name} down`}
                     >
-                      <ArrowDown size={15} />
+                      <HugeiconsIcon icon={ArrowDown02Icon} size={15} />
                     </button>
                   </div>
                 </div>

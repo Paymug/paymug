@@ -1,4 +1,8 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  SquareArrowUpRightIcon,
+} from "@hugeicons/core-free-icons";
 
 import {
   DataTableColgroup,
@@ -9,7 +13,6 @@ import {
 import type { DataTableColumn } from "@/components/dashboard/data-table/data-table.types";
 import { useDataTable } from "@/components/dashboard/data-table/use-data-table";
 import Link from "next/link";
-import { ArrowSquareOut } from "@phosphor-icons/react";
 import {
   dashboardButtonBaseClass,
   dashboardCardClass,
@@ -249,7 +252,7 @@ export function ProductsWorkspace({
                         title="Open checkout"
                         className={dashboardIconButtonClass}
                       >
-                        <ArrowSquareOut size={18} aria-hidden />
+                        <HugeiconsIcon icon={SquareArrowUpRightIcon} size={18} aria-hidden />
                       </Link>
                       <ProductActionsMenu
                         id={product.id}

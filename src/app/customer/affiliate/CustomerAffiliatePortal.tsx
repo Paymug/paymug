@@ -1,6 +1,9 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Clock01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { Clock } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CustomerPortalFrame } from "../CustomerPortalFrame";
 import { CustomerAffiliateAnalytics } from "./CustomerAffiliateAnalytics";
@@ -69,7 +72,7 @@ export function CustomerAffiliatePortal({
             <section className="grid min-h-[28rem] place-items-center rounded-2xl border border-[#e8e8ee] bg-[#fafafd] p-6 text-center">
               <div className="max-w-lg">
                 <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#fff6d1] text-[#9b7600]">
-                  <Clock size={27} />
+                  <HugeiconsIcon icon={Clock01Icon} size={27} />
                 </span>
                 <p className="mt-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#b08500]">
                   Application under review

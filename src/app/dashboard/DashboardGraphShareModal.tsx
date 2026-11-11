@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Download01Icon,
+  Share08Icon,
+} from "@hugeicons/core-free-icons";
 
-import { DownloadSimple, ShareNetwork } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { AreaChart } from "@/components/dashboard/charts";
 import { AppIcon } from "@/components/dashboard/Icon";
@@ -173,7 +177,7 @@ export function DashboardGraphShareModal({
         ))}
         <span className="flex-1" />
         <Button type="button" onClick={downloadImage}>
-          <DownloadSimple size={17} weight="bold" />
+          <HugeiconsIcon icon={Download01Icon} size={17} strokeWidth={2} />
           {/* {exporting ? "Creating…" : "Share"} */}
           Download
         </Button>

@@ -1,6 +1,13 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Alert02Icon,
+  CrownIcon,
+  Key01Icon,
+  SquareArrowUpRightIcon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
 
-import { ArrowSquareOut, Check, Crown, Key, Warning } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Input } from "@/components/ui";
@@ -59,7 +66,7 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
       <section className="overflow-hidden rounded-2xl border border-[#e8e8ee] bg-white">
         <div className="flex items-start gap-4 border-b border-[#e8e8ee] px-5 py-5 sm:px-6">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-[#8a6800]">
-            <Crown size={22} weight="fill" />
+            <HugeiconsIcon icon={CrownIcon} size={22} />
           </span>
           <div>
             <h2 className="text-lg font-semibold">
@@ -120,7 +127,7 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
                   className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-dark hover:bg-accent-hover"
                 >
                   Get Paymug Pro
-                  <ArrowSquareOut size={15} />
+                  <HugeiconsIcon icon={SquareArrowUpRightIcon} size={15} />
                 </a>
               </div>
               <form
@@ -138,7 +145,7 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
                   required
                 />
                 <Button type="submit" disabled={working}>
-                  <Key size={16} />
+                  <HugeiconsIcon icon={Key01Icon} size={16} />
                   {working ? "Activating…" : "Activate Pro"}
                 </Button>
               </form>
@@ -147,7 +154,7 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
           {error && <div className="mt-4"><Alert>{error}</Alert></div>}
           {license.validationError && (
             <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-              <Warning size={17} className="mt-0.5 shrink-0" />
+              <HugeiconsIcon icon={Alert02Icon} size={17} className="mt-0.5 shrink-0" />
               {license.validationError}
             </div>
           )}
@@ -159,7 +166,7 @@ export function LicenseSettings({ initialLicense }: LicenseSettingsProps) {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {proFeatures.map((feature) => (
             <div key={feature} className="flex items-center gap-2 text-sm">
-              <Check size={16} className="text-emerald-600" weight="bold" />
+              <HugeiconsIcon icon={Tick02Icon} size={16} className="text-emerald-600" strokeWidth={2} />
               {proFeatureLabels[feature]}
             </div>
           ))}

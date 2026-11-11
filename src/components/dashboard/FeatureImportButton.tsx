@@ -1,6 +1,11 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MoreVerticalIcon,
+  SlidersHorizontalIcon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 
-import { DotsThreeOutlineVerticalIcon, SlidersHorizontalIcon, UploadSimple } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import type { FeatureImportResponse } from "@/lib/feature-import.types";
@@ -81,7 +86,7 @@ export function FeatureImportButton({
           if (event.key === "Escape") setOpen(false);
         }}
       >
-        <SlidersHorizontalIcon size={16} weight="bold" aria-hidden />
+        <HugeiconsIcon icon={SlidersHorizontalIcon} size={16} aria-hidden strokeWidth={2} />
       </Button>
 
       {open && (
@@ -100,7 +105,7 @@ export function FeatureImportButton({
               inputRef.current?.click();
             }}
           >
-            <UploadSimple size={16} weight="bold" aria-hidden />
+            <HugeiconsIcon icon={Upload01Icon} size={16} aria-hidden strokeWidth={2} />
             {importing ? "Importing…" : "Import data"}
           </button>
         </div>

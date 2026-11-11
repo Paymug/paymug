@@ -1,6 +1,10 @@
 "use client";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  MinusSignIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
 
-import { Minus, Plus } from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   calculateSeatAddOnPrice,
@@ -42,7 +46,7 @@ export function CustomerSeatAddOn({
             disabled={seats <= 1}
             onClick={() => setClamped(seats - 1)}
           >
-            <Minus size={14} weight="bold" />
+            <HugeiconsIcon icon={MinusSignIcon} size={14} strokeWidth={2} />
           </button>
           <input
             aria-label={seatAddOn.label}
@@ -61,7 +65,7 @@ export function CustomerSeatAddOn({
             disabled={seats >= maxSeats}
             onClick={() => setClamped(seats + 1)}
           >
-            <Plus size={14} weight="bold" />
+            <HugeiconsIcon icon={PlusSignIcon} size={14} strokeWidth={2} />
           </button>
           <span className="ml-1 text-sm font-medium">
             {formatMoney(price, currency)}
