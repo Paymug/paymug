@@ -6,12 +6,19 @@ import { Alert, Select, Spinner } from "@/components/ui";
 import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
 import type { PaymentProviderResponse } from "./page.types";
 import { PayPalConnectionCard } from "./PayPalConnectionCard";
+import { SepayConnectionCard } from "./SepayConnectionCard";
 import { StripeConnectionCard } from "./StripeConnectionCard";
 import { PaymentSetupSection } from "./PaymentSetupSection";
 import {
   fetchPaymentProvider,
   savePaymentProvider,
 } from "./payment-provider.utils";
+
+const providerLabels: Record<PaymentProviderResponse["provider"], string> = {
+  paypal: "PayPal",
+  stripe: "Stripe",
+  sepay: "SePay",
+};
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -49,6 +56,15 @@ export default function PaymentsPage() {
     [setProviderStatus]
   );
 
+  const onSepaySandboxStatusChange = useCallback(
+    (connected: boolean) => setProviderStatus("sepay-sandbox", connected),
+    [setProviderStatus]
+  );
+  const onSepayLiveStatusChange = useCallback(
+    (connected: boolean) => setProviderStatus("sepay-live", connected),
+    [setProviderStatus]
+  );
+
   useEffect(() => {
     let active = true;
     void fetchPaymentProvider()
@@ -82,7 +98,7 @@ export default function PaymentsPage() {
       const data = await savePaymentProvider(selectedProvider);
       setProvider(data.provider);
       setSuccess(
-        `${data.provider === "paypal" ? "PayPal" : "Stripe"} is now the store's payment provider.`
+        `${providerLabels[data.provider]} is now the store's payment provider.`
       );
       router.refresh();
     } catch (providerError) {
@@ -104,7 +120,7 @@ export default function PaymentsPage() {
     );
   }
 
-  const providerLabel = provider === "paypal" ? "PayPal" : "Stripe";
+  const providerLabel = providerLabels[provider];
   const sandboxStatusKey = `${provider}-sandbox`;
   const liveStatusKey = `${provider}-live`;
   const completedSteps =
@@ -175,6 +191,7 @@ export default function PaymentsPage() {
             options={[
               { value: "paypal", label: "PayPal" },
               { value: "stripe", label: "Stripe" },
+              { value: "sepay", label: "SePay (VND)" },
             ]}
           />
           <p className="mt-2 text-sm text-muted">
@@ -204,6 +221,11 @@ export default function PaymentsPage() {
               mode="sandbox"
               onStatusChange={onPayPalSandboxStatusChange}
             />
+          ) : provider === "sepay" ? (
+            <SepayConnectionCard
+              mode="sandbox"
+              onStatusChange={onSepaySandboxStatusChange}
+            />
           ) : (
             <StripeConnectionCard
               mode="sandbox"
@@ -222,6 +244,11 @@ export default function PaymentsPage() {
             <PayPalConnectionCard
               mode="live"
               onStatusChange={onPayPalLiveStatusChange}
+            />
+          ) : provider === "sepay" ? (
+            <SepayConnectionCard
+              mode="live"
+              onStatusChange={onSepayLiveStatusChange}
             />
           ) : (
             <StripeConnectionCard

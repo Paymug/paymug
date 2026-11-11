@@ -9,7 +9,11 @@ import {
 } from "./db";
 import { getGitHubCallbackUrlForHostname } from "./github-hostname.utils";
 import { getStoreById } from "./stores";
-import { getPayPalCredentials, getStripeCredentials } from "./payment-credentials";
+import {
+  getPayPalCredentials,
+  getSepayCredentials,
+  getStripeCredentials,
+} from "./payment-credentials";
 import { getPayPalWebhookStatus } from "./paypal-webhooks";
 import { getRuntimeConfiguration } from "./runtime-env";
 import type {
@@ -45,6 +49,8 @@ export const getSetupChecklist = cache(
       paypalLive,
       stripeSandbox,
       stripeLive,
+      sepaySandbox,
+      sepayLive,
       github,
       products,
       orders,
@@ -57,6 +63,8 @@ export const getSetupChecklist = cache(
         getPayPalCredentials(userId, "live", storeId),
         getStripeCredentials(userId, "sandbox", storeId),
         getStripeCredentials(userId, "live", storeId),
+        getSepayCredentials(userId, "sandbox", storeId),
+        getSepayCredentials(userId, "live", storeId),
         getGitHubConnection(userId, storeId),
         listProductsByUser(userId, storeId, environment),
         listOrdersByUser(userId, storeId, environment),
@@ -69,25 +77,37 @@ export const getSetupChecklist = cache(
     );
     const selectedProvider = activeStore?.paymentGateway || "paypal";
     const sandboxConnection =
-      selectedProvider === "stripe" ? stripeSandbox : paypalSandbox;
+      selectedProvider === "sepay"
+        ? sepaySandbox
+        : selectedProvider === "stripe"
+          ? stripeSandbox
+          : paypalSandbox;
     const liveConnection =
-      selectedProvider === "stripe" ? stripeLive : paypalLive;
+      selectedProvider === "sepay"
+        ? sepayLive
+        : selectedProvider === "stripe"
+          ? stripeLive
+          : paypalLive;
     const [sandboxPayPalWebhook, livePayPalWebhook] = await Promise.all([
-      selectedProvider === "stripe"
+      selectedProvider !== "paypal"
         ? Promise.resolve("not_configured" as const)
         : getPayPalWebhookStatus({ userId, mode: "sandbox" }),
-      selectedProvider === "stripe"
+      selectedProvider !== "paypal"
         ? Promise.resolve("not_configured" as const)
         : getPayPalWebhookStatus({ userId, mode: "live" }),
     ]);
     const sandboxWebhookReady =
-      selectedProvider === "stripe"
-        ? Boolean(stripeSandbox?.webhookSecret)
-        : sandboxPayPalWebhook === "active";
+      selectedProvider === "sepay"
+        ? Boolean(sepaySandbox?.ipnSecret)
+        : selectedProvider === "stripe"
+          ? Boolean(stripeSandbox?.webhookSecret)
+          : sandboxPayPalWebhook === "active";
     const liveWebhookReady =
-      selectedProvider === "stripe"
-        ? Boolean(stripeLive?.webhookSecret)
-        : livePayPalWebhook === "active";
+      selectedProvider === "sepay"
+        ? Boolean(sepayLive?.ipnSecret)
+        : selectedProvider === "stripe"
+          ? Boolean(stripeLive?.webhookSecret)
+          : livePayPalWebhook === "active";
     const sandboxPaidOrder = orders.some(
       (order) =>
         order.environment === "sandbox" && order.status === "paid"

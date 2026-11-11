@@ -51,7 +51,7 @@ export interface CustomerPortalPurchase {
   discountCode?: string;
   discountAmount: number;
   transactionFeeAmount: number;
-  gateway: "paypal" | "stripe" | "free";
+  gateway: "paypal" | "stripe" | "sepay" | "free";
   environment: "sandbox" | "live";
   paypalOrderId?: string;
   paypalCaptureId?: string;

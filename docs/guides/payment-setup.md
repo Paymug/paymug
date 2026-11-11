@@ -22,3 +22,12 @@ payment. Paymug records the order and manages delivery.
 
 Keep test and live credentials separate. Never put payment secrets in a product,
 browser code, API request, or support message.
+
+## SePay (Vietnam, VND)
+
+SePay is a third provider option. It supports one-time products priced in VND
+only (no subscriptions). Set `SEPAY_{SANDBOX|LIVE}_MERCHANT_ID`,
+`SEPAY_{SANDBOX|LIVE}_SECRET_KEY` and `SEPAY_{SANDBOX|LIVE}_IPN_SECRET`, then
+in SePay → Cổng thanh toán → Cấu hình set the IPN URL shown in Dashboard →
+Payments and the IPN auth type to `SECRET_KEY` with the same secret. Orders
+are marked paid when SePay sends `ORDER_PAID`.

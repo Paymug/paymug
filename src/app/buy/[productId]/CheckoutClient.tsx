@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PayPalButtons } from "@/components/PayPalButtons";
+import { SepayCheckoutButton } from "@/components/SepayCheckoutButton";
 import { StripeCheckoutButton } from "@/components/StripeCheckoutButton";
 import { Button, Input } from "@/components/ui";
 import {
@@ -57,6 +58,7 @@ export function CheckoutClient({
   initialTransactionFeeAmount,
   paypalClientId,
   stripeEnabled,
+  sepayEnabled = false,
   mode,
   currency,
   isSubscription = false,
@@ -676,8 +678,9 @@ export function CheckoutClient({
             )}
             {!stripeEnabled && !paypalClientId && (
               <p className="rounded-lg bg-[#f7f7f8] px-3 py-2 text-sm text-muted">
-                This seller hasn&apos;t connected a payment method yet. A valid
-                forever-free discount can still complete without payment.
+                {sepayEnabled
+                  ? "Subscriptions are not available with this seller's payment method."
+                  : "This seller hasn't connected a payment method yet. A valid forever-free discount can still complete without payment."}
               </p>
             )}
             {!paymentReady && (
@@ -732,7 +735,23 @@ export function CheckoutClient({
                 onSuccess={onSuccess}
               />
             )}
-            {!stripeEnabled && !paypalClientId && (
+            {sepayEnabled && (
+              <SepayCheckoutButton
+                productId={productId}
+                customAmount={customAmount}
+                custom={checkoutCustom}
+                customerEmail={email.trim()}
+                customerName={name.trim() || undefined}
+                discountCode={
+                  discountStatus === "valid"
+                    ? discountCode.trim() || undefined
+                    : undefined
+                }
+                marketingOptIn={marketingOptIn}
+                disabled={!paymentReady}
+              />
+            )}
+            {!stripeEnabled && !paypalClientId && !sepayEnabled && (
               <p className="rounded-lg bg-[#f7f7f8] px-3 py-2 text-sm text-muted">
                 This seller hasn&apos;t connected a payment method yet. A valid
                 free discount can still complete without payment.

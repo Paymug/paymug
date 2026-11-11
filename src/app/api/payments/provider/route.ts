@@ -12,7 +12,7 @@ export async function GET() {
 }
 
 const providerSchema = z.object({
-  provider: z.enum(["paypal", "stripe"]),
+  provider: z.enum(["paypal", "stripe", "sepay"]),
 });
 
 export async function POST(request: Request) {

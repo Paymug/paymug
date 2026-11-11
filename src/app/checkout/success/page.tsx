@@ -15,6 +15,7 @@ import {
   getProductFileDownloadUrl,
 } from "@/lib/product-files.utils";
 import { PendingCaptureClient } from "./PendingCaptureClient";
+import { PendingConfirmationClient } from "./PendingConfirmationClient";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
 import { getProductPublicPath } from "@/lib/product-paths";
 import { resolveProductRedirectUrl } from "@/lib/product-redirect-url";
@@ -65,6 +66,14 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
           paypalOrderId={order.paypalOrderId}
           productName={order.productName}
         />
+      </Shell>
+    );
+  }
+
+  if (order.status === "pending" && order.gateway === "sepay") {
+    return (
+      <Shell>
+        <PendingConfirmationClient productName={order.productName} />
       </Shell>
     );
   }

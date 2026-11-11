@@ -10,6 +10,7 @@ import { getSessionUser } from "@/lib/auth";
 import { findProductByPublicIdentifier, findUserById } from "@/lib/db";
 import {
   getPayPalCredentials,
+  getSepayCredentials,
   getStripeCredentials,
 } from "@/lib/payment-credentials";
 import {
@@ -132,6 +133,14 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const stripe =
     store.paymentGateway === "stripe"
       ? await getStripeCredentials(
+          product.userId,
+          product.environment,
+          product.storeId,
+        )
+      : undefined;
+  const sepay =
+    store.paymentGateway === "sepay"
+      ? await getSepayCredentials(
           product.userId,
           product.environment,
           product.storeId,
@@ -328,7 +337,8 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   }
                   paypalClientId={paypal?.clientId}
                   stripeEnabled={Boolean(stripe)}
-                  mode={paypal?.mode || stripe?.mode || "sandbox"}
+                  sepayEnabled={Boolean(sepay)}
+                  mode={paypal?.mode || stripe?.mode || sepay?.mode || "sandbox"}
                   currency={product.currency}
                   isSubscription={isSubscriptionProduct(product)}
                   billingSummary={billingSummary}

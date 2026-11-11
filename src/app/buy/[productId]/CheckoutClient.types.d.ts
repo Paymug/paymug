@@ -29,6 +29,7 @@ export interface CheckoutClientProps {
   initialTransactionFeeAmount: number;
   paypalClientId?: string;
   stripeEnabled: boolean;
+  sepayEnabled?: boolean;
   mode: "sandbox" | "live";
   currency: string;
   /** Recurring product subscription checkout. */

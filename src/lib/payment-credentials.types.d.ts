@@ -11,3 +11,10 @@ export interface StripeCredentialConfig {
   webhookSecret?: string;
   mode: PayPalMode;
 }
+
+export interface SepayCredentialConfig {
+  merchantId: string;
+  secretKey: string;
+  ipnSecret?: string;
+  mode: PayPalMode;
+}

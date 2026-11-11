@@ -45,7 +45,7 @@ export const stores = sqliteTable(
       "payment_credential_source_store_id"
     ),
     paymentGateway: text("payment_gateway", {
-      enum: ["paypal", "stripe"],
+      enum: ["paypal", "stripe", "sepay"],
     })
       .notNull()
       .default("paypal"),
@@ -302,7 +302,7 @@ export const orders = sqliteTable(
   paypalCaptureId: text("paypal_capture_id"),
   stripeCheckoutSessionId: text("stripe_checkout_session_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
-  gateway: text("gateway", { enum: ["paypal", "stripe", "free"] }).notNull().default("paypal"),
+  gateway: text("gateway", { enum: ["paypal", "stripe", "sepay", "free"] }).notNull().default("paypal"),
   createdAt: text("created_at").notNull(),
   paidAt: text("paid_at"),
   paymentFailureDetails: text("payment_failure_details"),

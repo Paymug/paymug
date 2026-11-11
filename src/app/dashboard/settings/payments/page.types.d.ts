@@ -2,7 +2,7 @@ import type { PayPalMode } from "@/lib/types";
 import type { ReactNode } from "react";
 
 export interface PaymentProviderResponse {
-  provider: "paypal" | "stripe";
+  provider: "paypal" | "stripe" | "sepay";
   error?: string;
 }
 
@@ -50,6 +50,11 @@ export interface StripeConnectionResponse {
   configuredEnvVars?: string[];
   missingEnvVars?: string[];
   error?: string;
+}
+
+export interface SepayConnectionCardProps {
+  mode: PayPalMode;
+  onStatusChange?(connected: boolean): void;
 }
 
 export interface StripeConnectionCardProps {

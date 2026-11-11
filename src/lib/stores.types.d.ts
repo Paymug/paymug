@@ -15,7 +15,7 @@ export interface UpdateStoreInput {
   coverImageUrl?: string | null;
   emailFrom?: string | null;
   emailReplyTo?: string | null;
-  paymentGateway?: "paypal" | "stripe";
+  paymentGateway?: "paypal" | "stripe" | "sepay";
   affiliatesEnabled?: boolean;
   affiliateCommissionType?: "percentage" | "fixed";
   affiliateCommissionValue?: number;

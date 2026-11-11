@@ -7,8 +7,8 @@ import type {
 } from "./product-configurations.types";
 
 export type PayPalMode = "sandbox" | "live";
-export type PaymentGateway = "paypal" | "stripe";
-export type OrderGateway = "paypal" | "stripe" | "free";
+export type PaymentGateway = "paypal" | "stripe" | "sepay";
+export type OrderGateway = "paypal" | "stripe" | "sepay" | "free";
 export type AffiliateCommissionType = "percentage" | "fixed";
 export type AffiliateCommissionDuration = "one_time" | "recurring";
 export type AffiliateAttributionModel = "first_click" | "last_click";

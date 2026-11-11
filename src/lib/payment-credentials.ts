@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import type { PayPalMode } from "./types";
 import type {
   PayPalCredentialConfig,
+  SepayCredentialConfig,
   StripeCredentialConfig,
 } from "./payment-credentials.types";
 
@@ -32,12 +33,29 @@ const stripeEnvKeys = {
   },
 } as const;
 
+const sepayEnvKeys = {
+  sandbox: {
+    merchantId: "SEPAY_SANDBOX_MERCHANT_ID",
+    secretKey: "SEPAY_SANDBOX_SECRET_KEY",
+    ipnSecret: "SEPAY_SANDBOX_IPN_SECRET",
+  },
+  live: {
+    merchantId: "SEPAY_LIVE_MERCHANT_ID",
+    secretKey: "SEPAY_LIVE_SECRET_KEY",
+    ipnSecret: "SEPAY_LIVE_IPN_SECRET",
+  },
+} as const;
+
 export function getPayPalRequiredEnvKeys(mode: PayPalMode): string[] {
   return Object.values(paypalEnvKeys[mode]);
 }
 
 export function getStripeRequiredEnvKeys(mode: PayPalMode): string[] {
   return Object.values(stripeEnvKeys[mode]);
+}
+
+export function getSepayRequiredEnvKeys(mode: PayPalMode): string[] {
+  return Object.values(sepayEnvKeys[mode]);
 }
 
 async function readEnvValue(key: string): Promise<string | undefined> {
@@ -109,6 +127,27 @@ export async function getStripeCredentials(
   };
 }
 
+export async function getSepayCredentials(
+  userId: string,
+  mode?: PayPalMode,
+  _storeId?: string
+): Promise<SepayCredentialConfig | undefined> {
+  const selectedMode = await resolvePayPalMode(userId, mode);
+  const keys = sepayEnvKeys[selectedMode];
+  const [merchantId, secretKey, ipnSecret] = await Promise.all([
+    readEnvValue(keys.merchantId),
+    readEnvValue(keys.secretKey),
+    readEnvValue(keys.ipnSecret),
+  ]);
+  if (!merchantId || !secretKey) return undefined;
+  return {
+    merchantId,
+    secretKey,
+    ipnSecret,
+    mode: selectedMode,
+  };
+}
+
 export async function getPayPalEnvStatus(mode: PayPalMode): Promise<{
   clientId: string | undefined;
   configuredEnvVars: string[];
@@ -152,6 +191,35 @@ export async function getStripeEnvStatus(mode: PayPalMode): Promise<{
   return {
     secretKeyConfigured: Boolean(secretKey),
     webhookSecretConfigured: Boolean(webhookSecret),
+    configuredEnvVars: configured
+      .filter(([, ok]) => ok)
+      .map(([name]) => name),
+    missingEnvVars: configured
+      .filter(([, ok]) => !ok)
+      .map(([name]) => name),
+  };
+}
+
+export async function getSepayEnvStatus(mode: PayPalMode): Promise<{
+  credentialsConfigured: boolean;
+  ipnSecretConfigured: boolean;
+  configuredEnvVars: string[];
+  missingEnvVars: string[];
+}> {
+  const keys = sepayEnvKeys[mode];
+  const [merchantId, secretKey, ipnSecret] = await Promise.all([
+    readEnvValue(keys.merchantId),
+    readEnvValue(keys.secretKey),
+    readEnvValue(keys.ipnSecret),
+  ]);
+  const configured = [
+    [keys.merchantId, Boolean(merchantId)],
+    [keys.secretKey, Boolean(secretKey)],
+    [keys.ipnSecret, Boolean(ipnSecret)],
+  ] as const;
+  return {
+    credentialsConfigured: Boolean(merchantId && secretKey),
+    ipnSecretConfigured: Boolean(ipnSecret),
     configuredEnvVars: configured
       .filter(([, ok]) => ok)
       .map(([name]) => name),
