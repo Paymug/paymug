@@ -260,5 +260,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `users` ADD `timezone` text DEFAULT 'UTC' NOT NULL;"
     ]
+  },
+  {
+    "name": "0032_api_key_scopes.sql",
+    "statements": [
+      "ALTER TABLE `api_keys` ADD `scopes` text DEFAULT '[\"products:read\",\"orders:read\",\"customers:read\"]' NOT NULL;"
+    ]
   }
 ];

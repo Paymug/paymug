@@ -1,6 +1,7 @@
 import "server-only";
 
 import { SignJWT, jwtVerify } from "jose";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { findUserById } from "./db";
@@ -74,14 +75,31 @@ export async function clearSessionCookie(): Promise<void> {
   jar.delete(COOKIE_NAME);
 }
 
+const apiKeyUserContext = new AsyncLocalStorage<string>();
+
+/**
+ * Runs `fn` with `getSessionUser()` resolving to `userId`, so existing
+ * dashboard route handlers can be reused for API-key (MCP) calls. Only call
+ * this after the caller was authenticated and authorized by an API key.
+ */
+export function runAsApiKeyUser<T>(userId: string, fn: () => Promise<T>): Promise<T> {
+  return apiKeyUserContext.run(userId, fn);
+}
+
+async function loadPublicUser(userId: string): Promise<PublicUser | null> {
+  const user = await findUserById(userId);
+  if (!user) return null;
+  const store = await getActiveStoreForUser(user.id, user.activeStoreId);
+  return toPublicUser(user, store);
+}
+
 export async function getSessionUser(): Promise<PublicUser | null> {
+  const apiKeyUserId = apiKeyUserContext.getStore();
+  if (apiKeyUserId) return loadPublicUser(apiKeyUserId);
   const jar = await cookies();
   const token = jar.get(COOKIE_NAME)?.value;
   if (!token) return null;
   const userId = await verifySessionToken(token);
   if (!userId) return null;
-  const user = await findUserById(userId);
-  if (!user) return null;
-  const store = await getActiveStoreForUser(user.id, user.activeStoreId);
-  return toPublicUser(user, store);
+  return loadPublicUser(userId);
 }

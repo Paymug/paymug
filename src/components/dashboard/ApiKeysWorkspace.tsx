@@ -9,6 +9,13 @@ import {
   badgeBaseClass,
   badgeVariantClasses,
 } from "@/components/ui.styles";
+import {
+  apiKeyResourceActions,
+  apiKeyResources,
+  normalizeApiKeyScopes,
+  type ApiKeyAction,
+  type ApiKeyResource,
+} from "@/lib/api-key-scopes";
 import type { ApiKeyRecord } from "@/lib/feature-records.types";
 import type { ApiKeysResponse } from "./ApiKeysWorkspace.types";
 import {
@@ -21,6 +28,7 @@ export function ApiKeysWorkspace() {
   const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
   const [name, setName] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [scopes, setScopes] = useState<string[]>([]);
   const [secret, setSecret] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -57,6 +65,7 @@ export function ApiKeysWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          scopes,
           expiresAt: expiresAt
             ? new Date(`${expiresAt}T23:59:59.999Z`).toISOString()
             : undefined,
@@ -68,6 +77,7 @@ export function ApiKeysWorkspace() {
       }
       setSecret(data.secret);
       setName("");
+      setScopes([]);
       setExpiresAt("");
       setFormOpen(false);
       await load();
@@ -80,6 +90,22 @@ export function ApiKeysWorkspace() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function toggleScope(resource: ApiKeyResource, action: ApiKeyAction) {
+    const scope = `${resource}:${action}`;
+    setScopes((current) =>
+      normalizeApiKeyScopes(
+        current.includes(scope)
+          ? current.filter((value) =>
+              // Unchecking read also clears write/delete for that resource.
+              action === "read"
+                ? !value.startsWith(`${resource}:`)
+                : value !== scope
+            )
+          : [...current, scope]
+      )
+    );
   }
 
   async function revokeKey(key: ApiKeyRecord) {
@@ -100,7 +126,10 @@ export function ApiKeysWorkspace() {
       <div className={`${dashboardCardClass} mb-4 p-4 text-sm leading-5 text-muted`}>
         Authenticate with <code>Authorization: Bearer YOUR_KEY</code>. Available
         read endpoints: <code>/api/v1/products</code>,{" "}
-        <code>/api/v1/orders</code>, and <code>/api/v1/customers</code>.
+        <code>/api/v1/orders</code>, and <code>/api/v1/customers</code>. AI
+        clients can use the same key with the MCP server at{" "}
+        <code>/api/mcp</code>. Each key only works for the permissions you
+        select.
       </div>
       <div className="flex justify-end">
         {!formOpen && (
@@ -151,13 +180,54 @@ export function ApiKeysWorkspace() {
             value={expiresAt}
             onChange={(event) => setExpiresAt(event.target.value)}
           />
+          <fieldset className="sm:col-span-2">
+            <legend className="mb-2 text-sm font-medium">Permissions</legend>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border text-muted">
+                    <th className="px-3 py-2 font-medium">Resource</th>
+                    {(["read", "write", "delete"] as const).map((action) => (
+                      <th key={action} className="px-3 py-2 font-medium capitalize">
+                        {action}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {apiKeyResources.map((resource) => (
+                    <tr key={resource} className="border-b border-border last:border-0">
+                      <td className="px-3 py-2 font-medium capitalize">{resource}</td>
+                      {(["read", "write", "delete"] as const).map((action) => (
+                        <td key={action} className="px-3 py-2">
+                          {apiKeyResourceActions[resource].includes(action) ? (
+                            <input
+                              type="checkbox"
+                              checked={scopes.includes(`${resource}:${action}`)}
+                              onChange={() => toggleScope(resource, action)}
+                              aria-label={`${action} ${resource}`}
+                            />
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              Write and delete include read. Grant only what the integration needs.
+            </p>
+          </fieldset>
           {error && (
             <div className="sm:col-span-2">
               <Alert>{error}</Alert>
             </div>
           )}
           <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || scopes.length === 0}>
               {saving ? "Creating…" : "Create key"}
             </Button>
             <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
@@ -186,11 +256,12 @@ export function ApiKeysWorkspace() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[800px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-muted">
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Key</th>
+                  <th className="px-4 py-3 font-medium">Permissions</th>
                   <th className="px-4 py-3 font-medium">Last used</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="w-20 px-4 py-3 text-right font-medium">Action</th>
@@ -201,6 +272,9 @@ export function ApiKeysWorkspace() {
                   <tr key={key.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3 font-medium">{key.name}</td>
                     <td className="px-4 py-3 font-mono">{key.keyPrefix}</td>
+                    <td className="max-w-64 px-4 py-3 text-xs text-muted">
+                      {key.scopes.join(", ")}
+                    </td>
                     <td className="px-4 py-3 text-muted">
                       {key.lastUsedAt ? formatDateTimeInTimeZone(key.lastUsedAt, timeZone) : "Never"}
                     </td>

@@ -46,6 +46,7 @@ export interface ApiKeyRecord {
   userId: string;
   name: string;
   keyPrefix: string;
+  scopes: string[];
   lastUsedAt?: string;
   expiresAt?: string;
   revokedAt?: string;

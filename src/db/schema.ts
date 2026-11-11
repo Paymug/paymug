@@ -537,6 +537,9 @@ export const apiKeys = sqliteTable(
     name: text("name").notNull(),
     keyPrefix: text("key_prefix").notNull(),
     keyHash: text("key_hash").notNull().unique(),
+    scopes: text("scopes")
+      .notNull()
+      .default('["products:read","orders:read","customers:read"]'),
     lastUsedAt: text("last_used_at"),
     expiresAt: text("expires_at"),
     revokedAt: text("revoked_at"),

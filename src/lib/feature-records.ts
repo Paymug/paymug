@@ -14,6 +14,7 @@ import type {
   FeatureRecordInput,
 } from "./feature-records.types";
 import { uid } from "./utils";
+import { parseApiKeyScopes } from "./api-key-scopes";
 import {
   emitCreatedFeatureWebhook,
   emitUpdatedFeatureWebhook,
@@ -52,6 +53,7 @@ function mapApiKey(row: typeof apiKeysTable.$inferSelect): ApiKeyRecord {
     userId: row.userId,
     name: row.name,
     keyPrefix: row.keyPrefix,
+    scopes: parseApiKeyScopes(row.scopes),
     lastUsedAt: row.lastUsedAt ?? undefined,
     expiresAt: row.expiresAt ?? undefined,
     revokedAt: row.revokedAt ?? undefined,
@@ -254,6 +256,7 @@ export async function insertApiKey(input: {
   name: string;
   keyPrefix: string;
   keyHash: string;
+  scopes: string[];
   expiresAt?: string;
 }): Promise<ApiKeyRecord> {
   const db = await getDb();
@@ -264,6 +267,7 @@ export async function insertApiKey(input: {
     name: input.name,
     keyPrefix: input.keyPrefix,
     keyHash: input.keyHash,
+    scopes: JSON.stringify(input.scopes),
     expiresAt: input.expiresAt || null,
     createdAt: new Date().toISOString(),
   });

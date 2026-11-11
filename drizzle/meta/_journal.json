@@ -225,6 +225,13 @@
       "when": 1789624800000,
       "tag": "0031_user_timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1789711200000,
+      "tag": "0032_api_key_scopes",
+      "breakpoints": true
     }
   ]
 }
