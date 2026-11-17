@@ -1,6 +1,7 @@
 import type { Product, ProductCategory } from "@/lib/types";
 
 export type ProductTransactionFeeSelection =
+  | "store"
   | "none"
   | "fixed"
   | "percentage";

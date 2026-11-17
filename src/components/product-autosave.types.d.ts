@@ -17,6 +17,7 @@ export interface ProductFormSavePayload {
   price: number;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
+  transactionFeeOverride: boolean;
   currency: string;
   status: "draft" | "published";
   hideFromStorefront: boolean;

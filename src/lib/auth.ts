@@ -93,6 +93,12 @@ async function loadPublicUser(userId: string): Promise<PublicUser | null> {
   return toPublicUser(user, store);
 }
 
+/** Session user id from the cookie alone, without loading user or store rows. */
+export async function getSessionUserId(): Promise<string | null> {
+  const token = (await cookies()).get(COOKIE_NAME)?.value;
+  return token ? verifySessionToken(token) : null;
+}
+
 export async function getSessionUser(): Promise<PublicUser | null> {
   const apiKeyUserId = apiKeyUserContext.getStore();
   if (apiKeyUserId) return loadPublicUser(apiKeyUserId);

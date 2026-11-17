@@ -14,9 +14,10 @@ import { jsonError } from "@/lib/utils";
 const createSchema = z.object({
   name: z.string().trim().min(1).max(80),
   url: z.string().trim().url().max(2_000),
-  productId: z.string().trim().min(1),
+  // Empty list means all products / all events.
+  productIds: z.array(z.string().trim().min(1)).max(500).default([]),
   auth: z.string().trim().max(2_000).optional(),
-  events: z.array(z.string()).length(1),
+  events: z.array(z.string()).max(50).default([]),
 });
 
 export async function GET() {
@@ -43,12 +44,16 @@ export async function POST(request: Request) {
   if (!isAllowedWebhookUrl(parsed.data.url)) {
     return jsonError("Use a valid HTTPS endpoint URL", 400);
   }
-  const product = await findProductById(parsed.data.productId);
+  const productIds = [...new Set(parsed.data.productIds)];
+  const products = await Promise.all(productIds.map(findProductById));
   if (
-    !product ||
-    product.userId !== user.id ||
-    product.storeId !== user.activeStoreId ||
-    product.environment !== user.environment
+    products.some(
+      (product) =>
+        !product ||
+        product.userId !== user.id ||
+        product.storeId !== user.activeStoreId ||
+        product.environment !== user.environment,
+    )
   ) {
     return jsonError("Product not found", 404);
   }
@@ -66,7 +71,7 @@ export async function POST(request: Request) {
     environment: user.environment,
     name: parsed.data.name,
     url: parsed.data.url,
-    productId: parsed.data.productId,
+    productIds,
     auth: parsed.data.auth || undefined,
     events: [...new Set(parsed.data.events)] as OutboundWebhookEventName[],
   });

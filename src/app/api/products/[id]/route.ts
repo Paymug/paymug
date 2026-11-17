@@ -25,6 +25,7 @@ import {
   parseLicenseUpdatePeriod,
   parseProductLicenseType,
 } from "@/lib/license-entitlements";
+import { getStoreById } from "@/lib/stores";
 import { jsonError } from "@/lib/utils";
 import {
   maxExtraSeatLabelLength,
@@ -82,6 +83,7 @@ const updateSchema = z.object({
   price: z.number().int().nonnegative().optional(),
   transactionFeeType: z.enum(["fixed", "percentage"]).optional(),
   transactionFeeValue: z.number().int().min(0).max(1000000000).optional(),
+  transactionFeeOverride: z.boolean().optional(),
   currency: z.string().length(3).optional(),
   status: z.enum(["draft", "published"]).optional(),
   hideFromStorefront: z.boolean().optional(),
@@ -250,8 +252,22 @@ export async function PATCH(req: Request, ctx: Ctx) {
       );
     }
 
+    const feeOverride =
+      parsed.data.transactionFeeOverride ?? existing.transactionFeeOverride;
+    const store = feeOverride
+      ? undefined
+      : await getStoreById(existing.storeId, user.id);
+    const feePatch =
+      !feeOverride && store
+        ? {
+            transactionFeeType: store.transactionFeeType,
+            transactionFeeValue: store.transactionFeeValue,
+            transactionFeeOverride: false,
+          }
+        : {};
     const patch = {
       ...parsed.data,
+      ...feePatch,
       ...(productSlug !== undefined ? { slug: productSlug } : {}),
       generateLicense,
       licenseType,

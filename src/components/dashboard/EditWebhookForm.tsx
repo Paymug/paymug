@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CustomSelect } from "@/components/CustomSelect";
 import { Alert, Button, Input } from "@/components/ui";
 import {
   buttonBaseClass,
   buttonVariantClasses,
 } from "@/components/ui.styles";
-import { outboundWebhookEventOptions } from "@/lib/outbound-webhook-events.config";
-import type { OutboundWebhookEventName } from "@/lib/outbound-webhooks.types";
 import { dashboardCardClass } from "./dashboard.styles";
+import { WebhookScopeFields } from "./WebhookScopeFields";
 import type { EditWebhookFormProps } from "./EditWebhookForm.types";
 import type {
   WebhookFormValues,
@@ -25,8 +23,10 @@ export function EditWebhookForm({
     name: webhook.name,
     url: webhook.url,
     auth: "",
-    productId: webhook.productId || "",
-    event: webhook.events.find((event) => event !== "webhook_test") || "",
+    allProducts: webhook.productIds.length === 0,
+    productIds: webhook.productIds,
+    allEvents: webhook.events.length === 0,
+    events: webhook.events.filter((event) => event !== "webhook_test"),
   });
   const [authConfigured, setAuthConfigured] = useState(
     webhook.authConfigured,
@@ -35,6 +35,10 @@ export function EditWebhookForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const scopeValid =
+    (values.allProducts || values.productIds.length > 0) &&
+    (values.allEvents || values.events.length > 0);
 
   async function updateWebhook(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,8 +52,8 @@ export function EditWebhookForm({
         body: JSON.stringify({
           name: values.name,
           url: values.url,
-          productId: values.productId,
-          events: [values.event],
+          productIds: values.allProducts ? [] : values.productIds,
+          events: values.allEvents ? [] : values.events,
           ...(values.auth
             ? { auth: values.auth }
             : removeAuth
@@ -137,41 +141,10 @@ export function EditWebhookForm({
             Remove the current Auth value
           </label>
         )}
-        <CustomSelect
-          label="Product"
-          name="productId"
-          value={values.productId}
-          options={[
-            { value: "", label: "Select a product", disabled: true },
-            ...productOptions,
-          ]}
-          onValueChange={(productId) =>
-            setValues((current) => ({ ...current, productId }))
-          }
-          searchable
-          required
-        />
-        <CustomSelect
-          label="Event"
-          name="event"
-          value={values.event}
-          options={[
-            { value: "", label: "Select an event", disabled: true },
-            ...outboundWebhookEventOptions.map((eventOption) => ({
-              value: eventOption.name,
-              label: eventOption.label,
-            })),
-          ]}
-          onValueChange={(eventName) =>
-            setValues((current) => ({
-              ...current,
-              event: eventName as Exclude<
-                OutboundWebhookEventName,
-                "webhook_test"
-              >,
-            }))
-          }
-          required
+        <WebhookScopeFields
+          values={values}
+          productOptions={productOptions}
+          onChange={setValues}
         />
       </div>
 
@@ -189,7 +162,7 @@ export function EditWebhookForm({
       <div className="mt-5 flex gap-2">
         <Button
           type="submit"
-          disabled={saving || !values.productId || !values.event}
+          disabled={saving || !scopeValid}
         >
           {saving ? "Saving…" : "Save changes"}
         </Button>

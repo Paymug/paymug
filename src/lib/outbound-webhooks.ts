@@ -27,6 +27,17 @@ function parseEvents(value: string): OutboundWebhookEventName[] {
   }
 }
 
+function parseProductIds(value: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function mapWebhook(
   row: typeof webhooksTable.$inferSelect,
 ): OutboundWebhookRecord {
@@ -37,7 +48,7 @@ function mapWebhook(
     environment: row.environment,
     name: row.name,
     url: row.url,
-    productId: row.productId ?? undefined,
+    productIds: parseProductIds(row.productIds),
     authConfigured: Boolean(row.authEncrypted),
     events: parseEvents(row.events),
     status: row.status,
@@ -126,7 +137,7 @@ export async function createOutboundWebhook(
     environment: input.environment,
     name: input.name,
     url: input.url,
-    productId: input.productId,
+    productIds: JSON.stringify(input.productIds),
     authEncrypted: input.auth ? await encryptSecret(input.auth) : null,
     events: JSON.stringify(input.events),
     status: "active",
@@ -158,7 +169,9 @@ export async function updateOutboundWebhook(
     .set({
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.url !== undefined ? { url: input.url } : {}),
-      ...(input.productId !== undefined ? { productId: input.productId } : {}),
+      ...(input.productIds !== undefined
+        ? { productIds: JSON.stringify(input.productIds) }
+        : {}),
       ...(authEncrypted !== undefined ? { authEncrypted } : {}),
       ...(input.events !== undefined
         ? { events: JSON.stringify(input.events) }
@@ -283,12 +296,17 @@ export async function dispatchOutboundWebhookEvent(
         eq(webhooksTable.storeId, input.storeId),
         eq(webhooksTable.environment, input.environment),
         eq(webhooksTable.status, "active"),
-        eq(webhooksTable.productId, input.productId),
       ),
     });
-    const subscribed = rows.filter((row) =>
-      parseEvents(row.events).includes(input.eventName),
-    );
+    // An empty product or event list means "all".
+    const subscribed = rows.filter((row) => {
+      const productIds = parseProductIds(row.productIds);
+      const events = parseEvents(row.events);
+      return (
+        (productIds.length === 0 || productIds.includes(input.productId)) &&
+        (events.length === 0 || events.includes(input.eventName))
+      );
+    });
     await Promise.all(
       subscribed.map((row) => deliverWebhook(row, input.eventName, input.data)),
     );

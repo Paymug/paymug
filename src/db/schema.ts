@@ -183,6 +183,12 @@ export const products = sqliteTable(
     .notNull()
     .default("fixed"),
   transactionFeeValue: integer("transaction_fee_value").notNull().default(0),
+  /** When false, the product follows the store-level transaction fee. */
+  transactionFeeOverride: integer("transaction_fee_override", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(false),
   currency: text("currency").notNull().default("USD"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   hideFromStorefront: integer("hide_from_storefront", { mode: "boolean" })
@@ -672,9 +678,12 @@ export const webhooks = sqliteTable(
       .default("sandbox"),
     name: text("name").notNull(),
     url: text("url").notNull(),
+    /** Deprecated: superseded by `productIds`. */
     productId: text("product_id").references(() => products.id, {
       onDelete: "cascade",
     }),
+    /** JSON array of product ids. Empty means all products. */
+    productIds: text("product_ids").notNull().default("[]"),
     authEncrypted: text("auth_encrypted"),
     events: text("events").notNull().default("[]"),
     status: text("status", { enum: ["active", "paused"] })

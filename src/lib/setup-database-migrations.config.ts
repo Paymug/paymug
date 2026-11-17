@@ -291,5 +291,19 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "CREATE TABLE `migration_jobs` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`user_id` text NOT NULL,\n\t`store_id` text NOT NULL,\n\t`source` text NOT NULL,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`status` text DEFAULT 'pending' NOT NULL,\n\t`stage` text DEFAULT 'products' NOT NULL,\n\t`cursor` text DEFAULT '{}' NOT NULL,\n\t`options` text DEFAULT '{}' NOT NULL,\n\t`counts` text DEFAULT '{}' NOT NULL,\n\t`errors` text DEFAULT '[]' NOT NULL,\n\t`id_map` text DEFAULT '{}' NOT NULL,\n\t`encrypted_key` text,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\t`finished_at` text,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade\n);",
       "CREATE INDEX `migration_jobs_user_idx` ON `migration_jobs` (`user_id`,`created_at`);"
     ]
+  },
+  {
+    "name": "0035_product_fee_override.sql",
+    "statements": [
+      "ALTER TABLE `products` ADD `transaction_fee_override` integer DEFAULT 0 NOT NULL;",
+      "UPDATE `products` SET `transaction_fee_override` = 1 WHERE EXISTS (SELECT 1 FROM `stores` WHERE `stores`.`id` = `products`.`store_id` AND (`stores`.`transaction_fee_type` != `products`.`transaction_fee_type` OR `stores`.`transaction_fee_value` != `products`.`transaction_fee_value`));"
+    ]
+  },
+  {
+    "name": "0036_webhook_product_ids.sql",
+    "statements": [
+      "ALTER TABLE `webhooks` ADD `product_ids` text DEFAULT '[]' NOT NULL;",
+      "UPDATE `webhooks` SET `product_ids` = json_array(`product_id`) WHERE `product_id` IS NOT NULL;"
+    ]
   }
 ];

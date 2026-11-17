@@ -231,14 +231,32 @@ export function WebhooksWorkspace() {
                           Auth configured
                         </span>
                       )}
-                      {webhook.events.map((eventName) => (
+                      {webhook.events.length === 0 ? (
                         <span
-                          key={eventName}
                           className={badgeBaseClass + " " + badgeVariantClasses.muted}
                         >
-                          {getWebhookEventLabel(eventName)}
+                          All events
                         </span>
-                      ))}
+                      ) : (
+                        webhook.events.map((eventName) => (
+                          <span
+                            key={eventName}
+                            className={badgeBaseClass + " " + badgeVariantClasses.muted}
+                          >
+                            {getWebhookEventLabel(eventName)}
+                          </span>
+                        ))
+                      )}
+                      <span
+                        className={badgeBaseClass + " " + badgeVariantClasses.muted}
+                      >
+                        {webhook.productIds.length === 0
+                          ? "All products"
+                          : webhook.productIds.length +
+                            (webhook.productIds.length === 1
+                              ? " product"
+                              : " products")}
+                      </span>
                     </div>
                   </div>
                   <div className="pointer-events-auto flex gap-1">

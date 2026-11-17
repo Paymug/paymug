@@ -30,7 +30,7 @@ export default async function EditWebhookPage({
     <div className={dashboardPageClass}>
       <h1 className="sr-only">Edit webhook</h1>
       <p className={dashboardPageCopyClass}>
-        Update the endpoint, outbound authentication, product, and event.
+        Update the endpoint, outbound authentication, products, and events.
       </p>
       <EditWebhookForm
         webhook={webhook}

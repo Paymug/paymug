@@ -15,9 +15,9 @@ import type { OutboundWebhookRouteContext } from "./route.types";
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
   url: z.string().trim().url().max(2_000).optional(),
-  productId: z.string().trim().min(1).optional(),
+  productIds: z.array(z.string().trim().min(1)).max(500).optional(),
   auth: z.union([z.string().trim().max(2_000), z.null()]).optional(),
-  events: z.array(z.string()).length(1).optional(),
+  events: z.array(z.string()).max(50).optional(),
   status: z.enum(["active", "paused"]).optional(),
 });
 
@@ -52,13 +52,19 @@ export async function PATCH(
   if (parsed.data.url && !isAllowedWebhookUrl(parsed.data.url)) {
     return jsonError("Use a valid HTTPS endpoint URL", 400);
   }
-  if (parsed.data.productId) {
-    const product = await findProductById(parsed.data.productId);
+  const productIds = parsed.data.productIds
+    ? [...new Set(parsed.data.productIds)]
+    : undefined;
+  if (productIds) {
+    const products = await Promise.all(productIds.map(findProductById));
     if (
-      !product ||
-      product.userId !== user.id ||
-      product.storeId !== user.activeStoreId ||
-      product.environment !== user.environment
+      products.some(
+        (product) =>
+          !product ||
+          product.userId !== user.id ||
+          product.storeId !== user.activeStoreId ||
+          product.environment !== user.environment,
+      )
     ) {
       return jsonError("Product not found", 404);
     }
@@ -79,6 +85,7 @@ export async function PATCH(
     user.environment,
     {
       ...parsed.data,
+      productIds,
       events: parsed.data.events
         ? ([...new Set(parsed.data.events)] as OutboundWebhookEventName[])
         : undefined,

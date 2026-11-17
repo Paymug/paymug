@@ -28,8 +28,10 @@ export interface OutboundWebhookRecord {
   environment: PayPalMode;
   name: string;
   url: string;
-  productId?: string;
+  /** Empty means the webhook fires for all products. */
+  productIds: string[];
   authConfigured: boolean;
+  /** Empty means the webhook fires for all events. */
   events: OutboundWebhookEventName[];
   status: "active" | "paused";
   createdAt: string;
@@ -56,7 +58,7 @@ export interface CreateOutboundWebhookInput {
   environment: PayPalMode;
   name: string;
   url: string;
-  productId: string;
+  productIds: string[];
   auth?: string;
   events: OutboundWebhookEventName[];
 }
@@ -64,7 +66,7 @@ export interface CreateOutboundWebhookInput {
 export interface UpdateOutboundWebhookInput {
   name?: string;
   url?: string;
-  productId?: string;
+  productIds?: string[];
   auth?: string | null;
   events?: OutboundWebhookEventName[];
   status?: "active" | "paused";

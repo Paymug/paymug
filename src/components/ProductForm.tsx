@@ -62,18 +62,16 @@ export function ProductForm({
   const [price, setPrice] = useState(
     product ? (product.price / 100).toFixed(2) : "",
   );
-  const storeTransactionFeeSelection: ProductTransactionFeeSelection =
-    storeTransactionFeeValue > 0 ? storeTransactionFeeType : "none";
   const storeTransactionFeeDisplayValue = (
     storeTransactionFeeValue / 100
   ).toFixed(2);
   const [transactionFeeType, setTransactionFeeType] =
     useState<ProductTransactionFeeSelection>(
-      product
-        ? product.transactionFeeValue > 0
+      !product || !product.transactionFeeOverride
+        ? "store"
+        : product.transactionFeeValue > 0
           ? product.transactionFeeType
-          : "none"
-        : storeTransactionFeeSelection,
+          : "none",
     );
   const [transactionFeeValue, setTransactionFeeValue] = useState(
     ((product?.transactionFeeValue ?? storeTransactionFeeValue) / 100).toFixed(
@@ -173,8 +171,10 @@ export function ProductForm({
   const parsedTransactionFeeValue = Math.round(
     parseFloat(transactionFeeValue || "0") * 100,
   );
-  const autosaveTransactionFeeValue =
-    transactionFeeType !== "none" &&
+  const usesStoreFee = transactionFeeType === "store";
+  const autosaveTransactionFeeValue = usesStoreFee
+    ? storeTransactionFeeValue
+    : transactionFeeType !== "none" &&
     Number.isFinite(parsedTransactionFeeValue) &&
     parsedTransactionFeeValue >= 0
       ? parsedTransactionFeeValue
@@ -216,8 +216,13 @@ export function ProductForm({
     imageUrl,
     price: autosavePriceCents,
     transactionFeeType:
-      transactionFeeType === "none" ? "fixed" : transactionFeeType,
+      transactionFeeType === "none"
+        ? "fixed"
+        : usesStoreFee
+          ? storeTransactionFeeType
+          : transactionFeeType,
     transactionFeeValue: autosaveTransactionFeeValue,
+    transactionFeeOverride: !usesStoreFee,
     currency,
     status,
     hideFromStorefront,
@@ -278,8 +283,7 @@ export function ProductForm({
     productFiles.length ||
     generateLicense ||
     githubDelivery ||
-    transactionFeeType !== storeTransactionFeeSelection ||
-    transactionFeeValue !== storeTransactionFeeDisplayValue ||
+    !usesStoreFee ||
     status !== "draft" ||
     hideFromStorefront ||
     customAmountEnabled ||
@@ -354,11 +358,13 @@ export function ProductForm({
       setSaving(false);
       return;
     }
-    const normalizedTransactionFeeValue =
-      transactionFeeType === "none"
+    const normalizedTransactionFeeValue = usesStoreFee
+      ? storeTransactionFeeValue
+      : transactionFeeType === "none"
         ? 0
         : Math.round(parseFloat(transactionFeeValue || "0") * 100);
     if (
+      !usesStoreFee &&
       transactionFeeType !== "none" &&
       (!Number.isFinite(normalizedTransactionFeeValue) ||
         normalizedTransactionFeeValue < 0 ||
@@ -720,12 +726,22 @@ export function ProductForm({
             requestAutosave(1);
           }}
           options={[
+            {
+              value: "store",
+              label: `Use store fee (${
+                storeTransactionFeeValue > 0
+                  ? storeTransactionFeeType === "percentage"
+                    ? `${storeTransactionFeeDisplayValue}%`
+                    : `${storeTransactionFeeDisplayValue} ${currency}`
+                  : "none"
+              })`,
+            },
             { value: "none", label: "None" },
             { value: "fixed", label: "Fixed amount" },
             { value: "percentage", label: "Percentage" },
           ]}
         />
-        {transactionFeeType !== "none" && (
+        {transactionFeeType !== "none" && !usesStoreFee && (
           <>
             <Input
               label={

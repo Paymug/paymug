@@ -3,7 +3,12 @@ import { headers } from "next/headers";
 import { DashboardNav } from "@/components/DashboardNav";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardTopbar } from "@/components/dashboard/DashboardTopbar";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getSessionUserId } from "@/lib/auth";
+import {
+  databaseUserExists,
+  getPendingDatabaseMigrations,
+} from "@/lib/initial-setup";
+import { PendingMigrationNotice } from "@/components/dashboard/PendingMigrationNotice";
 import {
   countUnreadNotifications,
   listNotifications,
@@ -24,6 +29,19 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Checked first with raw SQL: queries against an outdated schema would fail.
+  const pendingMigrations = await getPendingDatabaseMigrations().catch(
+    () => [],
+  );
+  if (pendingMigrations.length > 0) {
+    const userId = await getSessionUserId();
+    return (
+      <PendingMigrationNotice
+        pending={pendingMigrations}
+        signedIn={Boolean(userId && (await databaseUserExists(userId)))}
+      />
+    );
+  }
   const user = await getSessionUser();
   if (!user) redirect("/login");
   const store = await getActiveStoreForUser(user.id, user.activeStoreId);

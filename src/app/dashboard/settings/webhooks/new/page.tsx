@@ -19,7 +19,7 @@ export default async function NewWebhookPage() {
     <div className={dashboardPageClass}>
       <h1 className="sr-only">Create webhook</h1>
       <p className={dashboardPageCopyClass}>
-        Add an endpoint and choose the product event Paymug sends to it.
+        Add an endpoint and choose the products and events Paymug sends to it.
       </p>
       <CreateWebhookForm
         productOptions={products.map((product) => ({

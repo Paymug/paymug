@@ -3,15 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CustomSelect } from "@/components/CustomSelect";
 import { Alert, Button, Input } from "@/components/ui";
 import {
   buttonBaseClass,
   buttonVariantClasses,
 } from "@/components/ui.styles";
-import { outboundWebhookEventOptions } from "@/lib/outbound-webhook-events.config";
-import type { OutboundWebhookEventName } from "@/lib/outbound-webhooks.types";
 import { dashboardCardClass } from "./dashboard.styles";
+import { WebhookScopeFields } from "./WebhookScopeFields";
 import type { CreateWebhookFormProps } from "./CreateWebhookForm.types";
 import type {
   WebhookFormValues,
@@ -22,8 +20,10 @@ const initialForm: WebhookFormValues = {
   name: "",
   url: "",
   auth: "",
-  productId: "",
-  event: "",
+  allProducts: true,
+  productIds: [],
+  allEvents: true,
+  events: [],
 };
 
 export function CreateWebhookForm({ productOptions }: CreateWebhookFormProps) {
@@ -31,6 +31,10 @@ export function CreateWebhookForm({ productOptions }: CreateWebhookFormProps) {
   const [values, setValues] = useState<WebhookFormValues>(initialForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const scopeValid =
+    (values.allProducts || values.productIds.length > 0) &&
+    (values.allEvents || values.events.length > 0);
 
   async function createWebhook(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,8 +48,8 @@ export function CreateWebhookForm({ productOptions }: CreateWebhookFormProps) {
           name: values.name,
           url: values.url,
           auth: values.auth,
-          productId: values.productId,
-          events: [values.event],
+          productIds: values.allProducts ? [] : values.productIds,
+          events: values.allEvents ? [] : values.events,
         }),
       });
       const data = (await response.json()) as WebhooksResponse;
@@ -108,41 +112,10 @@ export function CreateWebhookForm({ productOptions }: CreateWebhookFormProps) {
           request. Paymug never uses this value to authenticate incoming
           requests.
         </p>
-        <CustomSelect
-          label="Product"
-          name="productId"
-          value={values.productId}
-          options={[
-            { value: "", label: "Select a product", disabled: true },
-            ...productOptions,
-          ]}
-          onValueChange={(productId) =>
-            setValues((current) => ({ ...current, productId }))
-          }
-          searchable
-          required
-        />
-        <CustomSelect
-          label="Event"
-          name="event"
-          value={values.event}
-          options={[
-            { value: "", label: "Select an event", disabled: true },
-            ...outboundWebhookEventOptions.map((eventOption) => ({
-              value: eventOption.name,
-              label: eventOption.label,
-            })),
-          ]}
-          onValueChange={(eventName) =>
-            setValues((current) => ({
-              ...current,
-              event: eventName as Exclude<
-                OutboundWebhookEventName,
-                "webhook_test"
-              >,
-            }))
-          }
-          required
+        <WebhookScopeFields
+          values={values}
+          productOptions={productOptions}
+          onChange={setValues}
         />
       </div>
       {error && (
@@ -153,7 +126,7 @@ export function CreateWebhookForm({ productOptions }: CreateWebhookFormProps) {
       <div className="mt-5 flex gap-2">
         <Button
           type="submit"
-          disabled={saving || !values.productId || !values.event}
+          disabled={saving || !scopeValid}
         >
           {saving ? "Creating…" : "Create webhook"}
         </Button>

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, asc, eq, ne } from "drizzle-orm";
-import { stores, users } from "@/db/schema";
+import { products, stores, users } from "@/db/schema";
 import { getDb } from "@/db";
 import type { Store } from "./types";
 import type {
@@ -393,6 +393,28 @@ export async function updateStore(
       updatedAt: new Date().toISOString(),
     })
     .where(and(eq(stores.id, storeId), eq(stores.userId, userId)));
+  if (
+    input.transactionFeeType !== undefined ||
+    input.transactionFeeValue !== undefined
+  ) {
+    // Products without their own fee follow the store-level fee.
+    const updated = await getStoreById(storeId, userId);
+    if (updated) {
+      await db
+        .update(products)
+        .set({
+          transactionFeeType: updated.transactionFeeType,
+          transactionFeeValue: updated.transactionFeeValue,
+        })
+        .where(
+          and(
+            eq(products.storeId, storeId),
+            eq(products.userId, userId),
+            eq(products.transactionFeeOverride, false),
+          ),
+        );
+    }
+  }
   if (input.name !== undefined || slug !== undefined) {
     await db
       .update(users)

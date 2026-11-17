@@ -246,6 +246,20 @@
       "when": 1789884000000,
       "tag": "0034_lemonsqueezy_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1789970400000,
+      "tag": "0035_product_fee_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1790056800000,
+      "tag": "0036_webhook_product_ids",
+      "breakpoints": true
     }
   ]
 }

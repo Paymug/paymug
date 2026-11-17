@@ -67,12 +67,45 @@ async function getAppliedMigrationNames(
   return new Set(result.results.map((row) => row.name));
 }
 
-export async function migrateInitialSetupDatabase(): Promise<InitialSetupDatabaseResult> {
+let migrationsKnownApplied = false;
+
+/** Names of bundled migrations the database has not applied yet. */
+export async function getPendingDatabaseMigrations(): Promise<string[]> {
+  if (migrationsKnownApplied) return [];
   const database = await getSetupDatabase();
+  if (!(await tableExists(database, migrationsTable))) {
+    return runtimeDatabaseMigrations.map((migration) => migration.name);
+  }
+  const result = await database
+    .prepare(`SELECT name FROM ${migrationsTable}`)
+    .all<{ name: string }>();
+  const applied = new Set(result.results.map((row) => row.name));
+  const pending = runtimeDatabaseMigrations
+    .filter((migration) => !applied.has(migration.name))
+    .map((migration) => migration.name);
+  if (pending.length === 0) migrationsKnownApplied = true;
+  return pending;
+}
+
+/** Whether `userId` exists, using raw SQL so it works against an outdated schema. */
+export async function databaseUserExists(userId: string): Promise<boolean> {
+  const database = await getSetupDatabase();
+  const row = await database
+    .prepare("SELECT id FROM users WHERE id = ? LIMIT 1")
+    .bind(userId)
+    .first<{ id: string }>();
+  return Boolean(row);
+}
+
+export async function migrateInitialSetupDatabase(): Promise<InitialSetupDatabaseResult> {
   if (await initialSetupHasRegisteredUser()) {
     throw new Error("Initial setup is no longer available");
   }
+  return applyPendingDatabaseMigrations();
+}
 
+export async function applyPendingDatabaseMigrations(): Promise<InitialSetupDatabaseResult> {
+  const database = await getSetupDatabase();
   const appliedNames = await getAppliedMigrationNames(database);
   let appliedMigrations = 0;
 
@@ -86,6 +119,7 @@ export async function migrateInitialSetupDatabase(): Promise<InitialSetupDatabas
     ]);
     appliedMigrations += 1;
   }
+  migrationsKnownApplied = true;
 
   return {
     appliedMigrations,

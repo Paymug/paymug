@@ -7,6 +7,7 @@ import {
   listProductsByUser,
 } from "@/lib/db";
 import { slugify } from "@/lib/format";
+import { getStoreById } from "@/lib/stores";
 import { validateGitHubProductRepository } from "@/lib/github-products";
 import {
   parseProductBillingType,
@@ -63,6 +64,7 @@ const createSchema = z.object({
   price: z.number().int().nonnegative(),
   transactionFeeType: z.enum(["fixed", "percentage"]).default("fixed"),
   transactionFeeValue: z.number().int().min(0).max(1000000000).default(0),
+  transactionFeeOverride: z.boolean().default(false),
   currency: z.string().length(3).default("USD"),
   status: z.enum(["draft", "published"]).default("draft"),
   hideFromStorefront: z.boolean().default(false),
@@ -209,6 +211,7 @@ export async function POST(req: Request) {
       extraSeatTiers,
       extraSeatLabel: parsed.data.extraSeatLabel,
     };
+    const store = await getStoreById(user.activeStoreId, user.id);
     const product = await createProduct({
       id: uid(),
       userId: user.id,
@@ -223,8 +226,13 @@ export async function POST(req: Request) {
       slug: productSlug,
       description: parsed.data.description,
       price: parsed.data.price,
-      transactionFeeType: parsed.data.transactionFeeType,
-      transactionFeeValue: parsed.data.transactionFeeValue,
+      transactionFeeType: parsed.data.transactionFeeOverride
+        ? parsed.data.transactionFeeType
+        : (store?.transactionFeeType ?? "fixed"),
+      transactionFeeValue: parsed.data.transactionFeeOverride
+        ? parsed.data.transactionFeeValue
+        : (store?.transactionFeeValue ?? 0),
+      transactionFeeOverride: parsed.data.transactionFeeOverride,
       currency: parsed.data.currency.toUpperCase(),
       status: parsed.data.status,
       hideFromStorefront: parsed.data.hideFromStorefront,

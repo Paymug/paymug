@@ -16,8 +16,10 @@ export interface WebhookFormValues {
   name: string;
   url: string;
   auth: string;
-  productId: string;
-  event: Exclude<OutboundWebhookEventName, "webhook_test"> | "";
+  allProducts: boolean;
+  productIds: string[];
+  allEvents: boolean;
+  events: Exclude<OutboundWebhookEventName, "webhook_test">[];
 }
 
 export interface WebhookProductOption {
