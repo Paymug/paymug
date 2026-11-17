@@ -44,12 +44,16 @@ export function parseStoreBackup(value: unknown): StoreBackupFile {
     throw new Error("Backup source store metadata is missing");
   }
   assertBackupRows(value.data.products, "products");
+  if (value.data.variants !== undefined) {
+    assertBackupRows(value.data.variants, "variants");
+  }
   assertBackupRows(value.data.orders, "orders");
   assertBackupRows(value.data.checkoutReminders, "checkout reminders");
   assertBackupRows(value.data.featureRecords, "feature records");
   assertBackupRows(value.data.customers, "customers");
   const totalRecords =
     value.data.products.length +
+    (Array.isArray(value.data.variants) ? value.data.variants.length : 0) +
     value.data.orders.length +
     value.data.checkoutReminders.length +
     value.data.featureRecords.length +
@@ -92,6 +96,8 @@ export function remapStoreBackupData(
     orders: Map<string, string>;
     features: Map<string, string>;
     customers: Map<string, string>;
+    /** Variant IDs; also remaps the checkout `product_option` choice. */
+    variants?: Map<string, string>;
   },
 ): unknown {
   if (Array.isArray(value)) {
@@ -120,7 +126,9 @@ export function remapStoreBackupData(
               ? maps.features
               : key === "customerId"
                 ? maps.customers
-                : undefined;
+                : key === "variantId" || key === "product_option"
+                  ? maps.variants
+                  : undefined;
       result[key] = map?.get(item) || item;
       continue;
     }

@@ -6,6 +6,7 @@ export const apiKeyResources = [
   "discounts",
   "licenses",
   "subscribers",
+  "migrations",
 ] as const;
 
 export type ApiKeyResource = (typeof apiKeyResources)[number];
@@ -21,6 +22,7 @@ export const apiKeyResourceActions: Record<ApiKeyResource, ApiKeyAction[]> = {
   discounts: ["read", "write", "delete"],
   licenses: ["read", "write", "delete"],
   subscribers: ["read", "write", "delete"],
+  migrations: ["read", "write"],
 };
 
 export const allApiKeyScopes: ApiKeyScope[] = apiKeyResources.flatMap(

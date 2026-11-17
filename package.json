@@ -10,6 +10,7 @@
     "build:next": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "tsx --test tests/*.test.ts",
     "deploy": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc && opennextjs-cloudflare deploy",
     "deploy:full": "npm run build && npm run deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
@@ -18,7 +19,8 @@
     "db:generate": "drizzle-kit generate",
     "dbml": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
     "dbmr": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:integration": "node --conditions react-server --import tsx --test tests/integration/*.integration.ts"
   },
   "dependencies": {
     "@editorjs/editorjs": "^2.31.6",
@@ -56,6 +58,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.4",
     "wrangler": "^4.115.0"
   }

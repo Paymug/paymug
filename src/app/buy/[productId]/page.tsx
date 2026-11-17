@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { effectiveProduct, variantCustomKey } from "@/lib/product-variants";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ProductDescription } from "@/components/ProductDescription";
@@ -57,9 +58,14 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const resolvedSearchParams = await searchParams;
   const { amount, cancelled, discount, preview, ref } = resolvedSearchParams;
   const custom = parseCheckoutCustomData(resolvedSearchParams);
+  const requestedVariant = resolvedSearchParams.variant;
+  if (typeof requestedVariant === "string" && !custom[variantCustomKey]) {
+    custom[variantCustomKey] = requestedVariant;
+  }
 
-  const product = await findProductByPublicIdentifier(productId);
-  if (!product) notFound();
+  const baseProduct = await findProductByPublicIdentifier(productId);
+  if (!baseProduct) notFound();
+  const product = effectiveProduct(baseProduct, custom);
   if (product.slug && productId === product.id && product.slug !== product.id) {
     redirect(buildProductSlugRedirectPath(product, resolvedSearchParams));
   }

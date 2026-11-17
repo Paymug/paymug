@@ -6,6 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 import { Button, Input, Select } from "./ui";
+import { VariantOverridesPanel } from "./VariantOverridesPanel";
 import type { ProductConfigurationEditorProps } from "./ProductConfigurationEditor.types";
 
 function createId() {
@@ -19,6 +20,7 @@ function toCents(value: string) {
 export function ProductConfigurationEditor({
   currency,
   defaultPrice,
+  productId,
   options,
   bundles,
   onOptionsChange,
@@ -96,6 +98,13 @@ export function ProductConfigurationEditor({
           >
             <HugeiconsIcon icon={Delete02Icon} size={17} />
           </button>
+          {productId && (
+            <VariantOverridesPanel
+              productId={productId}
+              variantId={option.id}
+              currency={currency}
+            />
+          )}
         </div>
       ))}
 

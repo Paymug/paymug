@@ -1,5 +1,5 @@
 import { getOrderLicense } from "@/lib/commerce-features";
-import { findOrderById, findProductById } from "@/lib/db";
+import { findOrderById, findProductForOrder } from "@/lib/db";
 import { jsonError } from "@/lib/utils";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
 
@@ -14,7 +14,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   const [product, license] =
     order.status === "paid"
       ? await Promise.all([
-          findProductById(order.productId),
+          findProductForOrder(order),
           getOrderLicense(order.userId, order.id),
         ])
       : [null, null];

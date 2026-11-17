@@ -8,6 +8,7 @@ import {
   customerAccounts,
   featureRecords,
   orders,
+  productVariants,
   products,
   stores,
 } from "@/db/schema";
@@ -66,6 +67,11 @@ export async function importStoreBackup(
     backup.data.products.map((product) => product.id),
     options.preserveIds,
   );
+  const backupVariants = backup.data.variants ?? [];
+  const variantIds = createStoreBackupIdMap(
+    backupVariants.map((variant) => variant.id),
+    options.preserveIds,
+  );
   const orderIds = createStoreBackupIdMap(
     backup.data.orders.map((order) => order.id),
     options.preserveIds,
@@ -83,6 +89,18 @@ export async function importStoreBackup(
       const existing = existingProducts.find((candidate) => candidate.id === product.id);
       if (existing && existing.storeId !== currentStoreId) {
         throw new Error(`Product ID ${product.id} belongs to another store`);
+      }
+    }
+    if (backupVariants.length) {
+      const ownedVariants = await db.query.productVariants.findMany({
+        columns: { id: true, productId: true },
+      });
+      const productOf = new Map(ownedVariants.map((row) => [row.id, row.productId]));
+      for (const variant of backupVariants) {
+        const owner = productOf.get(variant.id);
+        if (owner && owner !== variant.productId) {
+          throw new Error(`Variant ID ${variant.id} belongs to another product`);
+        }
       }
     }
     for (const order of backup.data.orders) {
@@ -165,9 +183,15 @@ export async function importStoreBackup(
     }
   }
 
+  // A copy is not the same record as its origin, so it must not claim the
+  // origin's (source, source_id) identity (unique per environment).
+  const copiedIdentity = options.preserveIds
+    ? {}
+    : { source: null, sourceId: null };
   const importedProducts = backup.data.products.map((source) => {
     return {
       ...source,
+      ...copiedIdentity,
       id: productIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
@@ -176,16 +200,33 @@ export async function importStoreBackup(
       slug: productSlugs.get(source.id)!,
     };
   });
+  const importedVariants = backupVariants.map((source) => {
+    const productId = productIds.get(source.productId);
+    if (!productId) throw new Error(`Variant ${source.id} references a missing product`);
+    return {
+      ...source,
+      ...copiedIdentity,
+      id: variantIds.get(source.id)!,
+      userId,
+      storeId: currentStoreId,
+      environment: options.environment,
+      productId,
+    };
+  });
   const importedOrders = backup.data.orders.map((source) => {
     const productId = productIds.get(source.productId);
     if (!productId) throw new Error(`Order ${source.id} references a missing product`);
     return {
       ...source,
+      ...copiedIdentity,
       id: orderIds.get(source.id)!,
       userId,
       storeId: currentStoreId,
       environment: options.environment,
       productId,
+      variantId: source.variantId
+        ? variantIds.get(source.variantId) || source.variantId
+        : null,
       affiliateId: source.affiliateId
         ? featureIds.get(source.affiliateId) || null
         : null,
@@ -218,6 +259,7 @@ export async function importStoreBackup(
           orders: orderIds,
           features: featureIds,
           customers: customerIds,
+          variants: variantIds,
         },
       );
       if (!remapped || typeof remapped !== "object" || Array.isArray(remapped)) {
@@ -275,6 +317,15 @@ export async function importStoreBackup(
         : statement,
     );
   }
+  for (const row of importedVariants) {
+    const { id: _id, ...set } = row;
+    const statement = db.insert(productVariants).values(row);
+    statements.push(
+      options.preserveIds
+        ? statement.onConflictDoUpdate({ target: productVariants.id, set })
+        : statement,
+    );
+  }
   for (const row of importedCustomers) {
     const { id: _id, ...set } = row;
     const statement = db.insert(customerAccounts).values(row);
@@ -320,6 +371,7 @@ export async function importStoreBackup(
   return {
     preserveIds: options.preserveIds,
     products: importedProducts.length,
+    variants: importedVariants.length,
     orders: importedOrders.length,
     checkoutReminders: importedReminders.length,
     featureRecords: importedFeatures.length,

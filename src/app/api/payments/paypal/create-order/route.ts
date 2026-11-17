@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { effectiveProduct } from "@/lib/product-variants";
 import { cookies } from "next/headers";
 import {
   findAffiliateByCode,
@@ -49,7 +50,8 @@ export async function POST(req: Request) {
       return jsonError(parsed.error.issues[0]?.message || "Invalid input");
     }
 
-    const product = await findProductById(parsed.data.productId);
+    const loadedProduct = await findProductById(parsed.data.productId);
+    const product = loadedProduct && effectiveProduct(loadedProduct, parsed.data.custom);
     if (!product || product.status !== "published") {
       return jsonError("Product not available", 404);
     }
@@ -141,6 +143,8 @@ export async function POST(req: Request) {
       storeId: product.storeId,
       productId: product.id,
       productName: product.name,
+      variantId: product.variantId,
+      variantName: product.variantName,
       productDescription: product.description,
       productPrice: checkoutPrice,
       deliveryContent: product.deliveryContent,

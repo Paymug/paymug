@@ -38,5 +38,9 @@ Example client config:
 }
 ```
 
+The `migrations` permission (read / write) unlocks the import tools:
+`migrate_from_lemonsqueezy`, `migrate_from_source` (Polar, Paddle, Dodo
+Payments), `advance_migration` and `get_migration_status`. See [Migrate from Lemon Squeezy](migrate-from-lemonsqueezy.md).
+
 Keys created before permissions existed keep read access to products, orders
 and customers only.

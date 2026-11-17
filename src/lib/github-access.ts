@@ -3,7 +3,7 @@ import "server-only";
 import { decryptSecret } from "./crypto";
 import {
   findOrderById,
-  findProductById,
+  findProductForOrder,
   getGitHubConnection,
   listOrdersByUser,
   updateOrder,
@@ -53,7 +53,7 @@ async function getGitHubAccessTargets(userId: string): Promise<GitHubAccessTarge
   const orders = await listOrdersByUser(userId);
   const targets = await Promise.all(
     orders.map(async (order): Promise<GitHubAccessTarget | undefined> => {
-      const product = await findProductById(order.productId);
+      const product = await findProductForOrder(order);
       return product
         ? {
             order,
@@ -261,7 +261,7 @@ export async function syncGitHubAccessForLicense(
   if (!orderId) return;
   const order = await findOrderById(orderId);
   if (!order) return;
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   if (active && order.status === "paid") {
     await grantGitHubOrderAccess(order, product);
   } else {

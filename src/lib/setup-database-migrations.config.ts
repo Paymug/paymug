@@ -272,5 +272,24 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `stores` ADD `stripe_tax_enabled` integer DEFAULT false NOT NULL;"
     ]
+  },
+  {
+    "name": "0034_lemonsqueezy_migration.sql",
+    "statements": [
+      "CREATE TABLE `product_variants` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`product_id` text NOT NULL,\n\t`user_id` text NOT NULL,\n\t`store_id` text,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`name` text NOT NULL,\n\t`slug` text NOT NULL,\n\t`description` text DEFAULT '' NOT NULL,\n\t`sort` integer DEFAULT 0 NOT NULL,\n\t`status` text DEFAULT 'published' NOT NULL,\n\t`price` integer NOT NULL,\n\t`custom_amount_enabled` integer,\n\t`min_price` integer,\n\t`suggested_price` integer,\n\t`billing_type` text,\n\t`interval_unit` text,\n\t`interval_count` integer,\n\t`trial_days` integer,\n\t`product_files` text,\n\t`generate_license` integer,\n\t`license_type` text,\n\t`license_seat_limit` integer,\n\t`license_update_period_unit` text,\n\t`license_update_period_count` integer,\n\t`delivery_content` text,\n\t`redirect_url` text,\n\t`github_repo_owner` text,\n\t`github_repo_name` text,\n\t`source` text,\n\t`source_id` text,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\tFOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `product_variants_product_idx` ON `product_variants` (`product_id`,`sort`);",
+      "CREATE UNIQUE INDEX `product_variants_source_idx` ON `product_variants` (`user_id`,`environment`,`source`,`source_id`);",
+      "INSERT INTO `product_variants` (`id`,`product_id`,`user_id`,`store_id`,`environment`,`name`,`slug`,`description`,`sort`,`status`,`price`,`created_at`,`updated_at`)\nSELECT json_extract(o.value,'$.id'), p.id, p.user_id, p.store_id, p.environment,\n  json_extract(o.value,'$.name'), lower(replace(json_extract(o.value,'$.name'),' ','-')) || '-' || o.key, '', CAST(o.key AS integer), 'published',\n  CAST(json_extract(o.value,'$.price') AS integer), p.created_at, p.updated_at\nFROM `products` p, json_each(CASE WHEN json_valid(p.options) THEN p.options ELSE '[]' END) o\nWHERE json_extract(o.value,'$.id') IS NOT NULL;",
+      "ALTER TABLE `orders` ADD `variant_id` text;",
+      "ALTER TABLE `orders` ADD `variant_name` text;",
+      "ALTER TABLE `orders` ADD `source` text;",
+      "ALTER TABLE `orders` ADD `source_id` text;",
+      "CREATE UNIQUE INDEX `orders_source_idx` ON `orders` (`user_id`,`environment`,`source`,`source_id`);",
+      "ALTER TABLE `products` ADD `source` text;",
+      "ALTER TABLE `products` ADD `source_id` text;",
+      "CREATE UNIQUE INDEX `products_source_idx` ON `products` (`user_id`,`environment`,`source`,`source_id`);",
+      "CREATE TABLE `migration_jobs` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`user_id` text NOT NULL,\n\t`store_id` text NOT NULL,\n\t`source` text NOT NULL,\n\t`environment` text DEFAULT 'sandbox' NOT NULL,\n\t`status` text DEFAULT 'pending' NOT NULL,\n\t`stage` text DEFAULT 'products' NOT NULL,\n\t`cursor` text DEFAULT '{}' NOT NULL,\n\t`options` text DEFAULT '{}' NOT NULL,\n\t`counts` text DEFAULT '{}' NOT NULL,\n\t`errors` text DEFAULT '[]' NOT NULL,\n\t`id_map` text DEFAULT '{}' NOT NULL,\n\t`encrypted_key` text,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL,\n\t`finished_at` text,\n\tFOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade\n);",
+      "CREATE INDEX `migration_jobs_user_idx` ON `migration_jobs` (`user_id`,`created_at`);"
+    ]
   }
 ];

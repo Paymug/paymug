@@ -5,7 +5,10 @@ import type {
   StripeTaxSettings,
 } from "./stripe.types";
 
-const STRIPE_API_URL = "https://api.stripe.com/v1";
+/** Overridable so tests can point at a mock Stripe. */
+const STRIPE_API_URL =
+  (typeof process !== "undefined" && process.env?.STRIPE_API_BASE) ||
+  "https://api.stripe.com/v1";
 
 async function stripeRequest<T>(
   secretKey: string,
@@ -126,4 +129,97 @@ export async function retrieveStripeTaxSettings(
   secretKey: string
 ): Promise<StripeTaxSettings> {
   return stripeRequest<StripeTaxSettings>(secretKey, "/tax/settings");
+}
+
+interface StripeCustomerObject {
+  id: string;
+  email: string | null;
+  invoice_settings?: { default_payment_method?: string | null };
+}
+
+interface StripePaymentMethodObject {
+  id: string;
+  card?: { last4?: string };
+}
+
+/** Customers whose email matches (case-insensitive), each with a usable card. */
+export async function findStripeCardCustomersByEmail(
+  secretKey: string,
+  email: string,
+): Promise<Array<{ customerId: string; paymentMethodId: string | null; last4: string | null }>> {
+  const normalized = email.trim().toLowerCase();
+  const query = `email:"${normalized.replaceAll('"', "")}"`;
+  const found = await stripeRequest<{ data: StripeCustomerObject[] }>(
+    secretKey,
+    `/customers/search?limit=10&query=${encodeURIComponent(query)}`,
+  );
+  const customers = found.data.filter(
+    (customer) => customer.email?.trim().toLowerCase() === normalized,
+  );
+  const result: Array<{ customerId: string; paymentMethodId: string | null; last4: string | null }> = [];
+  for (const customer of customers) {
+    let method: StripePaymentMethodObject | undefined;
+    const defaultId = customer.invoice_settings?.default_payment_method;
+    if (defaultId) {
+      method = await stripeRequest<StripePaymentMethodObject>(
+        secretKey,
+        `/payment_methods/${encodeURIComponent(defaultId)}`,
+      );
+    } else {
+      const methods = await stripeRequest<{ data: StripePaymentMethodObject[] }>(
+        secretKey,
+        `/customers/${encodeURIComponent(customer.id)}/payment_methods?type=card&limit=1`,
+      );
+      method = methods.data[0];
+    }
+    result.push({
+      customerId: customer.id,
+      paymentMethodId: method?.id ?? null,
+      last4: method?.card?.last4 ?? null,
+    });
+  }
+  return result;
+}
+
+/**
+ * Creates a subscription that first bills at `firstChargeAt` (unix seconds) via
+ * a trial. The idempotency key makes a retried call return the same
+ * subscription instead of billing twice.
+ */
+export async function createStripeMigratedSubscription(
+  secretKey: string,
+  input: {
+    customerId: string;
+    paymentMethodId: string;
+    currency: string;
+    amountCents: number;
+    interval: "week" | "month" | "year";
+    intervalCount: number;
+    productName: string;
+    firstChargeAt: number;
+    idempotencyKey: string;
+    metadata: Record<string, string>;
+  },
+): Promise<{ id: string; status: string }> {
+  const body = new URLSearchParams({
+    customer: input.customerId,
+    default_payment_method: input.paymentMethodId,
+    trial_end: String(input.firstChargeAt),
+    "items[0][price_data][currency]": input.currency.toLowerCase(),
+    "items[0][price_data][unit_amount]": String(input.amountCents),
+    "items[0][price_data][product_data][name]": input.productName.slice(0, 250),
+    "items[0][price_data][recurring][interval]": input.interval,
+    "items[0][price_data][recurring][interval_count]": String(Math.max(1, input.intervalCount)),
+  });
+  for (const [key, value] of Object.entries(input.metadata)) {
+    body.set(`metadata[${key}]`, value);
+  }
+  return stripeRequest<{ id: string; status: string }>(secretKey, "/subscriptions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Idempotency-Key": input.idempotencyKey,
+    },
+    body,
+  });
 }

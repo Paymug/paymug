@@ -20,6 +20,10 @@ These guides explain how to use Paymug as a seller or operator.
 
 - [Licenses](licenses.md)
 - [API keys](api-keys.md)
+- [Migrate from Lemon Squeezy](migrate-from-lemonsqueezy.md)
+- [Migrate from Polar](migrate-from-polar.md)
+- [Migrate from Paddle](migrate-from-paddle.md)
+- [Migrate from Dodo Payments](migrate-from-dodo-payments.md)
 - [Outbound webhooks](outbound-webhooks.md)
 - [Troubleshooting](troubleshooting.md)
 

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { findProductById, findUserById } from "./db";
+import { findProductForOrder, findUserById } from "./db";
 import { getProductPublicPath } from "./product-paths";
 import { getStoreById } from "./stores";
 import { getRuntimeAbsoluteUrl } from "./runtime-env";
@@ -24,6 +24,7 @@ import type {
   PurchaseConfirmationEmailInput,
   SubscriptionApprovalEmailInput,
   SubscriptionStatusEmailInput,
+  TransactionalEmailContent,
 } from "./transactional-email.types";
 
 async function getStoreEmailContext(
@@ -94,7 +95,7 @@ export async function sendOrderPaymentFailedEmail(
 ) {
   const [store, product] = await Promise.all([
     getStoreEmailContext(input.order.userId, input.order.storeId),
-    findProductById(input.order.productId),
+    findProductForOrder(input.order),
   ]);
   const retryUrl = await getRuntimeAbsoluteUrl(
     product
@@ -227,4 +228,14 @@ export async function sendSetupTestEmail(userId: string, to: string) {
     buildSetupTestEmail(to, store.name),
     store.sender
   );
+}
+
+/** Sends a pre-built email with the store's name and reply-to. */
+export async function sendStoreEmail(
+  userId: string,
+  storeId: string,
+  build: (store: { name: string; logo?: string }) => TransactionalEmailContent,
+): Promise<boolean> {
+  const store = await getStoreEmailContext(userId, storeId);
+  return sendCloudflareEmail(build({ name: store.name, logo: store.logo }), store.sender);
 }

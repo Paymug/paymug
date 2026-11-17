@@ -1,5 +1,6 @@
 import "server-only";
 
+import { effectiveProduct } from "@/lib/product-variants";
 import { cookies } from "next/headers";
 import { affiliateCookieMatchesStore } from "@/lib/affiliate-settings.utils";
 import {
@@ -34,7 +35,8 @@ export async function completeFreePurchase(
   input: CompleteFreePurchaseInput,
   requestUrl: string
 ): Promise<CompleteFreePurchaseResponse> {
-  const product = await findProductById(input.productId);
+  const loadedProduct = await findProductById(input.productId);
+  const product = loadedProduct && effectiveProduct(loadedProduct, input.custom);
   if (!product || product.status !== "published") {
     throw new Error("Product not available");
   }
@@ -108,6 +110,8 @@ export async function completeFreePurchase(
     storeId: product.storeId,
     productId: product.id,
     productName: product.name,
+    variantId: product.variantId,
+    variantName: product.variantName,
     productDescription: product.description,
     productPrice: checkoutPrice,
     deliveryContent: product.deliveryContent,

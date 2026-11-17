@@ -4,7 +4,7 @@ import {
 } from "./commerce-features";
 import {
   findOrderById,
-  findProductById,
+  findProductForOrder,
   updateOrder,
 } from "./db";
 import { grantGitHubOrderAccess } from "./github-access";
@@ -28,7 +28,7 @@ export async function completeStripeOrder(
     throw new Error("Stripe Checkout Session mismatch");
   }
   if (order.status === "paid") {
-    const product = await findProductById(order.productId);
+    const product = await findProductForOrder(order);
     if (
       order.githubUsername &&
       (order.githubAccessStatus === "pending" ||
@@ -73,7 +73,7 @@ export async function completeStripeOrder(
     paymentFailureDetails: null,
   });
   if (!updated) throw new Error("Could not update order");
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   await completeCommerceFeatures(updated, product);
   const license = await getOrderLicense(updated.userId, updated.id);
   await notifyPaymentReceived(updated);
