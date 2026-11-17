@@ -14,7 +14,10 @@ const runtimeEnvironmentKeys: RuntimeEnvironmentKey[] = [
   "EMAIL_FROM",
   "EMAIL_REPLY_TO",
   "GITHUB_CLIENT_ID",
-  "GITHUB_CLIENT_SECRET"
+  "GITHUB_CLIENT_SECRET",
+  "GITHUB_UPDATE_TOKEN",
+  "GITHUB_UPDATE_REPO",
+  "GITHUB_UPDATE_REF",
 ];
 
 export async function getRuntimeConfiguration(): Promise<RuntimeConfiguration> {

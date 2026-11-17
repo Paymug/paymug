@@ -15,6 +15,7 @@ import { Alert, Button } from "@/components/ui";
 import type {
   AboutPanelProps,
   AboutUpdateResponse,
+  AboutUpdateStartResponse,
 } from "./AboutPanel.types";
 import {
   downloadAboutBackup,
@@ -25,6 +26,8 @@ export function AboutPanel({ status }: AboutPanelProps) {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
   const [update, setUpdate] = useState<AboutUpdateResponse | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [updateStart, setUpdateStart] = useState<AboutUpdateStartResponse | null>(null);
   const [backupFile, setBackupFile] = useState<File | null>(null);
   const [preserveIds, setPreserveIds] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -50,6 +53,23 @@ export function AboutPanel({ status }: AboutPanelProps) {
       });
     } finally {
       setChecking(false);
+    }
+  }
+
+  async function startUpdate() {
+    setUpdating(true);
+    setUpdateStart(null);
+    try {
+      const response = await fetch("/api/about/update", { method: "POST" });
+      const data = (await response.json()) as AboutUpdateStartResponse;
+      if (!response.ok) throw new Error(data.error || "Could not start the update");
+      setUpdateStart(data);
+    } catch (error) {
+      setUpdateStart({
+        error: error instanceof Error ? error.message : "Could not start the update",
+      });
+    } finally {
+      setUpdating(false);
     }
   }
 
@@ -140,15 +160,55 @@ export function AboutPanel({ status }: AboutPanelProps) {
                     ? `This deployment is running the latest version, v${update.currentVersion}.`
                     : `Latest version: v${update.latestVersion}. You are currently running v${update.currentVersion}.`}
                 </p>
-                {!update.isLatest && update.workflowUrl && (
-                  <a
-                    href={update.workflowUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-dark transition hover:bg-accent-hover"
+                {!update.isLatest && update.configured && (
+                  <Button
+                    type="button"
+                    className="mt-4"
+                    onClick={() => void startUpdate()}
+                    disabled={updating || Boolean(updateStart?.ok)}
                   >
-                    Open update workflow <HugeiconsIcon icon={SquareArrowUpRightIcon} size={14} />
-                  </a>
+                    <HugeiconsIcon icon={RefreshIcon} size={16} className={updating ? "animate-spin" : ""} />
+                    {updating ? "Starting…" : "Update now"}
+                  </Button>
+                )}
+                {!update.isLatest && !update.configured && (
+                  <div className="mt-4 space-y-2 text-sm text-[#696978]">
+                    <p>
+                      Add these Worker variables to update from here, or run the
+                      workflow manually.
+                    </p>
+                    <ul>
+                      {update.configuration?.map((item) => (
+                        <li key={item.name} className="flex items-center gap-2">
+                          <code className="text-xs font-semibold text-[#3f3f49]">{item.name}</code>
+                          <span className={item.configured ? "text-emerald-700" : "text-amber-700"}>
+                            {item.configured ? "Configured" : "Missing"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {update.workflowUrl && (
+                      <a
+                        href={update.workflowUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-dark transition hover:bg-accent-hover"
+                      >
+                        Open update workflow <HugeiconsIcon icon={SquareArrowUpRightIcon} size={14} />
+                      </a>
+                    )}
+                  </div>
+                )}
+                {updateStart?.error && <div className="mt-4"><Alert>{updateStart.error}</Alert></div>}
+                {updateStart?.ok && (
+                  <p className="mt-4 text-sm text-emerald-700">
+                    Update started on {updateStart.repository}@{updateStart.ref}. Cloudflare redeploys when the workflow pushes.{" "}
+                    {updateStart.runUrl && (
+                      <a className="font-semibold underline" href={updateStart.runUrl} target="_blank" rel="noreferrer">
+                        View workflow run
+                      </a>
+                    )}
+                  </p>
                 )}
               </div>
             </div>
