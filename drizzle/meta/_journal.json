@@ -232,6 +232,13 @@
       "when": 1789711200000,
       "tag": "0032_api_key_scopes",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1789797600000,
+      "tag": "0033_stripe_tax",
+      "breakpoints": true
     }
   ]
 }

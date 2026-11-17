@@ -56,6 +56,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     displayPurchasesEnabled: row.displayPurchasesEnabled,
     analyticsCommerceMetric: row.analyticsCommerceMetric ?? undefined,
     abandonmentPopupEnabled: row.abandonmentPopupEnabled,
+    stripeTaxEnabled: row.stripeTaxEnabled,
     abandonmentQuestion: row.abandonmentQuestion ?? undefined,
     abandonmentOptions: parseAbandonmentOptions(row.abandonmentOptions),
     currency: row.currency,
@@ -174,6 +175,7 @@ export async function createStore(
     displayPurchasesEnabled: false,
     analyticsCommerceMetric: undefined,
     abandonmentPopupEnabled: false,
+    stripeTaxEnabled: false,
     abandonmentQuestion: undefined,
     abandonmentOptions: [],
     currency: "USD",
@@ -371,6 +373,9 @@ export async function updateStore(
         : {}),
       ...(input.abandonmentPopupEnabled !== undefined
         ? { abandonmentPopupEnabled: input.abandonmentPopupEnabled }
+        : {}),
+      ...(input.stripeTaxEnabled !== undefined
+        ? { stripeTaxEnabled: input.stripeTaxEnabled }
         : {}),
       ...(input.abandonmentQuestion !== undefined
         ? { abandonmentQuestion: input.abandonmentQuestion }

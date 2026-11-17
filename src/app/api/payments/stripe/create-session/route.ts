@@ -225,6 +225,7 @@ export async function POST(request: Request) {
         amountCents: recurringAmountCents,
         currency: product.currency,
         customerEmail: parsed.data.customerEmail,
+        automaticTax: Boolean(store.stripeTaxEnabled),
         successUrl,
         cancelUrl,
         subscription:

@@ -27,6 +27,7 @@ export interface UpdateStoreInput {
   displayPurchasesEnabled?: boolean;
   analyticsCommerceMetric?: string | null;
   abandonmentPopupEnabled?: boolean;
+  stripeTaxEnabled?: boolean;
   abandonmentQuestion?: string | null;
   abandonmentOptions?: string[];
   currency?: string;

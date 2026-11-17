@@ -2,6 +2,7 @@ import type {
   CreateStripeCheckoutSessionInput,
   StripeAccount,
   StripeCheckoutSession,
+  StripeTaxSettings,
 } from "./stripe.types";
 
 const STRIPE_API_URL = "https://api.stripe.com/v1";
@@ -91,6 +92,13 @@ export async function createStripeCheckoutSession(
     }
     if (coupon) body.set("discounts[0][coupon]", coupon.id);
   }
+  if (input.automaticTax) {
+    body.set("automatic_tax[enabled]", "true");
+    // Prices are tax-exclusive: tax is added on top at Checkout.
+    body.set("line_items[0][price_data][tax_behavior]", "exclusive");
+    // Stripe Tax needs a customer address; Checkout collects it.
+    body.set("billing_address_collection", "required");
+  }
   if (input.metadata) {
     for (const [key, value] of Object.entries(input.metadata)) {
       body.set(`metadata[${key}]`, value);
@@ -111,4 +119,11 @@ export async function retrieveStripeCheckoutSession(
     secretKey,
     `/checkout/sessions/${encodeURIComponent(sessionId)}`
   );
+}
+
+/** Reads Stripe Tax settings (origin address, defaults, activation status). */
+export async function retrieveStripeTaxSettings(
+  secretKey: string
+): Promise<StripeTaxSettings> {
+  return stripeRequest<StripeTaxSettings>(secretKey, "/tax/settings");
 }

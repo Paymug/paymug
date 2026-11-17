@@ -98,6 +98,9 @@ export const stores = sqliteTable(
     })
       .notNull()
       .default(false),
+    stripeTaxEnabled: integer("stripe_tax_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
     abandonmentQuestion: text("abandonment_question"),
     abandonmentOptions: text("abandonment_options").notNull().default("[]"),
     currency: text("currency").notNull().default("USD"),

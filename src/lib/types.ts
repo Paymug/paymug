@@ -86,6 +86,8 @@ export interface Store {
   /** Comma-separated analytics overlay metrics (for example "orders,revenue"). */
   analyticsCommerceMetric?: string;
   abandonmentPopupEnabled: boolean;
+  /** Calculate and collect tax at Stripe Checkout with Stripe Tax. */
+  stripeTaxEnabled: boolean;
   abandonmentQuestion?: string;
   abandonmentOptions: string[];
   currency: string;

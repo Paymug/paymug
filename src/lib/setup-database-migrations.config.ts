@@ -266,5 +266,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `api_keys` ADD `scopes` text DEFAULT '[\"products:read\",\"orders:read\",\"customers:read\"]' NOT NULL;"
     ]
+  },
+  {
+    "name": "0033_stripe_tax.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `stripe_tax_enabled` integer DEFAULT false NOT NULL;"
+    ]
   }
 ];

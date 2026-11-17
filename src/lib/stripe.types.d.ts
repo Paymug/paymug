@@ -41,4 +41,15 @@ export interface CreateStripeCheckoutSessionInput {
     };
   };
   metadata?: Record<string, string>;
+  /** Enable Stripe Tax (automatic_tax) on the Checkout Session. */
+  automaticTax?: boolean;
+}
+
+export interface StripeTaxSettings {
+  status: "active" | "pending";
+  defaults?: {
+    tax_behavior?: "exclusive" | "inclusive" | "inferred_by_currency" | null;
+    tax_code?: string | null;
+  };
+  head_office?: { address?: { country?: string | null } | null } | null;
 }
