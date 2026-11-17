@@ -29,8 +29,6 @@ export default async function EditProductPage({ params }: Props) {
       <ProductForm
         product={product}
         storeCurrency={store.currency}
-        storeTransactionFeeType={store.transactionFeeType}
-        storeTransactionFeeValue={store.transactionFeeValue}
         categories={categories}
       />
     </div>

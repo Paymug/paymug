@@ -293,10 +293,9 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     ]
   },
   {
-    "name": "0035_product_fee_override.sql",
+    "name": "0035_store_fee_all_products.sql",
     "statements": [
-      "ALTER TABLE `products` ADD `transaction_fee_override` integer DEFAULT 0 NOT NULL;",
-      "UPDATE `products` SET `transaction_fee_override` = 1 WHERE EXISTS (SELECT 1 FROM `stores` WHERE `stores`.`id` = `products`.`store_id` AND (`stores`.`transaction_fee_type` != `products`.`transaction_fee_type` OR `stores`.`transaction_fee_value` != `products`.`transaction_fee_value`));"
+      "UPDATE `products` SET `transaction_fee_type` = (SELECT `stores`.`transaction_fee_type` FROM `stores` WHERE `stores`.`id` = `products`.`store_id`), `transaction_fee_value` = (SELECT `stores`.`transaction_fee_value` FROM `stores` WHERE `stores`.`id` = `products`.`store_id`) WHERE `store_id` IN (SELECT `id` FROM `stores`);"
     ]
   },
   {

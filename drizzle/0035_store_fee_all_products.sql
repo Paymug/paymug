@@ -1,0 +1,1 @@
+UPDATE `products` SET `transaction_fee_type` = (SELECT `stores`.`transaction_fee_type` FROM `stores` WHERE `stores`.`id` = `products`.`store_id`), `transaction_fee_value` = (SELECT `stores`.`transaction_fee_value` FROM `stores` WHERE `stores`.`id` = `products`.`store_id`) WHERE `store_id` IN (SELECT `id` FROM `stores`);

@@ -397,7 +397,7 @@ export async function updateStore(
     input.transactionFeeType !== undefined ||
     input.transactionFeeValue !== undefined
   ) {
-    // Products without their own fee follow the store-level fee.
+    // The fee is configured per store and applies to every product.
     const updated = await getStoreById(storeId, userId);
     if (updated) {
       await db
@@ -407,11 +407,7 @@ export async function updateStore(
           transactionFeeValue: updated.transactionFeeValue,
         })
         .where(
-          and(
-            eq(products.storeId, storeId),
-            eq(products.userId, userId),
-            eq(products.transactionFeeOverride, false),
-          ),
+          and(eq(products.storeId, storeId), eq(products.userId, userId)),
         );
     }
   }

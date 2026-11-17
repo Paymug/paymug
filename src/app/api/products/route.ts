@@ -62,9 +62,6 @@ const createSchema = z.object({
   options: z.array(productOptionSchema).max(50).default([]),
   bundles: z.array(productBundleSchema).max(25).default([]),
   price: z.number().int().nonnegative(),
-  transactionFeeType: z.enum(["fixed", "percentage"]).default("fixed"),
-  transactionFeeValue: z.number().int().min(0).max(1000000000).default(0),
-  transactionFeeOverride: z.boolean().default(false),
   currency: z.string().length(3).default("USD"),
   status: z.enum(["draft", "published"]).default("draft"),
   hideFromStorefront: z.boolean().default(false),
@@ -90,14 +87,6 @@ const createSchema = z.object({
   githubRepoName: z.string().trim().min(1).max(100).nullable().optional(),
   imageUrl: productImageUrlSchema.optional(),
 }).refine(
-  (data) =>
-    data.transactionFeeType !== "percentage" ||
-    data.transactionFeeValue <= 10000,
-  {
-    message: "Percentage transaction fee cannot exceed 100%",
-    path: ["transactionFeeValue"],
-  }
-).refine(
   (data) =>
     data.status !== "published" ||
     data.price > 0 ||
@@ -226,13 +215,9 @@ export async function POST(req: Request) {
       slug: productSlug,
       description: parsed.data.description,
       price: parsed.data.price,
-      transactionFeeType: parsed.data.transactionFeeOverride
-        ? parsed.data.transactionFeeType
-        : (store?.transactionFeeType ?? "fixed"),
-      transactionFeeValue: parsed.data.transactionFeeOverride
-        ? parsed.data.transactionFeeValue
-        : (store?.transactionFeeValue ?? 0),
-      transactionFeeOverride: parsed.data.transactionFeeOverride,
+      // The transaction fee is configured per store, not per product.
+      transactionFeeType: store?.transactionFeeType ?? "fixed",
+      transactionFeeValue: store?.transactionFeeValue ?? 0,
       currency: parsed.data.currency.toUpperCase(),
       status: parsed.data.status,
       hideFromStorefront: parsed.data.hideFromStorefront,

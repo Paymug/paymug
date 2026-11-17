@@ -15,9 +15,6 @@ export interface ProductFormSavePayload {
   bundles: ProductBundle[];
   imageUrl: string;
   price: number;
-  transactionFeeType: "fixed" | "percentage";
-  transactionFeeValue: number;
-  transactionFeeOverride: boolean;
   currency: string;
   status: "draft" | "published";
   hideFromStorefront: boolean;

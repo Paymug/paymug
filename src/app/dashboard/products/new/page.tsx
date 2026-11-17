@@ -16,8 +16,6 @@ export default async function NewProductPage() {
       <h1 className="sr-only">New product</h1>
       <ProductForm
         storeCurrency={store.currency}
-        storeTransactionFeeType={store.transactionFeeType}
-        storeTransactionFeeValue={store.transactionFeeValue}
         categories={categories}
       />
     </div>

@@ -251,7 +251,7 @@
       "idx": 35,
       "version": "6",
       "when": 1789970400000,
-      "tag": "0035_product_fee_override",
+      "tag": "0035_store_fee_all_products",
       "breakpoints": true
     },
     {

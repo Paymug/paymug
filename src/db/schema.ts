@@ -183,12 +183,6 @@ export const products = sqliteTable(
     .notNull()
     .default("fixed"),
   transactionFeeValue: integer("transaction_fee_value").notNull().default(0),
-  /** When false, the product follows the store-level transaction fee. */
-  transactionFeeOverride: integer("transaction_fee_override", {
-    mode: "boolean",
-  })
-    .notNull()
-    .default(false),
   currency: text("currency").notNull().default("USD"),
   status: text("status", { enum: ["draft", "published"] }).notNull().default("draft"),
   hideFromStorefront: integer("hide_from_storefront", { mode: "boolean" })

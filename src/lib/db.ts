@@ -266,7 +266,6 @@ function rowToProduct(
     price: row.price,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
-    transactionFeeOverride: row.transactionFeeOverride,
     currency: row.currency,
     status: row.status,
     hideFromStorefront: row.hideFromStorefront,
@@ -678,7 +677,6 @@ export async function createProduct(input: Product): Promise<Product> {
     price: product.price,
     transactionFeeType: product.transactionFeeType,
     transactionFeeValue: product.transactionFeeValue,
-    transactionFeeOverride: product.transactionFeeOverride,
     currency: product.currency,
     status: product.status,
     hideFromStorefront: product.hideFromStorefront,
@@ -761,9 +759,6 @@ export async function updateProduct(
         : {}),
       ...(patch.transactionFeeValue !== undefined
         ? { transactionFeeValue: patch.transactionFeeValue }
-        : {}),
-      ...(patch.transactionFeeOverride !== undefined
-        ? { transactionFeeOverride: patch.transactionFeeOverride }
         : {}),
       ...(patch.currency !== undefined ? { currency: patch.currency } : {}),
       ...(patch.status !== undefined ? { status: patch.status } : {}),

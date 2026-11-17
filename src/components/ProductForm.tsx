@@ -37,7 +37,6 @@ import type {
 import type {
   GitHubRepositoryOption,
   ProductFormProps,
-  ProductTransactionFeeSelection,
 } from "./ProductForm.types";
 import { FormSwitch } from "./FormSwitch";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
@@ -47,8 +46,6 @@ import { ProductConfigurationEditor } from "./ProductConfigurationEditor";
 export function ProductForm({
   product,
   storeCurrency,
-  storeTransactionFeeType,
-  storeTransactionFeeValue,
   categories,
 }: ProductFormProps) {
   const router = useRouter();
@@ -61,22 +58,6 @@ export function ProductForm({
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
   const [price, setPrice] = useState(
     product ? (product.price / 100).toFixed(2) : "",
-  );
-  const storeTransactionFeeDisplayValue = (
-    storeTransactionFeeValue / 100
-  ).toFixed(2);
-  const [transactionFeeType, setTransactionFeeType] =
-    useState<ProductTransactionFeeSelection>(
-      !product || !product.transactionFeeOverride
-        ? "store"
-        : product.transactionFeeValue > 0
-          ? product.transactionFeeType
-          : "none",
-    );
-  const [transactionFeeValue, setTransactionFeeValue] = useState(
-    ((product?.transactionFeeValue ?? storeTransactionFeeValue) / 100).toFixed(
-      2,
-    ),
   );
   const currency = product?.currency || storeCurrency;
   const [status, setStatus] = useState<"draft" | "published">(
@@ -168,17 +149,6 @@ export function ProductForm({
     Number.isFinite(parsedPriceCents) && parsedPriceCents >= 0
       ? parsedPriceCents
       : 0;
-  const parsedTransactionFeeValue = Math.round(
-    parseFloat(transactionFeeValue || "0") * 100,
-  );
-  const usesStoreFee = transactionFeeType === "store";
-  const autosaveTransactionFeeValue = usesStoreFee
-    ? storeTransactionFeeValue
-    : transactionFeeType !== "none" &&
-    Number.isFinite(parsedTransactionFeeValue) &&
-    parsedTransactionFeeValue >= 0
-      ? parsedTransactionFeeValue
-      : 0;
   const parsedIntervalCount = Math.max(
     1,
     Number.parseInt(intervalCount || "1", 10) || 1,
@@ -215,14 +185,6 @@ export function ProductForm({
     bundles,
     imageUrl,
     price: autosavePriceCents,
-    transactionFeeType:
-      transactionFeeType === "none"
-        ? "fixed"
-        : usesStoreFee
-          ? storeTransactionFeeType
-          : transactionFeeType,
-    transactionFeeValue: autosaveTransactionFeeValue,
-    transactionFeeOverride: !usesStoreFee,
     currency,
     status,
     hideFromStorefront,
@@ -283,7 +245,6 @@ export function ProductForm({
     productFiles.length ||
     generateLicense ||
     githubDelivery ||
-    !usesStoreFee ||
     status !== "draft" ||
     hideFromStorefront ||
     customAmountEnabled ||
@@ -358,27 +319,6 @@ export function ProductForm({
       setSaving(false);
       return;
     }
-    const normalizedTransactionFeeValue = usesStoreFee
-      ? storeTransactionFeeValue
-      : transactionFeeType === "none"
-        ? 0
-        : Math.round(parseFloat(transactionFeeValue || "0") * 100);
-    if (
-      !usesStoreFee &&
-      transactionFeeType !== "none" &&
-      (!Number.isFinite(normalizedTransactionFeeValue) ||
-        normalizedTransactionFeeValue < 0 ||
-        (transactionFeeType === "percentage" &&
-          normalizedTransactionFeeValue > 10000))
-    ) {
-      setError(
-        transactionFeeType === "percentage"
-          ? "Enter a transaction fee percentage between 0 and 100"
-          : "Enter a valid transaction fee amount",
-      );
-      setSaving(false);
-      return;
-    }
     if (githubDelivery && (!githubConnected || !selectedGitHubRepository)) {
       setError(
         githubConnected
@@ -393,7 +333,6 @@ export function ProductForm({
       ...savePayload,
       name,
       price: priceCents,
-      transactionFeeValue: normalizedTransactionFeeValue,
       githubRepoOwner: githubDelivery ? selectedGitHubRepository?.owner : null,
       githubRepoName: githubDelivery ? selectedGitHubRepository?.name : null,
     };
@@ -715,53 +654,6 @@ export function ProductForm({
               .
             </p>
           </div>
-        )}
-
-        <Select
-          label="Transaction fee"
-          name="transactionFeeType"
-          value={transactionFeeType}
-          onValueChange={(value) => {
-            setTransactionFeeType(value as ProductTransactionFeeSelection);
-            requestAutosave(1);
-          }}
-          options={[
-            {
-              value: "store",
-              label: `Use store fee (${
-                storeTransactionFeeValue > 0
-                  ? storeTransactionFeeType === "percentage"
-                    ? `${storeTransactionFeeDisplayValue}%`
-                    : `${storeTransactionFeeDisplayValue} ${currency}`
-                  : "none"
-              })`,
-            },
-            { value: "none", label: "None" },
-            { value: "fixed", label: "Fixed amount" },
-            { value: "percentage", label: "Percentage" },
-          ]}
-        />
-        {transactionFeeType !== "none" && !usesStoreFee && (
-          <>
-            <Input
-              label={
-                transactionFeeType === "percentage"
-                  ? "Transaction fee (%)"
-                  : `Transaction fee (${currency})`
-              }
-              name="transactionFeeValue"
-              type="number"
-              min="0"
-              max={transactionFeeType === "percentage" ? "100" : undefined}
-              step="0.01"
-              value={transactionFeeValue}
-              onChange={(event) => setTransactionFeeValue(event.target.value)}
-              placeholder="0.00"
-            />
-            <p className="-mt-3 text-xs leading-5 text-muted">
-              Charged on each checkout transaction after discounts.
-            </p>
-          </>
         )}
 
         <div>

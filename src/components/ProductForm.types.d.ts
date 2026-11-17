@@ -1,16 +1,8 @@
 import type { Product, ProductCategory } from "@/lib/types";
 
-export type ProductTransactionFeeSelection =
-  | "store"
-  | "none"
-  | "fixed"
-  | "percentage";
-
 export interface ProductFormProps {
   product?: Product;
   storeCurrency: string;
-  storeTransactionFeeType: "fixed" | "percentage";
-  storeTransactionFeeValue: number;
   categories: ProductCategory[];
 }
 

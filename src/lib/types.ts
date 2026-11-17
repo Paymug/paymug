@@ -147,8 +147,6 @@ export interface Product {
   transactionFeeType: "fixed" | "percentage";
   /** Fixed transaction fee in cents or percentage fee in basis points. */
   transactionFeeValue: number;
-  /** True when the product sets its own fee instead of following the store fee. */
-  transactionFeeOverride: boolean;
   currency: string;
   status: ProductStatus;
   /** Keeps a published product accessible by direct URL but out of store listings. */

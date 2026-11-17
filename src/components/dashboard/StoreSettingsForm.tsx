@@ -435,7 +435,7 @@ export function StoreSettingsForm({
           />
         )}
         <p className="text-sm text-muted">
-          The currency is the default for new products. The transaction fee applies to every product unless a product sets its own fee.
+          The currency is the default for new products. The transaction fee applies to every product in this store.
         </p>
         {error && <Alert>{error}</Alert>}
         {success && <Alert variant="success">Store saved.</Alert>}
