@@ -48,7 +48,13 @@ export function planStripeLinks(
   subscriptions: PendingSubscription[],
   customersByEmail: Map<string, StripeCardCustomer[]>,
   nowMs: number,
+  options: {
+    /** Exact Stripe ids from an uploaded mapping file, keyed by record id. */
+    mapped?: Map<string, StripeCardCustomer>;
+    sourceLabel?: string;
+  } = {},
 ): LinkPlanItem[] {
+  const sourceLabel = options.sourceLabel ?? "Lemon Squeezy";
   return subscriptions.map((subscription): LinkPlanItem => {
     const base = {
       recordId: subscription.recordId,
@@ -56,9 +62,12 @@ export function planStripeLinks(
       productName: subscription.productName,
       variantName: subscription.variantName,
     };
-    const withCards = (customersByEmail.get(subscription.email.toLowerCase()) ?? []).filter(
-      (customer) => customer.paymentMethodId,
-    );
+    const exact = options.mapped?.get(subscription.recordId);
+    const withCards = exact
+      ? [exact].filter((customer) => customer.paymentMethodId)
+      : (customersByEmail.get(subscription.email.toLowerCase()) ?? []).filter(
+          (customer) => customer.paymentMethodId,
+        );
     if (withCards.length === 0) {
       return { ...base, action: "waiting", reason: "No card in Stripe for this email yet" };
     }
@@ -81,7 +90,7 @@ export function planStripeLinks(
       return {
         ...base,
         action: "manual_review",
-        reason: `Card ends ${customer.last4} in Stripe but ${subscription.cardLast4} in Lemon Squeezy`,
+        reason: `Card ends ${customer.last4} in Stripe but ${subscription.cardLast4} in ${sourceLabel}`,
       };
     }
     const renews = subscription.renewsAt ? Date.parse(subscription.renewsAt) : Number.NaN;
@@ -89,7 +98,7 @@ export function planStripeLinks(
       return {
         ...base,
         action: "manual_review",
-        reason: "Renewal date is missing or already passed; check Lemon Squeezy before billing",
+        reason: `Renewal date is missing or already passed; check ${sourceLabel} before billing`,
       };
     }
     return {

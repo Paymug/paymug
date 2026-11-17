@@ -401,7 +401,7 @@ export const orders = sqliteTable(
   paypalCaptureId: text("paypal_capture_id"),
   stripeCheckoutSessionId: text("stripe_checkout_session_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
-  gateway: text("gateway", { enum: ["paypal", "stripe", "sepay", "free", "lemonsqueezy"] }).notNull().default("paypal"),
+  gateway: text("gateway", { enum: ["paypal", "stripe", "sepay", "free", "lemonsqueezy", "polar", "paddle", "dodo"] }).notNull().default("paypal"),
   variantId: text("variant_id"),
   variantName: text("variant_name"),
   source: text("source"),

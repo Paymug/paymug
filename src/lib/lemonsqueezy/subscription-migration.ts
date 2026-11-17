@@ -10,7 +10,8 @@ import {
   createStripeMigratedSubscription,
   findStripeCardCustomersByEmail,
 } from "../stripe";
-import { lemonSqueezySource } from "./mappers";
+import { isMigrationSource, migrationSources, type MigrationSourceId } from "../migrations/sources";
+import { matchMapping, type StripeMappingRow } from "../migrations/stripe-import-mapping";
 import type { MigrationSubscriptionRow } from "./subscription-state";
 import {
   planStripeLinks,
@@ -35,14 +36,19 @@ function dataOf(row: Row): Record<string, unknown> {
 const text = (value: unknown): string | null =>
   typeof value === "string" && value ? value : null;
 
-async function loadRows(userId: string, storeId: string, environment: "sandbox" | "live") {
+async function loadRows(
+  userId: string,
+  storeId: string,
+  environment: "sandbox" | "live",
+  source: MigrationSourceId = "lemonsqueezy",
+) {
   const db = await getDb();
   const rows = await db.query.featureRecords.findMany({
     where: and(
       eq(featureRecords.userId, userId),
       eq(featureRecords.environment, environment),
       eq(featureRecords.feature, "subscriptions"),
-      sql`json_extract(${featureRecords.data}, '$.source') = ${lemonSqueezySource}`,
+      sql`json_extract(${featureRecords.data}, '$.source') = ${source}`,
     ),
   });
   return rows.filter((row) => dataOf(row).storeId === storeId);
@@ -52,8 +58,9 @@ export async function listMigrationSubscriptions(
   userId: string,
   storeId: string,
   environment: "sandbox" | "live",
+  source: MigrationSourceId = "lemonsqueezy",
 ): Promise<MigrationSubscriptionRow[]> {
-  const rows = await loadRows(userId, storeId, environment);
+  const rows = await loadRows(userId, storeId, environment, source);
   // A PayPal customer converts when a normal Paymug subscription for the same
   // email and product is active.
   const db = await getDb();
@@ -66,7 +73,10 @@ export async function listMigrationSubscriptions(
         eq(featureRecords.status, "active"),
       ),
     })
-  ).filter((row) => dataOf(row).source !== lemonSqueezySource);
+  ).filter((row) => {
+    const rowSource = dataOf(row).source;
+    return typeof rowSource !== "string" || !isMigrationSource(rowSource);
+  });
   return rows.map((row) => {
     const data = dataOf(row);
     const converted = live.find(
@@ -128,10 +138,12 @@ export async function linkStripeSubscriptions(params: {
   environment: "sandbox" | "live";
   dryRun: boolean;
   recordIds?: string[];
+  source?: MigrationSourceId;
 }): Promise<StripeLinkResult> {
+  const source = params.source ?? "lemonsqueezy";
   const connection = await getStripeCredentials(params.userId, params.environment, params.storeId);
   if (!connection) throw new Error("Connect Stripe in Settings, Payments first");
-  const rows = (await loadRows(params.userId, params.storeId, params.environment)).filter((row) => {
+  const rows = (await loadRows(params.userId, params.storeId, params.environment, source)).filter((row) => {
     const data = dataOf(row);
     return (
       row.status === "migration_pending" &&
@@ -156,7 +168,24 @@ export async function linkStripeSubscriptions(params: {
   for (const email of new Set(pending.map((item) => item.email))) {
     customers.set(email, await findStripeCardCustomersByEmail(connection.secretKey, email));
   }
-  const items = planStripeLinks(pending, customers, Date.now());
+  // Exact ids from an uploaded Stripe mapping file win over email matching.
+  const mapped = new Map<string, StripeCardCustomer>();
+  for (const row of rows) {
+    const data = dataOf(row);
+    const customerId = text(data.stripeCustomerId);
+    if (!customerId || text(data.stripeSubscriptionId)) continue;
+    let paymentMethodId = text(data.stripePaymentMethodId);
+    if (!paymentMethodId) {
+      const email = (row.subtitle ?? "").toLowerCase();
+      paymentMethodId =
+        (customers.get(email) ?? []).find((c) => c.customerId === customerId)?.paymentMethodId ?? null;
+    }
+    mapped.set(row.id, { customerId, paymentMethodId, last4: text(data.cardLast4) });
+  }
+  const items = planStripeLinks(pending, customers, Date.now(), {
+    mapped,
+    sourceLabel: migrationSources[source].label,
+  });
   const result: StripeLinkResult = {
     dryRun: params.dryRun,
     summary: summarizePlan(items),
@@ -183,7 +212,12 @@ export async function linkStripeSubscriptions(params: {
         productName: item.variantName ? `${item.productName} (${item.variantName})` : item.productName,
         firstChargeAt: item.firstChargeAt as number,
         idempotencyKey: `lsmig-${row.id}`,
-        metadata: { paymugSubscriptionRecord: row.id, lemonSqueezySubscription: text(dataOf(row).sourceId) ?? "" },
+        metadata: {
+          paymugSubscriptionRecord: row.id,
+          migrationSource: source,
+          sourceSubscription: text(dataOf(row).sourceId) ?? "",
+          lemonSqueezySubscription: source === "lemonsqueezy" ? (text(dataOf(row).sourceId) ?? "") : "",
+        },
       });
       await db
         .update(featureRecords)
@@ -232,4 +266,49 @@ export async function markLemonSqueezyCancelled(recordId: string): Promise<void>
       updatedAt: new Date().toISOString(),
     })
     .where(eq(featureRecords.id, recordId));
+}
+
+
+/**
+ * Applies a parsed Stripe mapping file: stores exact Stripe ids on imported
+ * subscriptions so linking no longer depends on email. Also marks them as
+ * card subscriptions, since the cards now exist in Stripe.
+ */
+export async function applyStripeMapping(params: {
+  userId: string;
+  storeId: string;
+  environment: "sandbox" | "live";
+  source: MigrationSourceId;
+  rows: StripeMappingRow[];
+}): Promise<{ matched: number; unmatched: number }> {
+  const rows = (await loadRows(params.userId, params.storeId, params.environment, params.source)).filter(
+    (row) => row.status === "migration_pending",
+  );
+  const { matched } = matchMapping(
+    rows.map((row) => ({
+      recordId: row.id,
+      sourceCustomerId: text(dataOf(row).sourceCustomerId),
+      sourcePaymentMethodId: text(dataOf(row).sourcePaymentMethodId),
+    })),
+    params.rows,
+  );
+  const db = await getDb();
+  for (const row of rows) {
+    const hit = matched.get(row.id);
+    if (!hit) continue;
+    await db
+      .update(featureRecords)
+      .set({
+        data: JSON.stringify({
+          ...dataOf(row),
+          paymentProcessor: "stripe",
+          migrationState: "waiting_for_cards",
+          stripeCustomerId: hit.stripeCustomerId,
+          stripePaymentMethodId: hit.stripePaymentMethodId,
+        }),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(featureRecords.id, row.id));
+  }
+  return { matched: matched.size, unmatched: rows.length - matched.size };
 }

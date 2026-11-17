@@ -19,7 +19,8 @@
     "db:generate": "drizzle-kit generate",
     "dbml": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
     "dbmr": "wrangler d1 migrations apply DB --remote --config wrangler.jsonc",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:integration": "node --conditions react-server --import tsx --test tests/integration/*.integration.ts"
   },
   "dependencies": {
     "@editorjs/editorjs": "^2.31.6",

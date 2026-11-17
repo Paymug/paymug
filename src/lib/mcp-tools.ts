@@ -10,6 +10,8 @@ import * as productsRoute from "@/app/api/products/route";
 import * as migrateConnectRoute from "@/app/api/settings/migrate/lemonsqueezy/connect/route";
 import * as migrateStartRoute from "@/app/api/settings/migrate/lemonsqueezy/start/route";
 import * as migrateStatusRoute from "@/app/api/settings/migrate/lemonsqueezy/status/route";
+import * as migrateSourceConnectRoute from "@/app/api/settings/migrate/[source]/connect/route";
+import * as migrateSourceStartRoute from "@/app/api/settings/migrate/[source]/start/route";
 import * as productRoute from "@/app/api/products/[id]/route";
 import {
   apiKeyResourceActions,
@@ -389,9 +391,39 @@ export const mcpTools: McpToolDefinition[] = [
     },
   },
   {
+    name: "migrate_from_source",
+    description:
+      "Start importing a Polar, Paddle or Dodo Payments account (products with variants, customers, orders, license keys, discounts, subscriptions as pending; Dodo also files) into the active Paymug store. Polar: omit orgId to list organizations first. Then call advance_migration until the job is completed. Subscriptions import as pending and need the Settings > Migrate checklist.",
+    action: "write",
+    resources: ["migrations"],
+    input: () =>
+      z.object({
+        source: z.enum(["polar", "paddle", "dodo"]),
+        apiKey: z.string().min(8).describe("API key or token for the source (used for this job only)"),
+        mode: z.enum(["test", "live"]).default("live").describe("test = sandbox. Dodo infers it from the key prefix."),
+        orgId: z.string().optional().describe("Polar organization ID"),
+        stages: z.array(z.string()).optional().describe("Subset of: files, customers, orders, licenses, discounts, subscriptions"),
+      }),
+    run: async (args, ctx) => {
+      const source = String(args.source);
+      const params = { source };
+      const connected = await callRoute(ctx, migrateSourceConnectRoute.POST, "POST", `/api/settings/migrate/${source}/connect`, { apiKey: args.apiKey, mode: args.mode }, params);
+      if (!connected.ok) return connected;
+      const stores = (connected.body as { stores: Array<{ id: string }> }).stores;
+      const storeId = (args.orgId as string | undefined) ?? (stores.length === 1 ? stores[0].id : undefined);
+      if (!storeId) return { ok: true, status: 200, body: { chooseOrganization: stores } };
+      return callRoute(ctx, migrateSourceStartRoute.POST, "POST", `/api/settings/migrate/${source}/start`, {
+        apiKey: args.apiKey,
+        lsStoreId: storeId,
+        mode: args.mode,
+        stages: args.stages,
+      }, params);
+    },
+  },
+  {
     name: "advance_migration",
     description:
-      "Run up to `steps` import chunks of a Lemon Squeezy migration job and return its progress. Call repeatedly until status is completed.",
+      "Run up to `steps` import chunks of a migration job (any source) and return its progress. Call repeatedly until status is completed.",
     action: "write",
     resources: ["migrations"],
     input: () =>
@@ -416,7 +448,7 @@ export const mcpTools: McpToolDefinition[] = [
   },
   {
     name: "get_migration_status",
-    description: "Read the progress of a Lemon Squeezy migration job (latest when jobId is omitted) without advancing it.",
+    description: "Read the progress of a migration job (latest Lemon Squeezy job when jobId is omitted) (latest when jobId is omitted) without advancing it.",
     action: "read",
     resources: ["migrations"],
     input: () => z.object({ jobId: z.string().optional() }),

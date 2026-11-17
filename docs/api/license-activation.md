@@ -76,3 +76,27 @@ endpoints accept form-encoded or JSON bodies and return the Lemon Squeezy shape:
 Keys imported from Lemon Squeezy keep working, including their activation limit,
 expiry and existing instance IDs. `activation_limit` is `0` for unlimited. The
 endpoints do not require an API key, matching Lemon Squeezy.
+
+## Polar compatibility
+
+Keys imported from Polar keep working, with their activation limit, expiry and
+activations. Send the Polar customer-portal requests to Paymug (no API key):
+
+| Method | Path | Body |
+|---|---|---|
+| `POST` | `/api/compat/polar/v1/customer-portal/license-keys/validate` | `key`, optional `activation_id` |
+| `POST` | `/api/compat/polar/v1/customer-portal/license-keys/activate` | `key`, `label` |
+| `POST` | `/api/compat/polar/v1/customer-portal/license-keys/deactivate` | `key`, `activation_id` (answers `204`) |
+
+`organization_id`, `conditions` and `meta` are accepted and ignored.
+
+## Dodo Payments compatibility
+
+Keys imported from Dodo keep working. These mirror Dodo's public license API
+(no API key):
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| `POST` | `/api/compat/dodo/licenses/validate` | `license_key`, optional `license_key_instance_id` | `{ "valid": boolean }` |
+| `POST` | `/api/compat/dodo/licenses/activate` | `license_key`, `name` | `201` instance (`403` inactive, `404` unknown, `422` limit reached) |
+| `POST` | `/api/compat/dodo/licenses/deactivate` | `license_key`, `license_key_instance_id` | `200` (`403` unknown instance, `404` unknown key) |

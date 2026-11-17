@@ -9,6 +9,7 @@ export interface MigratePreview {
   environment: "sandbox" | "live";
   counts: Record<string, number>;
   alreadyImportedProducts: number;
+  notes?: string[];
   conflicts: { productSlugs: string[]; discountCodes: string[] };
 }
 

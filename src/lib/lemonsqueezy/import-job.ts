@@ -5,15 +5,17 @@ import { getDb } from "@/db";
 import { featureRecords, migrationJobs, products } from "@/db/schema";
 import { decryptSecret, encryptSecret } from "../crypto";
 import { uid } from "../utils";
-import { LemonSqueezyClient } from "./client";
+import { sourceAdapters } from "../migrations/adapters";
 import {
-  createInitialState,
-  runImportChunk,
-  type ImportOptions,
-  type ImportState,
-} from "./import-engine";
+  isMigrationSource,
+  normalizeSourceStages,
+  migrationSources,
+  type MigrationSourceId,
+} from "../migrations/sources";
+import { LemonSqueezyClient } from "./client";
+import { createInitialState, type ImportOptions, type ImportState } from "./import-engine";
 import { createD1ImportSink } from "./import-sink";
-import { lsModeToEnvironment, mapProduct, lemonSqueezySource } from "./mappers";
+import { lsModeToEnvironment } from "./mappers";
 import { importStages, type ImportStage } from "./types";
 
 export const migrationSource = "lemonsqueezy";
@@ -22,6 +24,7 @@ type JobRow = typeof migrationJobs.$inferSelect;
 
 export interface MigrationJobView {
   id: string;
+  source: string;
   status: JobRow["status"];
   stage: string;
   environment: "sandbox" | "live";
@@ -60,74 +63,71 @@ function toView(row: JobRow): MigrationJobView {
   const errors = parse<ImportState["errors"]>(row.errors, []);
   return {
     id: row.id,
+    source: row.source,
     status: row.status,
     stage: row.stage,
     environment: row.environment,
     counts: parse(row.counts, {}),
     errorCount: errors.length,
     errors: errors.slice(0, 50),
-    stages: options.stages ?? [...importStages],
+    stages: options.stages ?? [...(isMigrationSource(row.source) ? migrationSources[row.source].stages : importStages)],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     finishedAt: row.finishedAt,
   };
 }
 
-export function normalizeStages(requested: readonly string[] | undefined): ImportStage[] {
-  const wanted = new Set(requested ?? importStages);
-  // Everything else hangs off products, so it is always imported.
-  wanted.add("products");
-  return importStages.filter((stage) => wanted.has(stage));
+export function normalizeStages(
+  requested: readonly string[] | undefined,
+  source: MigrationSourceId = "lemonsqueezy",
+): ImportStage[] {
+  return normalizeSourceStages(source, requested);
 }
 
 export function createLsClient(apiKey: string) {
   return new LemonSqueezyClient({ apiKey });
 }
 
+export async function getSourceStores(
+  source: MigrationSourceId,
+  secret: string,
+  mode: "test" | "live",
+) {
+  return sourceAdapters[source].listStores(secret, mode);
+}
+
 export async function getLsStores(apiKey: string) {
-  const stores = await createLsClient(apiKey).listAll("stores");
-  return stores.map((store) => ({
-    id: store.id,
-    name: String(store.attributes.name ?? store.id),
-    currency: String(store.attributes.currency ?? ""),
-    url: String(store.attributes.url ?? ""),
-  }));
+  return getSourceStores("lemonsqueezy", apiKey, "live");
 }
 
 export async function previewImport(params: {
+  source?: MigrationSourceId;
   apiKey: string;
   lsStoreId: string;
   storeId: string;
   userId: string;
   mode: "test" | "live";
 }) {
-  const client = createLsClient(params.apiKey);
-  const environment = lsModeToEnvironment(params.mode);
-  const filter = { store_id: params.lsStoreId };
-  const [productsList, customers, orders, licenses, discounts, affiliates, subscriptions] =
-    await Promise.all([
-      client.listAll("products", filter),
-      client.count("customers", filter),
-      client.count("orders", filter),
-      client.count("license-keys", filter),
-      client.count("discounts", filter),
-      client.count("affiliates", filter).catch(() => 0),
-      client.count("subscriptions", filter),
-    ]);
+  const source = params.source ?? "lemonsqueezy";
+  const adapter = sourceAdapters[source];
+  const mode = adapter.resolveMode(params.apiKey, params.mode);
+  const environment = lsModeToEnvironment(mode);
+  const data = await adapter.preview(params.apiKey, mode, params.lsStoreId);
   const db = await getDb();
   const existing = await db
-    .select({ slug: products.slug, sourceId: products.sourceId })
+    .select({ slug: products.slug, sourceId: products.sourceId, source: products.source })
     .from(products)
     .where(and(eq(products.storeId, params.storeId), eq(products.environment, environment)));
   const taken = new Set(existing.map((row) => row.slug));
   const imported = new Set(
-    existing.filter((row) => row.sourceId).map((row) => row.sourceId as string),
+    existing
+      .filter((row) => row.sourceId && row.source === source)
+      .map((row) => row.sourceId as string),
   );
-  const slugConflicts = productsList
-    .filter((resource) => !imported.has(resource.id))
-    .map((resource) => mapProduct(resource, new Set()))
-    .filter((product) => taken.has(product.slug))
-    .map((product) => product.slug);
+  const slugConflicts = data.products
+    .filter((product) => !imported.has(product.sourceId))
+    .map((product) => product.slug)
+    .filter((slug) => taken.has(slug));
   const existingDiscounts = await db.query.featureRecords.findMany({
     columns: { title: true },
     where: and(
@@ -137,29 +137,21 @@ export async function previewImport(params: {
     ),
   });
   const discountCodes = new Set(existingDiscounts.map((row) => row.title.toUpperCase()));
-  const lsDiscounts = discounts
-    ? await client.listAll("discounts", filter)
-    : [];
-  const discountConflicts = lsDiscounts
-    .map((resource) => String(resource.attributes.code ?? "").toUpperCase())
+  const discountConflicts = data.discountCodes
+    .map((code) => code.toUpperCase())
     .filter((code) => code && discountCodes.has(code));
   return {
     environment,
-    counts: {
-      products: productsList.length,
-      customers,
-      orders,
-      licenses,
-      discounts,
-      affiliates,
-      subscriptions,
-    },
+    mode,
+    counts: data.counts,
     alreadyImportedProducts: imported.size,
     conflicts: { productSlugs: slugConflicts, discountCodes: discountConflicts },
+    notes: migrationSources[source].notes,
   };
 }
 
 export async function createMigrationJob(params: {
+  source?: MigrationSourceId;
   userId: string;
   storeId: string;
   apiKey: string;
@@ -175,18 +167,20 @@ export async function createMigrationJob(params: {
     ),
   });
   if (running) throw new Error("A migration is already running");
-  const stages = normalizeStages(params.stages);
+  const source = params.source ?? "lemonsqueezy";
+  const mode = sourceAdapters[source].resolveMode(params.apiKey, params.mode);
+  const stages = normalizeStages(params.stages, source);
   const now = new Date().toISOString();
   const row: typeof migrationJobs.$inferInsert = {
     id: uid(),
     userId: params.userId,
     storeId: params.storeId,
-    source: migrationSource,
-    environment: lsModeToEnvironment(params.mode),
+    source,
+    environment: lsModeToEnvironment(mode),
     status: "running",
     stage: "products",
     cursor: JSON.stringify({}),
-    options: JSON.stringify({ stages, lsStoreId: params.lsStoreId }),
+    options: JSON.stringify({ stages, lsStoreId: params.lsStoreId, mode }),
     counts: "{}",
     errors: "[]",
     idMap: "{}",
@@ -205,12 +199,15 @@ export async function getMigrationJob(userId: string, id: string) {
   });
 }
 
-export async function getLatestMigrationJob(userId: string) {
+export async function getLatestMigrationJob(
+  userId: string,
+  source: MigrationSourceId = "lemonsqueezy",
+) {
   const db = await getDb();
   const row = await db.query.migrationJobs.findFirst({
     where: and(
       eq(migrationJobs.userId, userId),
-      eq(migrationJobs.source, migrationSource),
+      eq(migrationJobs.source, source),
     ),
     orderBy: [desc(migrationJobs.createdAt)],
   });
@@ -231,24 +228,27 @@ export async function advanceMigrationJob(
   const row = await getMigrationJob(userId, id);
   if (!row) return null;
   if (row.status !== "running") return toView(row);
-  const jobOptions = parse<{ stages: ImportStage[]; lsStoreId: string }>(row.options, {
-    stages: [...importStages],
+  const source: MigrationSourceId = isMigrationSource(row.source) ? row.source : "lemonsqueezy";
+  const jobOptions = parse<{ stages: ImportStage[]; lsStoreId: string; mode?: "test" | "live" }>(row.options, {
+    stages: [...migrationSources[source].stages],
     lsStoreId: "",
   });
-  const options: ImportOptions = {
+  const options: ImportOptions & { mode?: "test" | "live" } = {
     lsStoreId: jobOptions.lsStoreId,
     stages: jobOptions.stages,
+    mode: jobOptions.mode ?? (row.environment === "sandbox" ? "test" : "live"),
   };
   const now = () => new Date().toISOString();
   try {
     if (!row.encryptedKey) throw new Error("API key is no longer available");
-    const client = createLsClient(await decryptSecret(row.encryptedKey));
+    const secret = await decryptSecret(row.encryptedKey);
     const sink = await createD1ImportSink({
       userId: row.userId,
       storeId: row.storeId,
       environment: row.environment,
+      source,
     });
-    const { state, done } = await runImportChunk(toState(row), options, client, sink);
+    const { state, done } = await sourceAdapters[source].runChunk(toState(row), options, secret, sink);
     const { idMap, counts, errors, stage, ...cursor } = state;
     await db
       .update(migrationJobs)
@@ -306,7 +306,7 @@ export async function cancelMigrationJob(userId: string, id: string) {
 export async function buildJobReports(userId: string, id: string) {
   const row = await getMigrationJob(userId, id);
   if (!row) return null;
-  return { state: toState(row), source: lemonSqueezySource };
+  return { state: toState(row), source: row.source };
 }
 
 /** Cron entry: advances a job on behalf of its owner until `budgetMs` is used. */

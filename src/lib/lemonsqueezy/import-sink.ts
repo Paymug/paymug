@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, type Db } from "@/db";
 import {
   featureRecords,
   orders,
@@ -13,6 +13,7 @@ import type { ProductFile } from "../product-files.types";
 import { uid } from "../utils";
 import { seatLimitToColumn } from "../product-variants";
 import type { ImportSink, StoredFileRef, UpsertResult } from "./import-engine";
+import type { OrderGateway } from "../types";
 import { lemonSqueezySource } from "./mappers";
 
 type Feature = "customers" | "licenses" | "discounts" | "affiliates" | "subscriptions";
@@ -21,12 +22,17 @@ export interface SinkContext {
   userId: string;
   storeId: string;
   environment: "sandbox" | "live";
+  /** Migration source id; defaults to Lemon Squeezy. */
+  source?: string;
+  /** Test seam: use this database instead of the request-scoped one. */
+  db?: Db;
 }
 
 /** D1-backed sink. Writes rows directly so no webhook, email or notification fires. */
 export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> {
-  const db = await getDb();
+  const db = ctx.db ?? (await getDb());
   const { userId, storeId, environment } = ctx;
+  const source = ctx.source ?? lemonSqueezySource;
 
   async function findFeature(
     feature: Feature,
@@ -57,7 +63,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
     const existing = await findFeature(
       feature,
       matchExtra ??
-        sql`json_extract(${featureRecords.data}, '$.source') = ${lemonSqueezySource} AND json_extract(${featureRecords.data}, '$.sourceId') = ${sourceId}`,
+        sql`json_extract(${featureRecords.data}, '$.source') = ${source} AND json_extract(${featureRecords.data}, '$.sourceId') = ${sourceId}`,
     );
     if (existing) {
       // A previous partial run may have left reference fields empty (for
@@ -92,7 +98,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
       data: JSON.stringify({
         ...input.data,
         storeId,
-        source: lemonSqueezySource,
+        source,
         sourceId,
       }),
       createdAt: input.createdAt || now,
@@ -121,7 +127,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         where: and(
           eq(products.userId, userId),
           eq(products.environment, environment),
-          eq(products.source, lemonSqueezySource),
+          eq(products.source, source),
           eq(products.sourceId, item.sourceId),
         ),
       });
@@ -139,7 +145,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         price: item.price,
         status: item.status,
         imageUrl: item.imageUrl,
-        source: lemonSqueezySource,
+        source,
         sourceId: item.sourceId,
         createdAt: now,
         updatedAt: now,
@@ -152,7 +158,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         where: and(
           eq(productVariants.userId, userId),
           eq(productVariants.environment, environment),
-          eq(productVariants.source, lemonSqueezySource),
+          eq(productVariants.source, source),
           eq(productVariants.sourceId, item.sourceId),
         ),
       });
@@ -183,7 +189,10 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         licenseSeatLimit: seatLimitToColumn(item.licenseSeatLimit),
         licenseUpdatePeriodUnit: item.licenseUpdatePeriodUnit,
         licenseUpdatePeriodCount: item.licenseUpdatePeriodCount,
-        source: lemonSqueezySource,
+        githubRepoOwner: item.githubRepoOwner ?? null,
+        githubRepoName: item.githubRepoName ?? null,
+        deliveryContent: item.deliveryContent ?? null,
+        source,
         sourceId: item.sourceId,
         createdAt: now,
         updatedAt: now,
@@ -247,7 +256,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
           subtitle: item.email,
           status: "active",
           createdAt: item.createdAt,
-          data: { ordersCount: 0, totalSpent: 0, processedOrderIds: [], lemonSqueezyCustomerId: item.sourceId },
+          data: { ordersCount: 0, totalSpent: 0, processedOrderIds: [], lemonSqueezyCustomerId: item.sourceId, sourceCustomerId: item.sourceId },
         },
         sql`lower(${featureRecords.subtitle}) = ${item.email}`,
       );
@@ -258,7 +267,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         where: and(
           eq(orders.userId, userId),
           eq(orders.environment, environment),
-          eq(orders.source, lemonSqueezySource),
+          eq(orders.source, source),
           eq(orders.sourceId, item.sourceId),
         ),
       });
@@ -279,8 +288,8 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         customerName: item.customerName,
         discountAmount: item.discountAmount,
         environment,
-        gateway: "lemonsqueezy",
-        source: lemonSqueezySource,
+        gateway: source as OrderGateway,
+        source,
         sourceId: item.sourceId,
         createdAt: item.createdAt,
         paidAt: item.paidAt,
@@ -310,6 +319,25 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
         }
       }
       return { id, created: true };
+    },
+
+    async markOrdersRefunded(sourceId) {
+      const rows = await db
+        .select({ id: orders.id })
+        .from(orders)
+        .where(
+          and(
+            eq(orders.userId, userId),
+            eq(orders.environment, environment),
+            eq(orders.source, source),
+            sql`(${orders.sourceId} = ${sourceId} OR ${orders.sourceId} LIKE ${sourceId + ":%"})`,
+            eq(orders.status, "paid"),
+          ),
+        );
+      for (const row of rows) {
+        await db.update(orders).set({ status: "refunded" }).where(eq(orders.id, row.id));
+      }
+      return rows.length;
     },
 
     async upsertLicense(item, refs) {
@@ -371,7 +399,7 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
           code: item.code,
           totalEarnings: item.totalEarnings,
           unpaidEarnings: item.unpaidEarnings,
-          source: lemonSqueezySource,
+          source,
         },
       });
     },
@@ -396,11 +424,13 @@ export async function createD1ImportSink(ctx: SinkContext): Promise<ImportSink> 
           cardBrand: item.cardBrand,
           cardLast4: item.cardLast4,
           lemonSqueezyStatus: item.lsStatus,
-          migrationState: item.billing
-            ? item.paymentProcessor === "paypal"
-              ? "needs_resubscribe"
-              : "waiting_for_cards"
-            : "not_required",
+          sourceStatus: item.lsStatus,
+          sourceCustomerId: item.sourceCustomerId ?? null,
+          sourcePaymentMethodId: item.sourcePaymentMethodId ?? null,
+          migrationState: !item.billing
+            ? "not_required"
+            : (item.migrationState ??
+              (item.paymentProcessor === "paypal" ? "needs_resubscribe" : "waiting_for_cards")),
         },
       });
     },

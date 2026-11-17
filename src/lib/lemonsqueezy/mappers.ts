@@ -94,6 +94,10 @@ export interface MappedVariant {
   licenseType: "standard" | "perpetual" | null;
   licenseUpdatePeriodUnit: "day" | "week" | "month" | "year" | null;
   licenseUpdatePeriodCount: number | null;
+  /** Optional delivery overrides filled by non-LS sources. */
+  githubRepoOwner?: string | null;
+  githubRepoName?: string | null;
+  deliveryContent?: string | null;
 }
 
 function trialDaysFrom(a: Attrs): number | null {
@@ -419,6 +423,11 @@ export interface MappedSubscription {
   createdAt: string | null;
   /** True for subscriptions that still bill, so they need a migration path. */
   billing: boolean;
+  /** Source customer / payment method ids, for exact Stripe linking. */
+  sourceCustomerId?: string | null;
+  sourcePaymentMethodId?: string | null;
+  /** Overrides the default migration state derived from the processor. */
+  migrationState?: "needs_resubscribe" | "waiting_for_cards" | "not_required";
 }
 
 export function mapSubscription(resource: LsResource): MappedSubscription | null {

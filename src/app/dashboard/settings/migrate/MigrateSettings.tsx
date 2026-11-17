@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Button, Input, Spinner } from "@/components/ui";
 import { dashboardPageClass } from "@/components/dashboard/dashboard.styles";
+import {
+  migrationSources,
+  type MigrationSourceId,
+} from "@/lib/migrations/sources";
 import { SubscriptionsChecklist } from "./SubscriptionsChecklist";
 import type { LsStoreOption, MigrateJob, MigratePreview } from "./page.types";
 
@@ -28,6 +32,38 @@ const previewCountKey: Record<string, string> = {
   subscriptions: "subscriptions",
 };
 
+const sourceBlurb: Record<MigrationSourceId, string> = {
+  lemonsqueezy: "Stops processing payments on 2027-03-31.",
+  polar: "Polar moves saved cards to your Stripe for free.",
+  paddle: "Catalog, orders and subscriptions. Cards via Paddle support.",
+  dodo: "Catalog, files, license keys and subscriptions.",
+};
+
+const goLive: Record<MigrationSourceId, { checkout: string; license: string | null; extra: string[] }> = {
+  lemonsqueezy: {
+    checkout: "Replace Lemon Squeezy checkout links with Paymug links.",
+    license: "/api/compat/lemonsqueezy/v1/licenses/validate",
+    extra: [],
+  },
+  polar: {
+    checkout: "Swap Polar checkout links and embeds for Paymug links.",
+    license: "/api/compat/polar/v1/customer-portal/license-keys/validate",
+    extra: [
+      "Polar disables new checkouts while offboarding and holds payouts for 120 days after your last transaction.",
+    ],
+  },
+  paddle: {
+    checkout: "Swap Paddle.js and Paddle checkout links for Paymug links.",
+    license: null,
+    extra: ["Paddle has no license keys, so there is nothing to point a license API at."],
+  },
+  dodo: {
+    checkout: "Swap Dodo checkout links, overlay checkout and short links for Paymug links.",
+    license: "/api/compat/dodo/licenses/validate",
+    extra: [],
+  },
+};
+
 const card = "rounded-2xl border border-[#e8e8ee] bg-white px-5 py-5 sm:px-6";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
@@ -41,25 +77,33 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function MigrateSettings() {
-  const base = "/api/settings/migrate/lemonsqueezy";
+  const [source, setSource] = useState<MigrationSourceId>("lemonsqueezy");
+  const meta = migrationSources[source];
+  const base = `/api/settings/migrate/${source}`;
   const [apiKey, setApiKey] = useState("");
   const [mode, setMode] = useState<"test" | "live">("test");
   const [stores, setStores] = useState<LsStoreOption[]>([]);
   const [lsStoreId, setLsStoreId] = useState("");
   const [preview, setPreview] = useState<MigratePreview | null>(null);
   const [selected, setSelected] = useState<string[]>(resources.map((r) => r.id));
+  const visibleResources = resources.filter((r) => (meta.stages as string[]).includes(r.id));
   const [job, setJob] = useState<MigrateJob | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const running = useRef(false);
 
   useEffect(() => {
+    setJob(null);
+    setStores([]);
+    setPreview(null);
+    setLsStoreId("");
+    setError(null);
     api<{ job: MigrateJob | null }>(`${base}/status`)
       .then((body) => {
         if (body.job) setJob(body.job);
       })
       .catch(() => undefined);
-  }, []);
+  }, [base]);
 
   // One chunk per request; the job state lives in the database so it can resume.
   const drive = useCallback(async (id: string) => {
@@ -78,7 +122,7 @@ export function MigrateSettings() {
     } finally {
       running.current = false;
     }
-  }, []);
+  }, [base]);
 
   useEffect(() => {
     if (job?.status === "running") void drive(job.id);
@@ -98,10 +142,11 @@ export function MigrateSettings() {
 
   const connect = () =>
     run(async () => {
-      const body = await api<{ stores: LsStoreOption[] }>(`${base}/connect`, {
+      const body = await api<{ stores: LsStoreOption[]; mode?: "test" | "live" }>(`${base}/connect`, {
         method: "POST",
-        body: JSON.stringify({ apiKey }),
+        body: JSON.stringify({ apiKey, mode }),
       });
+      if (body.mode) setMode(body.mode);
       setStores(body.stores);
       setLsStoreId(body.stores[0]?.id ?? "");
       setPreview(null);
@@ -151,7 +196,7 @@ export function MigrateSettings() {
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-[#74748f]">
           Free for everyone. Import your catalog, files, customers, orders,
-          license keys, discounts and affiliates in one run.
+          license keys, discounts and subscriptions in one run.
         </p>
       </section>
 
@@ -161,41 +206,47 @@ export function MigrateSettings() {
         </div>
       )}
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
-        <div className={`${card} border-accent`}>
-          <h3 className="text-base font-semibold text-[#333]">Lemon Squeezy</h3>
-          <p className="mt-1 text-sm text-[#85859d]">
-            Lemon Squeezy stops processing payments on 2027-03-31.
-          </p>
-        </div>
-        <div className={`${card} opacity-60`}>
-          <h3 className="text-base font-semibold text-[#333]">
-            Gumroad, Polar, Paddle
-          </h3>
-          <p className="mt-1 text-sm text-[#85859d]">Coming later.</p>
-        </div>
+      <div className="mb-6 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Migrate from">
+        {(Object.keys(migrationSources) as MigrationSourceId[]).map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="radio"
+            aria-checked={source === id}
+            disabled={Boolean(active) && source !== id}
+            onClick={() => setSource(id)}
+            className={`${card} text-left transition ${
+              source === id ? "border-accent" : "hover:border-[#c9c9d6]"
+            } disabled:opacity-50`}
+          >
+            <h3 className="text-base font-semibold text-[#333]">{migrationSources[id].label}</h3>
+            <p className="mt-1 text-sm text-[#85859d]">{sourceBlurb[id]}</p>
+          </button>
+        ))}
       </div>
 
       {!active && !finished && (
         <section className={`${card} space-y-4`} aria-label="Connect">
           <h3 className="text-base font-semibold text-[#333]">1. Connect</h3>
           <Input
-            label="Lemon Squeezy API key"
+            label={meta.secretLabel}
             type="password"
             autoComplete="off"
             value={apiKey}
             onChange={(event) => setApiKey(event.target.value)}
           />
           <p className="text-xs text-[#85859d]">
-            Held encrypted only while the import runs, then deleted. Test keys
-            import into your sandbox, live keys into live.
+            Held encrypted only while the import runs, then deleted.{" "}
+            {meta.modeFromKey
+              ? "Test keys import into your sandbox, live keys into live (detected from the key)."
+              : "Test or sandbox keys import into your sandbox, live keys into live."}
           </p>
-          <div className="flex gap-4 text-sm">
+          <div className={`flex gap-4 text-sm ${meta.modeFromKey ? "hidden" : ""}`}>
             {(["test", "live"] as const).map((value) => (
               <label key={value} className="flex items-center gap-2">
                 <input
                   type="radio"
-                  name="ls-mode"
+                  name="migrate-mode"
                   checked={mode === value}
                   onChange={() => setMode(value)}
                 />
@@ -203,7 +254,7 @@ export function MigrateSettings() {
               </label>
             ))}
           </div>
-          <Button onClick={connect} disabled={busy || apiKey.trim().length < 20}>
+          <Button onClick={connect} disabled={busy || apiKey.trim().length < 8}>
             {busy && !stores.length ? <Spinner className="h-4 w-4" /> : null}
             Connect
           </Button>
@@ -211,7 +262,7 @@ export function MigrateSettings() {
           {stores.length > 0 && (
             <div className="space-y-3 border-t border-[#e8e8ee] pt-4">
               <label className="block text-sm font-medium text-[#333]" htmlFor="ls-store">
-                Lemon Squeezy store
+                {source === "polar" ? "Polar organization" : `${meta.label} store`}
               </label>
               <select
                 id="ls-store"
@@ -224,7 +275,8 @@ export function MigrateSettings() {
               >
                 {stores.map((store) => (
                   <option key={store.id} value={store.id}>
-                    {store.name} ({store.currency})
+                    {store.name}
+                    {store.currency ? ` (${store.currency})` : ""}
                   </option>
                 ))}
               </select>
@@ -244,7 +296,7 @@ export function MigrateSettings() {
             for the active store. Nothing is overwritten; re-running is safe.
           </p>
           <ul className="space-y-2">
-            {resources.map((resource) => (
+            {visibleResources.map((resource) => (
               <li key={resource.id} className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2">
                   <input
@@ -269,6 +321,9 @@ export function MigrateSettings() {
               </li>
             ))}
           </ul>
+          {(preview.notes ?? meta.notes).length > 0 && (
+            <Alert variant="info">{(preview.notes ?? meta.notes).join(" ")}</Alert>
+          )}
           {preview.alreadyImportedProducts > 0 && (
             <Alert variant="info">
               {preview.alreadyImportedProducts} products were imported before and
@@ -367,23 +422,26 @@ export function MigrateSettings() {
         </section>
       )}
 
-      <SubscriptionsChecklist refreshKey={job?.status ?? "none"} />
+      <SubscriptionsChecklist source={source} refreshKey={job?.status ?? "none"} />
 
       {job?.status === "completed" && (
         <>
           <section className={`${card} mt-6 space-y-3`} aria-label="Go-live checklist">
             <h3 className="text-base font-semibold text-[#333]">Go-live checklist</h3>
             <ul className="list-disc space-y-2 pl-5 text-sm text-[#555]">
-              <li>Replace Lemon Squeezy checkout links with Paymug links.</li>
-              <li>
-                Point license validation at{" "}
-                <code>/api/compat/lemonsqueezy/v1/licenses/validate</code>. See
-                the license activation docs.
-              </li>
+              <li>{goLive[source].checkout}</li>
+              {goLive[source].license && (
+                <li>
+                  Point license validation at <code>{goLive[source].license}</code>. See
+                  the license activation docs.
+                </li>
+              )}
+              {goLive[source].extra.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
               <li>Switch webhooks to Paymug in Settings, Webhooks.</li>
               <li>
-                Paymug is not a merchant of record. You are responsible for
-                collecting and remitting tax. Review{" "}
+                Paymug is not a merchant of record, so tax is yours to collect and remit. Review{" "}
                 <Link href="/dashboard/settings/tax" className="underline">
                   Settings, Tax
                 </Link>

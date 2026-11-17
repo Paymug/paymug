@@ -10,7 +10,7 @@ import { getRequiredRuntimeEnvValue, getRuntimeAbsoluteUrl } from "../runtime-en
 import { renderEmailLayout } from "../transactional-email-templates";
 import { sendStoreEmail } from "../transactional-emails";
 import { effectiveProduct } from "../product-variants";
-import { lemonSqueezySource } from "./mappers";
+import { isMigrationSource, type MigrationSourceId } from "../migrations/sources";
 import {
   resubscribeCustomKey,
   signResubscribeToken,
@@ -50,7 +50,8 @@ export async function resolveResubscribe(
   const data = row ? dataOf(row) : {};
   if (
     !row ||
-    data.source !== lemonSqueezySource ||
+    typeof data.source !== "string" ||
+    !isMigrationSource(data.source) ||
     row.status !== "migration_pending" ||
     (row.subtitle ?? "").trim().toLowerCase() !== customerEmail.trim().toLowerCase() ||
     data.productId !== productId
@@ -88,6 +89,7 @@ export async function sendResubscribeEmails(params: {
   requestUrl: string;
   recordIds?: string[];
   resend?: boolean;
+  source?: MigrationSourceId;
 }): Promise<ResubscribeSendResult> {
   const db = await getDb();
   const secret = await getRequiredRuntimeEnvValue("AUTH_SECRET");
@@ -98,13 +100,13 @@ export async function sendResubscribeEmails(params: {
         eq(featureRecords.environment, params.environment),
         eq(featureRecords.feature, "subscriptions"),
         eq(featureRecords.status, "migration_pending"),
-        sql`json_extract(${featureRecords.data}, '$.source') = ${lemonSqueezySource}`,
+        sql`json_extract(${featureRecords.data}, '$.source') = ${params.source ?? "lemonsqueezy"}`,
       ),
     })
   ).filter(
     (row) =>
       dataOf(row).storeId === params.storeId &&
-      dataOf(row).paymentProcessor === "paypal" &&
+      (dataOf(row).migrationState === "needs_resubscribe" || dataOf(row).paymentProcessor === "paypal") &&
       (!params.recordIds || params.recordIds.includes(row.id)),
   );
   const result: ResubscribeSendResult = { sent: [], skipped: [], failed: [] };
@@ -135,8 +137,8 @@ export async function sendResubscribeEmails(params: {
         eyebrow: "Subscription update",
         title: `Please re-subscribe to ${product.name}`,
         intro: renews
-          ? `We are moving to a new billing system and PayPal subscriptions cannot be transferred. Re-subscribe with the link below. You will not be charged before ${renews}, your next renewal date.`
-          : "We are moving to a new billing system and PayPal subscriptions cannot be transferred. Re-subscribe with the link below.",
+          ? `We are moving to a new billing system and your subscription cannot be transferred automatically. Re-subscribe with the link below. You will not be charged before ${renews}, your next renewal date.`
+          : "We are moving to a new billing system and your subscription cannot be transferred automatically. Re-subscribe with the link below.",
         rows: [
           { label: "Plan", value: sold.variantName ? `${product.name} (${sold.variantName})` : product.name },
           { label: "Price", value: formatMoney(sold.price, product.currency) },

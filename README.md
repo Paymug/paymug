@@ -26,7 +26,7 @@ Built with Next.js 16, Tailwind CSS, Cloudflare D1, and Drizzle ORM.
 - **Sell your way** — storefront, hosted checkout, one-time products, subscriptions, and pay-what-you-want pricing
 - **Get paid directly** — connect PayPal, Stripe, or SEPay with sandbox and live modes
 - **Automatic tax** — enable Stripe Tax from **Settings → Tax**
-- **Leave Lemon Squeezy for free** — import your catalog, files, customers, orders, license keys, discounts and affiliates from **Settings → Migrate**, with a license API shim so your apps keep validating
+- **Leave Lemon Squeezy, Polar, Paddle or Dodo Payments for free** — import your catalog, files, customers, orders, license keys, discounts and subscriptions from **Settings → Migrate**, with license API shims so your apps keep validating
 - **Deliver automatically** — files, license keys, and private GitHub access
 - **Sell extra seats** — per-product seat add-ons at checkout, and customers can buy more seats later from the buyer portal
 - **Grow sales** — discounts, email campaigns, affiliates, and abandoned-checkout recovery
@@ -103,7 +103,10 @@ or Stripe test keys to test purchases.
 | POST | `/api/payments/sepay/create-session` | Create SEPay checkout session |
 | GET/PATCH | `/api/settings/tax` | Read / update Stripe Tax setting |
 | POST/GET | `/api/settings/migrate/lemonsqueezy/{connect,preview,start,status,cancel}` | Lemon Squeezy import (session or `migrations:write` key) |
+| POST/GET | `/api/settings/migrate/{polar,paddle,dodo}/{connect,preview,start,status,cancel}` | Polar, Paddle and Dodo Payments import (same auth) |
 | POST | `/api/compat/lemonsqueezy/v1/licenses/{validate,activate,deactivate}` | Lemon Squeezy license API shim |
+| POST | `/api/compat/polar/v1/customer-portal/license-keys/{validate,activate,deactivate}` | Polar license API shim |
+| POST | `/api/compat/dodo/licenses/{validate,activate,deactivate}` | Dodo Payments license API shim |
 | GET | `/api/v1/{products,orders,customers}` | Public API (scoped API key) |
 | POST | `/api/mcp` | MCP server (scoped API key) |
 

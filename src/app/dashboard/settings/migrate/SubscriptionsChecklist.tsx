@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
 import type { MigrationSubscriptionRow } from "@/lib/lemonsqueezy/subscription-state";
+import { migrationSources, type MigrationSourceId } from "@/lib/migrations/sources";
 
 interface PlanItem {
   recordId: string;
@@ -25,7 +26,16 @@ interface LinkResponse {
   error?: string;
 }
 
-const base = "/api/settings/migrate/lemonsqueezy/subscriptions";
+const cardSteps: Record<MigrationSourceId, string> = {
+  lemonsqueezy:
+    "In Lemon Squeezy open My Account, Settings, Migration and submit the intake form to copy cards to your Stripe account.",
+  polar:
+    "Email support@polar.sh and ask for a Stripe-to-Stripe transfer of customers and saved cards to your Stripe account (usually a few business days, no fee).",
+  paddle:
+    "Switch new sales to Paymug checkout first, then ask Paddle support to export cards to your Stripe account (IXOPAY runs at most two exports: bulk and delta; about 2 weeks). Upload Stripe's mapping file below to link by ID.",
+  dodo:
+    "Dodo documents no card export. Ask Dodo support whether they can export cards to your Stripe account; if they do, upload Stripe's mapping file below. Otherwise use the re-subscribe emails.",
+};
 const card = "rounded-2xl border border-[#e8e8ee] bg-white px-5 py-5 sm:px-6";
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -39,10 +49,20 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return data;
 }
 
-export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
+export function SubscriptionsChecklist({
+  source,
+  refreshKey,
+}: {
+  source: MigrationSourceId;
+  refreshKey: string;
+}) {
+  const label = migrationSources[source].label;
+  const base = `/api/settings/migrate/${source}/subscriptions`;
+  const supportsMapping = source !== "lemonsqueezy";
   const [rows, setRows] = useState<MigrationSubscriptionRow[]>([]);
   const [plan, setPlan] = useState<LinkResponse | null>(null);
   const [lsKey, setLsKey] = useState("");
+  const [mappingCsv, setMappingCsv] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -50,7 +70,7 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
     const response = await fetch(base);
     if (!response.ok) return;
     setRows(((await response.json()) as { subscriptions: MigrationSubscriptionRow[] }).subscriptions);
-  }, []);
+  }, [base]);
 
   useEffect(() => {
     void load();
@@ -72,7 +92,8 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
   const pending = rows.filter((row) => row.status === "migration_pending");
   if (rows.length === 0) return null;
   const card_ = pending.filter((row) => row.processor === "stripe");
-  const paypal = pending.filter((row) => row.processor === "paypal");
+  // Customers who must re-subscribe: PayPal (Lemon Squeezy) or no card path.
+  const paypal = pending.filter((row) => row.migrationState === "needs_resubscribe" || row.processor === "paypal");
   const cancellable = rows.filter(
     (row) => !row.lsCancelledAt && (row.migrationState === "linked" || row.resubscribedAt),
   );
@@ -94,10 +115,9 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
       <div className="space-y-2">
         <h4 className="text-sm font-semibold">Card subscriptions ({card_.length} waiting)</h4>
         <p className="text-sm text-[#85859d]">
-          In Lemon Squeezy open My Account, Settings, Migration and submit the intake
-          form to copy cards to your Stripe account. Status: waiting for cards in
-          Stripe. Once they arrive, preview, then link. First charges land on each
-          customer&apos;s original renewal date.
+          {cardSteps[source]} Status: waiting for cards in Stripe. Once they
+          arrive, preview, then link. First charges land on each customer&apos;s
+          original renewal date.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -148,13 +168,48 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
         )}
       </div>
 
+      {supportsMapping && (
+        <div className="space-y-2 border-t border-[#e8e8ee] pt-4">
+          <h4 className="text-sm font-semibold">Stripe mapping file</h4>
+          <p className="text-sm text-[#85859d]">
+            After the cards arrive in Stripe, upload the import mapping file (CSV) so
+            each {label} subscription links to its exact Stripe customer and card.
+          </p>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            className="text-sm"
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              setMappingCsv(file ? await file.text() : "");
+            }}
+          />
+          <Button
+            variant="outline"
+            disabled={busy || mappingCsv.trim().length < 10}
+            onClick={() =>
+              act(async () => {
+                const result = await post<{ rows: number; matched: number; unmatched: number }>(
+                  `${base}/mapping`,
+                  { csv: mappingCsv },
+                );
+                setMappingCsv("");
+                return `Read ${result.rows} rows. Matched ${result.matched} subscriptions, ${result.unmatched} without a match.`;
+              })
+            }
+          >
+            Apply mapping
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-2 border-t border-[#e8e8ee] pt-4">
         <h4 className="text-sm font-semibold">
-          PayPal subscriptions ({paypal.length} waiting, {rows.filter((row) => row.resubscribedAt).length} re-subscribed)
+          Re-subscribe ({paypal.length} waiting, {rows.filter((row) => row.resubscribedAt).length} re-subscribed)
         </h4>
         <p className="text-sm text-[#85859d]">
-          PayPal subscriptions cannot migrate. Email each customer a personal link
-          that starts billing on their old renewal date.
+          These subscriptions cannot move their cards. Email each customer a
+          personal link that starts billing on their old renewal date.
         </p>
         <Button
           variant="outline"
@@ -175,16 +230,16 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
 
       <div className="space-y-2 border-t border-[#e8e8ee] pt-4">
         <h4 className="text-sm font-semibold">
-          Cancel on Lemon Squeezy ({cancellable.length} ready)
+          Cancel on {label} ({cancellable.length} ready)
         </h4>
         <p className="text-sm text-[#85859d]">
           Only subscriptions that now bill through Paymug are listed. Cancelling ends
-          the Lemon Squeezy copy; your key is used for this request only.
+          the {label} copy at the end of the paid period; your key is used for this request only.
         </p>
         {cancellable.length > 0 && (
           <>
             <Input
-              label="Lemon Squeezy API key"
+              label={`${label} API key`}
               type="password"
               autoComplete="off"
               value={lsKey}
@@ -198,16 +253,16 @@ export function SubscriptionsChecklist({ refreshKey }: { refreshKey: string }) {
                   </span>
                   <Button
                     variant="outline"
-                    disabled={busy || lsKey.trim().length < 20}
+                    disabled={busy || lsKey.trim().length < 8}
                     onClick={() => {
-                      if (!window.confirm(`Cancel ${row.email}'s subscription on Lemon Squeezy?`)) return;
+                      if (!window.confirm(`Cancel ${row.email}'s subscription on ${label}?`)) return;
                       void act(async () => {
                         const result = await post<{ cancelled: string[]; failed: Array<{ message: string }> }>(
                           `${base}/cancel`,
-                          { apiKey: lsKey, recordIds: [row.id] },
+                          { apiKey: lsKey, mode: "live", recordIds: [row.id] },
                         );
                         return result.cancelled.length
-                          ? "Cancelled on Lemon Squeezy."
+                          ? `Cancelled on ${label}.`
                           : result.failed[0]?.message || "Not cancelled.";
                       });
                     }}

@@ -69,6 +69,8 @@ export interface ImportSink {
   ): Promise<UpsertResult>;
   existingProductSlugs(): Promise<Set<string>>;
   existingAffiliateCodes(): Promise<Set<string>>;
+  /** Marks imported orders of a source transaction refunded. Returns rows changed. */
+  markOrdersRefunded?(sourceId: string): Promise<number>;
 }
 
 export interface ImportState {
@@ -95,6 +97,10 @@ export interface ImportState {
   usedSlugs: string[];
   variantSlugs: Record<string, string[]>;
   usedAffiliateCodes: string[];
+  /** Opaque cursor for cursor-paginated sources (Paddle). */
+  cursor?: string;
+  /** Source-specific scratch (benefit -> product etc.). Kept small. */
+  extra?: Record<string, Record<string, string>>;
 }
 
 export interface ImportOptions {
@@ -131,12 +137,12 @@ export function createInitialState(): ImportState {
 const maxErrors = 500;
 const filesPerChunk = 3;
 
-function bump(state: ImportState, stage: string, key: "imported" | "skipped" | "failed") {
+export function bump(state: ImportState, stage: string, key: "imported" | "skipped" | "failed") {
   const entry = (state.counts[stage] ??= { imported: 0, skipped: 0, failed: 0 });
   entry[key] += 1;
 }
 
-function fail(state: ImportState, stage: string, sourceId: string, error: unknown) {
+export function fail(state: ImportState, stage: string, sourceId: string, error: unknown) {
   bump(state, stage, "failed");
   if (state.errors.length < maxErrors) {
     state.errors.push({
@@ -147,16 +153,17 @@ function fail(state: ImportState, stage: string, sourceId: string, error: unknow
   }
 }
 
-function record(state: ImportState, stage: string, result: UpsertResult) {
+export function record(state: ImportState, stage: string, result: UpsertResult) {
   bump(state, stage, result.created ? "imported" : "skipped");
 }
 
-function nextStage(state: ImportState, options: ImportOptions) {
+export function nextStage(state: ImportState, options: ImportOptions) {
   const current = state.stage === "done" ? importStages.length : importStages.indexOf(state.stage);
   const next = importStages.slice(current + 1).find((stage) => options.stages.includes(stage));
   state.stage = next ?? "done";
   state.page = 1;
   state.index = 0;
+  state.cursor = undefined;
 }
 
 /**
@@ -446,7 +453,7 @@ export async function runImportChunk(
   return { state, done: state.stage === "done" };
 }
 
-function displayName(file: MappedFile): string {
+export function displayName(file: MappedFile): string {
   return file.version ? withVersion(file) : file.name;
 }
 
@@ -457,8 +464,8 @@ function withVersion(file: MappedFile): string {
   return `${slugify(base, "file")}-v${file.version}${ext}`;
 }
 
-export function toIdMapCsv(state: ImportState): string {
-  const rows = [["type", "lemonsqueezy_id", "paymug_id"]];
+export function toIdMapCsv(state: ImportState, sourceLabel = "lemonsqueezy"): string {
+  const rows = [["type", `${sourceLabel}_id`, "paymug_id"]];
   for (const [type, map] of Object.entries(state.idMap)) {
     if (type === "productNames" || type === "variantProduct") continue;
     for (const [from, to] of Object.entries(map)) rows.push([type, from, to]);
@@ -466,13 +473,13 @@ export function toIdMapCsv(state: ImportState): string {
   return rows.map((row) => row.map(csvCell).join(",")).join("\n");
 }
 
-export function toFailuresCsv(errors: ImportErrorEntry[]): string {
-  const rows = [["stage", "lemonsqueezy_id", "message"]];
+export function toFailuresCsv(errors: ImportErrorEntry[], sourceLabel = "lemonsqueezy"): string {
+  const rows = [["stage", `${sourceLabel}_id`, "message"]];
   for (const e of errors) rows.push([e.stage, e.sourceId, e.message]);
   return rows.map((row) => row.map(csvCell).join(",")).join("\n");
 }
 
-function csvCell(value: string): string {
+export function csvCell(value: string): string {
   const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
   return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
