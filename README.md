@@ -23,12 +23,17 @@ Built with Next.js 16, Tailwind CSS, Cloudflare D1, and Drizzle ORM.
 
 ## Features
 
-- **Sell your way** — storefront, hosted checkout, one-time products, and subscriptions
-- **Get paid directly** — connect PayPal or Stripe with sandbox and live modes
+- **Sell your way** — storefront, hosted checkout, one-time products, subscriptions, and pay-what-you-want pricing
+- **Get paid directly** — connect PayPal, Stripe, or SEPay with sandbox and live modes
+- **Automatic tax** — enable Stripe Tax from **Settings → Tax**
 - **Deliver automatically** — files, license keys, and private GitHub access
-- **Grow sales** — discounts, email campaigns, and affiliates
-- **Run everything in one place** — customers, orders, refunds, analytics, and a buyer portal
-- **Own your stack** — self-host on Cloudflare and extend with API keys
+- **Sell extra seats** — per-product seat add-ons at checkout, and customers can buy more seats later from the buyer portal
+- **Grow sales** — discounts, email campaigns, affiliates, and abandoned-checkout recovery
+- **Run everything in one place** — customers, orders, refunds, analytics, notifications, per-user time zones, and a buyer portal
+- **Own your stack** — self-host on Cloudflare and extend with scoped API keys
+- **AI-ready** — built-in MCP server (`POST /api/mcp`) so agents can manage products, orders, customers, and more, limited by the API key's permissions
+
+See the [changelog](changelog/README.md) for recent updates.
 
 ## Quick start
 
@@ -93,6 +98,14 @@ or Stripe test keys to test purchases.
 | GET | `/api/payments/paypal/connect` | PayPal credential status (from env) |
 | POST | `/api/payments/paypal/create-order` | Create PayPal order (buyer) |
 | POST | `/api/payments/paypal/capture-order` | Capture payment |
+| POST | `/api/payments/stripe/create-session` | Create Stripe checkout session |
+| POST | `/api/payments/sepay/create-session` | Create SEPay checkout session |
+| GET/PATCH | `/api/settings/tax` | Read / update Stripe Tax setting |
+| GET | `/api/v1/{products,orders,customers}` | Public API (scoped API key) |
+| POST | `/api/mcp` | MCP server (scoped API key) |
+
+API keys carry per-resource read / write / delete scopes — see
+[`docs/guides/api-keys.md`](docs/guides/api-keys.md).
 
 ## Environment
 
@@ -110,6 +123,8 @@ or Stripe test keys to test purchases.
 | `STRIPE_SANDBOX_WEBHOOK_SECRET` | Stripe test webhook signing secret (`whsec_…`) |
 | `STRIPE_LIVE_SECRET_KEY` | Stripe live secret key (`sk_live_…`) |
 | `STRIPE_LIVE_WEBHOOK_SECRET` | Stripe live webhook signing secret (`whsec_…`) |
+| `SEPAY_SANDBOX_MERCHANT_ID` / `SEPAY_SANDBOX_SECRET_KEY` / `SEPAY_SANDBOX_IPN_SECRET` | SEPay sandbox credentials |
+| `SEPAY_LIVE_MERCHANT_ID` / `SEPAY_LIVE_SECRET_KEY` / `SEPAY_LIVE_IPN_SECRET` | SEPay live credentials |
 | `EMAIL_FROM` | Verified Paymug sender on your Cloudflare Email Service domain |
 | `EMAIL_REPLY_TO` | Optional customer reply address |
 | `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
@@ -201,8 +216,3 @@ secrets already configured on the Worker.
 See [`docs/README.md`](docs/README.md) for developer, API, and AI-agent guides.
 The documentation plan and completeness tracker are in
 [`docs/DOCS.md`](docs/DOCS.md).
-
-## Roadmap ideas
-
-- Stripe and Paddle as additional gateways
-- Custom domains
