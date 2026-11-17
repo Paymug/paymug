@@ -203,8 +203,13 @@ After setup:
 - That push triggers the Cloudflare Workers Build already connected during the
   one-click deployment. The sync workflow does not deploy a second time.
 - `/api/deployments` exposes the current official Paymug version.
-  **Settings → About → Check for update** reads that endpoint, so no GitHub
-  token is stored in the Worker runtime.
+  **Settings → About → Check for update** reads that endpoint.
+- One-click update: set Worker variables `GITHUB_UPDATE_TOKEN` (fine-grained
+  token with Actions read/write on `UserGitRepo`) and optionally
+  `GITHUB_UPDATE_REPO` (`owner/repo`, defaults to the Git remote discovered at
+  build) and `GITHUB_UPDATE_REF` (defaults to the repo default branch). When a
+  newer version exists, **Update now** dispatches `sync-upstream.yml`.
+  Without the token, the panel links to the workflow instead.
 - Build metadata discovers `UserGitRepo` from the Git remote; no repository
   environment variable is required.
 - A merge conflict stops the update instead of overwriting user changes.
