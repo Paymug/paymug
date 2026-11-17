@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { getOrderLicense } from "@/lib/commerce-features";
-import { findOrderById, findProductById } from "@/lib/db";
+import { findOrderById, findProductForOrder } from "@/lib/db";
 import { resendPurchaseConfirmationEmail } from "@/lib/transactional-emails";
 import { jsonError } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ export async function POST(request: Request, ctx: Ctx) {
     return jsonError("Only paid orders have a confirmation email", 409);
   }
   const [product, license] = await Promise.all([
-    findProductById(order.productId),
+    findProductForOrder(order),
     getOrderLicense(order.userId, order.id),
   ]);
   try {

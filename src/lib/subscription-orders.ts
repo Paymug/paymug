@@ -1,12 +1,12 @@
 import "server-only";
 
+import { effectiveProduct } from "./product-variants";
 import {
   createOrder,
   findOrderById,
   findOrderByPaypalCaptureId,
   findProductById,
-  updateOrder,
-} from "./db";
+  updateOrder, findProductForOrder } from "./db";
 import { completeCommerceFeatures } from "./commerce-features";
 import { isPerpetualLicenseProduct } from "./license-entitlements";
 import { uid } from "./utils";
@@ -31,6 +31,8 @@ export async function createPendingSubscriptionOrder(
     storeId: input.product.storeId,
     productId: input.product.id,
     productName: input.product.name,
+    variantId: input.product.variantId,
+    variantName: input.product.variantName,
     productDescription: input.product.description,
     productPrice: input.productPrice ?? input.product.price,
     deliveryContent: input.product.deliveryContent,
@@ -86,8 +88,10 @@ export async function ensurePendingSubscriptionOrder(
   if (!productId || !paypalSubscriptionId || !subscription.subtitle) {
     return undefined;
   }
-  const product = await findProductById(productId);
-  if (!product) return undefined;
+  const loadedProduct = await findProductById(productId);
+  if (!loadedProduct) return undefined;
+  const subscriptionCustom = normalizeCheckoutCustomData(subscription.data.custom);
+  const product = effectiveProduct(loadedProduct, subscriptionCustom);
 
   return createPendingSubscriptionOrder({
     orderId,
@@ -174,6 +178,8 @@ function createPaidSubscriptionOrder(
       typeof data.storeId === "string" ? data.storeId : product.storeId,
     productId: product.id,
     productName: product.name,
+    variantId: product.variantId,
+    variantName: product.variantName,
     productDescription: product.description,
     productPrice: Number(data.productPrice || product.price),
     deliveryContent: product.deliveryContent,
@@ -221,7 +227,7 @@ async function fulfillSubscriptionPaymentOrder(
   input: RecordSubscriptionPaymentOrderInput,
   product?: Product
 ): Promise<Order> {
-  const resolvedProduct = product || (await findProductById(order.productId));
+  const resolvedProduct = product || (await findProductForOrder(order));
   const renewsPerpetualUpdates = Boolean(
     input.isRenewal &&
       resolvedProduct &&
@@ -255,7 +261,7 @@ export async function activateSubscriptionTrialOrder(
       : initialOrder;
   if (!order) return undefined;
 
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   await completeCommerceFeatures(order, product, {
     recordDiscount: false,
     recordAffiliate: false,
@@ -301,8 +307,12 @@ export async function recordSubscriptionPaymentOrder(
 
   const productId = getSubscriptionProductId(input);
   if (!productId) return undefined;
-  const product = await findProductById(productId);
-  if (!product) return undefined;
+  const loadedProduct = await findProductById(productId);
+  if (!loadedProduct) return undefined;
+  const product = effectiveProduct(
+    loadedProduct,
+    normalizeCheckoutCustomData(input.subscription.data.custom),
+  );
 
   const order = createPaidSubscriptionOrder(
     input,

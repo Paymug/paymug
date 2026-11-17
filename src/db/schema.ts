@@ -231,11 +231,19 @@ export const products = sqliteTable(
   trialDays: integer("trial_days").notNull().default(0),
   githubRepoOwner: text("github_repo_owner"),
   githubRepoName: text("github_repo_name"),
+  source: text("source"),
+  sourceId: text("source_id"),
   createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
   (table) => [
     index("products_slug_idx").on(table.slug),
+    uniqueIndex("products_source_idx").on(
+      table.userId,
+      table.environment,
+      table.source,
+      table.sourceId,
+    ),
     index("products_category_idx").on(table.categoryId),
     index("products_user_store_environment_created_idx").on(
       table.userId,
@@ -244,6 +252,94 @@ export const products = sqliteTable(
       table.createdAt,
     ),
   ],
+);
+
+export const productVariants = sqliteTable(
+  "product_variants",
+  {
+    id: text("id").primaryKey(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storeId: text("store_id"),
+    environment: text("environment", { enum: ["sandbox", "live"] })
+      .notNull()
+      .default("sandbox"),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description").notNull().default(""),
+    sort: integer("sort").notNull().default(0),
+    status: text("status", { enum: ["draft", "published"] })
+      .notNull()
+      .default("published"),
+    price: integer("price").notNull(),
+    customAmountEnabled: integer("custom_amount_enabled", { mode: "boolean" }),
+    minPrice: integer("min_price"),
+    suggestedPrice: integer("suggested_price"),
+    billingType: text("billing_type", { enum: ["one_time", "subscription"] }),
+    intervalUnit: text("interval_unit", { enum: ["week", "month", "year"] }),
+    intervalCount: integer("interval_count"),
+    trialDays: integer("trial_days"),
+    productFiles: text("product_files"),
+    generateLicense: integer("generate_license", { mode: "boolean" }),
+    licenseType: text("license_type", { enum: ["standard", "perpetual"] }),
+    licenseSeatLimit: integer("license_seat_limit"),
+    licenseUpdatePeriodUnit: text("license_update_period_unit", {
+      enum: ["day", "week", "month", "year"],
+    }),
+    licenseUpdatePeriodCount: integer("license_update_period_count"),
+    deliveryContent: text("delivery_content"),
+    redirectUrl: text("redirect_url"),
+    githubRepoOwner: text("github_repo_owner"),
+    githubRepoName: text("github_repo_name"),
+    source: text("source"),
+    sourceId: text("source_id"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("product_variants_product_idx").on(table.productId, table.sort),
+    uniqueIndex("product_variants_source_idx").on(
+      table.userId,
+      table.environment,
+      table.source,
+      table.sourceId,
+    ),
+  ],
+);
+
+export const migrationJobs = sqliteTable(
+  "migration_jobs",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storeId: text("store_id").notNull(),
+    source: text("source").notNull(),
+    environment: text("environment", { enum: ["sandbox", "live"] })
+      .notNull()
+      .default("sandbox"),
+    status: text("status", {
+      enum: ["pending", "running", "completed", "failed", "cancelled"],
+    })
+      .notNull()
+      .default("pending"),
+    stage: text("stage").notNull().default("products"),
+    cursor: text("cursor").notNull().default("{}"),
+    options: text("options").notNull().default("{}"),
+    counts: text("counts").notNull().default("{}"),
+    errors: text("errors").notNull().default("[]"),
+    idMap: text("id_map").notNull().default("{}"),
+    encryptedKey: text("encrypted_key"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    finishedAt: text("finished_at"),
+  },
+  (table) => [index("migration_jobs_user_idx").on(table.userId, table.createdAt)],
 );
 
 export const productCategoryProducts = sqliteTable(
@@ -305,7 +401,11 @@ export const orders = sqliteTable(
   paypalCaptureId: text("paypal_capture_id"),
   stripeCheckoutSessionId: text("stripe_checkout_session_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
-  gateway: text("gateway", { enum: ["paypal", "stripe", "sepay", "free"] }).notNull().default("paypal"),
+  gateway: text("gateway", { enum: ["paypal", "stripe", "sepay", "free", "lemonsqueezy"] }).notNull().default("paypal"),
+  variantId: text("variant_id"),
+  variantName: text("variant_name"),
+  source: text("source"),
+  sourceId: text("source_id"),
   createdAt: text("created_at").notNull(),
   paidAt: text("paid_at"),
   paymentFailureDetails: text("payment_failure_details"),
@@ -324,6 +424,12 @@ export const orders = sqliteTable(
     githubAccessRevokedAt: text("github_access_revoked_at"),
   },
   (table) => [
+    uniqueIndex("orders_source_idx").on(
+      table.userId,
+      table.environment,
+      table.source,
+      table.sourceId,
+    ),
     index("orders_user_store_environment_created_idx").on(
       table.userId,
       table.storeId,

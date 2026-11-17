@@ -1,4 +1,4 @@
-import { findOrderById, findProductById } from "@/lib/db";
+import { findOrderById, findProductForOrder } from "@/lib/db";
 import { getOrderLicense } from "@/lib/commerce-features";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
 import { readStoredProductFile } from "@/lib/product-file-storage";
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const order = await findOrderById(orderId);
   if (!order || order.status !== "paid") return jsonError("Not found", 404);
   const [product, license] = await Promise.all([
-    findProductById(order.productId),
+    findProductForOrder(order),
     getOrderLicense(order.userId, order.id),
   ]);
   const licenseEntitlement = license

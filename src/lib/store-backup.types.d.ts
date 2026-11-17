@@ -3,6 +3,7 @@ import {
   customerAccounts,
   featureRecords,
   orders,
+  productVariants,
   products,
   stores,
 } from "@/db/schema";
@@ -10,6 +11,10 @@ import type { PayPalMode } from "./types";
 
 export type StoreBackupStore = Omit<typeof stores.$inferSelect, "userId">;
 export type StoreBackupProduct = Omit<typeof products.$inferSelect, "userId">;
+export type StoreBackupVariant = Omit<
+  typeof productVariants.$inferSelect,
+  "userId"
+>;
 export type StoreBackupOrder = Omit<typeof orders.$inferSelect, "userId">;
 export type StoreBackupCheckoutReminder = Omit<
   typeof checkoutReminders.$inferSelect,
@@ -31,6 +36,8 @@ export interface StoreBackupFile {
   data: {
     stores?: StoreBackupStore[];
     products: StoreBackupProduct[];
+    /** Absent in backups made before variants existed. */
+    variants?: StoreBackupVariant[];
     orders: StoreBackupOrder[];
     checkoutReminders: StoreBackupCheckoutReminder[];
     featureRecords: StoreBackupFeatureRecord[];
@@ -46,6 +53,7 @@ export interface StoreBackupImportOptions {
 export interface StoreBackupImportResult {
   preserveIds: boolean;
   products: number;
+  variants?: number;
   orders: number;
   checkoutReminders: number;
   featureRecords: number;

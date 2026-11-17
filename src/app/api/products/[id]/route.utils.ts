@@ -20,5 +20,19 @@ export function omitProductPurchaseDetails<T extends object>(
     Reflect.deleteProperty(publicProduct, field);
   }
 
+  // Variants carry the same purchase-only overrides.
+  const variants = (publicProduct as { variants?: unknown }).variants;
+  if (Array.isArray(variants)) {
+    (publicProduct as { variants?: unknown }).variants = variants.map(
+      (variant) => {
+        const publicVariant = { ...(variant as object) };
+        for (const field of purchaseOnlyProductFields) {
+          Reflect.deleteProperty(publicVariant, field);
+        }
+        return publicVariant;
+      },
+    );
+  }
+
   return publicProduct;
 }

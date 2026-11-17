@@ -1,6 +1,6 @@
 import "server-only";
-
-import { and, asc, desc, eq, lte, or, sql } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { and, asc, desc, eq, inArray, lte, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   githubConnections as githubConnectionsTable,
@@ -10,6 +10,7 @@ import {
   stripeConnections as stripeTable,
   stores as storesTable,
   users as usersTable,
+  productVariants as productVariantsTable,
 } from "@/db/schema";
 import type { CreateUserInput, UpdateProductInput } from "./db.types";
 import type {
@@ -34,6 +35,11 @@ import {
 } from "./product-files.utils";
 import { getStoreCredentialSource } from "./stores";
 import { incrementProductPurchaseCount } from "./product-purchases";
+import {
+  productForOrder,
+  seatLimitFromColumn,
+  type ProductVariantRecord,
+} from "./product-variants";
 import {
   getProductCategoryIds,
   replaceProductCategories,
@@ -113,11 +119,129 @@ function rowToUser(row: typeof usersTable.$inferSelect): User {
   };
 }
 
+type VariantRow = typeof productVariantsTable.$inferSelect;
+
+function parseVariantFiles(value: string | null): ProductVariantRecord["productFiles"] {
+  return value === null ? null : parseProductFiles(value);
+}
+
+function rowToVariant(row: VariantRow): ProductVariantRecord {
+  return {
+    id: row.id,
+    productId: row.productId,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    sort: row.sort,
+    status: row.status,
+    price: row.price,
+    customAmountEnabled: row.customAmountEnabled,
+    minPrice: row.minPrice,
+    suggestedPrice: row.suggestedPrice,
+    billingType: row.billingType,
+    intervalUnit: row.intervalUnit,
+    intervalCount: row.intervalCount,
+    trialDays: row.trialDays,
+    productFiles: parseVariantFiles(row.productFiles),
+    generateLicense: row.generateLicense,
+    licenseType: row.licenseType,
+    licenseSeatLimit: seatLimitFromColumn(row.licenseSeatLimit),
+    licenseUpdatePeriodUnit: row.licenseUpdatePeriodUnit,
+    licenseUpdatePeriodCount: row.licenseUpdatePeriodCount,
+    deliveryContent: row.deliveryContent,
+    redirectUrl: row.redirectUrl,
+    githubRepoOwner: row.githubRepoOwner,
+    githubRepoName: row.githubRepoName,
+  };
+}
+
+export async function getProductVariants(
+  productIds: string[],
+): Promise<Map<string, ProductVariantRecord[]>> {
+  const map = new Map<string, ProductVariantRecord[]>();
+  if (!productIds.length) return map;
+  const db = await getDb();
+  const rows = await db.query.productVariants.findMany({
+    where: inArray(productVariantsTable.productId, productIds),
+    orderBy: [asc(productVariantsTable.sort), asc(productVariantsTable.createdAt)],
+  });
+  for (const row of rows) {
+    const list = map.get(row.productId) ?? [];
+    list.push(rowToVariant(row));
+    map.set(row.productId, list);
+  }
+  return map;
+}
+
+function variantSlug(name: string, fallback: string): string {
+  const slug = name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return slug || fallback;
+}
+
+/**
+ * Keeps `product_variants` in step with the price-only option list the editor
+ * saves. Matching IDs keep their overrides; new IDs create variants; published
+ * variants missing from the list are removed.
+ */
+async function syncOptionsToVariants(
+  product: Pick<Product, "id" | "userId" | "storeId" | "environment">,
+  options: Product["options"],
+): Promise<void> {
+  const db = await getDb();
+  const existing = await db.query.productVariants.findMany({
+    where: eq(productVariantsTable.productId, product.id),
+  });
+  const byId = new Map(existing.map((row) => [row.id, row]));
+  const keep = new Set(options.map((option) => option.id));
+  const now = new Date().toISOString();
+  for (const [index, option] of options.entries()) {
+    const current = byId.get(option.id);
+    if (current) {
+      await db
+        .update(productVariantsTable)
+        .set({ name: option.name, price: option.price, sort: index, updatedAt: now })
+        .where(eq(productVariantsTable.id, option.id));
+    } else {
+      await db.insert(productVariantsTable).values({
+        id: option.id,
+        productId: product.id,
+        userId: product.userId,
+        storeId: product.storeId,
+        environment: product.environment,
+        name: option.name,
+        slug: variantSlug(option.name, `option-${index}`),
+        sort: index,
+        status: "published",
+        price: option.price,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  }
+  for (const row of existing) {
+    if (row.status === "published" && !keep.has(row.id)) {
+      await db
+        .delete(productVariantsTable)
+        .where(eq(productVariantsTable.id, row.id));
+    }
+  }
+}
+
 function rowToProduct(
   row: typeof productsTable.$inferSelect,
   categoryIds?: string[],
+  variants?: ProductVariantRecord[],
 ): Product {
   const resolvedCategoryIds = categoryIds || [];
+  const publishedVariants = (variants ?? []).filter(
+    (variant) => variant.status === "published",
+  );
   return {
     id: row.id,
     userId: row.userId,
@@ -125,7 +249,15 @@ function rowToProduct(
     categoryId: row.categoryId ?? undefined,
     categoryIds: resolvedCategoryIds,
     purchaseCount: row.purchaseCount,
-    options: parseProductOptions(row.options),
+    // Variants are the source of truth; `options` mirrors them for older code.
+    options: publishedVariants.length
+      ? publishedVariants.map((variant) => ({
+          id: variant.id,
+          name: variant.name,
+          price: variant.price,
+        }))
+      : parseProductOptions(row.options),
+    variants: variants ?? [],
     bundles: parseProductBundles(row.bundles),
     environment: row.environment,
     name: row.name,
@@ -206,6 +338,8 @@ function rowToOrder(row: typeof ordersTable.$inferSelect): Order {
     stripeCheckoutSessionId: row.stripeCheckoutSessionId ?? undefined,
     stripePaymentIntentId: row.stripePaymentIntentId ?? undefined,
     gateway: row.gateway,
+    variantId: row.variantId ?? undefined,
+    variantName: row.variantName ?? undefined,
     createdAt: row.createdAt,
     paidAt: row.paidAt ?? undefined,
     paymentFailureDetails: row.paymentFailureDetails ?? undefined,
@@ -392,6 +526,14 @@ export async function getGitHubOAuthHostname(
 
 // ── Products ───────────────────────────────────────────────────────────────
 
+/** The product as it was sold on `order`: the ordered variant applied. */
+export async function findProductForOrder(
+  order: Pick<Order, "productId" | "variantId" | "custom">,
+): Promise<Product | undefined> {
+  const product = await findProductById(order.productId);
+  return product ? productForOrder(product, order) : undefined;
+}
+
 export async function listProductsByUser(
   userId: string,
   storeId?: string,
@@ -407,7 +549,10 @@ export async function listProductsByUser(
     orderBy: [desc(productsTable.createdAt)],
   });
   const categoryIds = await getProductCategoryIds(rows.map((row) => row.id));
-  return rows.map((row) => rowToProduct(row, categoryIds.get(row.id)));
+  const variants = await getProductVariants(rows.map((row) => row.id));
+  return rows.map((row) =>
+    rowToProduct(row, categoryIds.get(row.id), variants.get(row.id)),
+  );
 }
 
 /** Lean product rows (no category lookup, no heavy columns). */
@@ -442,7 +587,8 @@ export async function findProductById(id: string): Promise<Product | undefined> 
   });
   if (!row) return undefined;
   const categoryIds = await getProductCategoryIds([row.id]);
-  return rowToProduct(row, categoryIds.get(row.id));
+  const variants = await getProductVariants([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id), variants.get(row.id));
 }
 
 export async function findProductBySlug(
@@ -454,7 +600,8 @@ export async function findProductBySlug(
   });
   if (!row) return undefined;
   const categoryIds = await getProductCategoryIds([row.id]);
-  return rowToProduct(row, categoryIds.get(row.id));
+  const variants = await getProductVariants([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id), variants.get(row.id));
 }
 
 export async function findProductByPublicIdentifier(
@@ -471,7 +618,8 @@ export async function findProductByPublicIdentifier(
   const row = rows.find((candidate) => candidate.id === identifier) || rows[0];
   if (!row) return undefined;
   const categoryIds = await getProductCategoryIds([row.id]);
-  return rowToProduct(row, categoryIds.get(row.id));
+  const variants = await getProductVariants([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id), variants.get(row.id));
 }
 
 export async function findPublishedProduct(
@@ -488,11 +636,32 @@ export async function findPublishedProduct(
   });
   if (!row) return undefined;
   const categoryIds = await getProductCategoryIds([row.id]);
-  return rowToProduct(row, categoryIds.get(row.id));
+  const variants = await getProductVariants([row.id]);
+  return rowToProduct(row, categoryIds.get(row.id), variants.get(row.id));
 }
 
-export async function createProduct(product: Product): Promise<Product> {
+export async function createProduct(input: Product): Promise<Product> {
   const db = await getDb();
+  // Duplicated products reuse option IDs, but variant IDs are global.
+  const optionIds = input.options.map((option) => option.id);
+  const takenIds = optionIds.length
+    ? new Set(
+        (
+          await db
+            .select({ id: productVariantsTable.id })
+            .from(productVariantsTable)
+            .where(inArray(productVariantsTable.id, optionIds))
+        ).map((row) => row.id),
+      )
+    : new Set<string>();
+  const product: Product = takenIds.size
+    ? {
+        ...input,
+        options: input.options.map((option) =>
+          takenIds.has(option.id) ? { ...option, id: randomUUID() } : option,
+        ),
+      }
+    : input;
   await db.insert(productsTable).values({
     id: product.id,
     userId: product.userId,
@@ -546,6 +715,9 @@ export async function createProduct(product: Product): Promise<Product> {
     updatedAt: product.updatedAt,
   });
   await replaceProductCategories(product.id, product.categoryIds);
+  if (product.options.length) {
+    await syncOptionsToVariants(product, product.options);
+  }
   return product;
 }
 
@@ -665,6 +837,17 @@ export async function updateProduct(
     await replaceProductCategories(id, patch.categoryIds);
   }
 
+  if (patch.options !== undefined) {
+    await syncOptionsToVariants(
+      {
+        id,
+        userId,
+        storeId: existing.storeId ?? userId,
+        environment: existing.environment,
+      },
+      patch.options,
+    );
+  }
   return findProductById(id);
 }
 
@@ -738,6 +921,8 @@ export async function listOrderMetricsByUser(
       environment: ordersTable.environment,
       createdAt: ordersTable.createdAt,
       paidAt: ordersTable.paidAt,
+      variantId: ordersTable.variantId,
+      variantName: ordersTable.variantName,
     })
     .from(ordersTable)
     .where(
@@ -762,6 +947,8 @@ export async function listOrderMetricsByUser(
     ...row,
     affiliateId: row.affiliateId ?? undefined,
     paidAt: row.paidAt ?? undefined,
+    variantId: row.variantId ?? undefined,
+    variantName: row.variantName ?? undefined,
   }));
 }
 
@@ -881,6 +1068,8 @@ export async function createOrder(order: Order): Promise<Order> {
     stripeCheckoutSessionId: order.stripeCheckoutSessionId ?? null,
     stripePaymentIntentId: order.stripePaymentIntentId ?? null,
     gateway: order.gateway,
+    variantId: order.variantId ?? null,
+    variantName: order.variantName ?? null,
     createdAt: order.createdAt,
     paidAt: order.paidAt ?? null,
     paymentFailureDetails: order.paymentFailureDetails ?? null,

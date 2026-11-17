@@ -4,7 +4,11 @@ import {
   dashboardButtonBaseClass,
   dashboardPageClass,
 } from "@/components/dashboard/dashboard.styles";
-import { parseAnalyticsCommerceMetrics } from "@/lib/analytics-commerce.utils";
+import {
+  parseAnalyticsCommerceMetrics,
+  summarizeRevenueByVariant,
+} from "@/lib/analytics-commerce.utils";
+import { formatMoney } from "@/lib/format";
 import { getSessionUser } from "@/lib/auth";
 import { listOrderMetricsByUser, listProductSummariesByUser } from "@/lib/db";
 import { getStoreById } from "@/lib/stores";
@@ -88,6 +92,17 @@ export default async function AnalyticsPage({
       ? filter.productId
       : "all";
 
+  const periodOrders = orders.filter((order) => {
+    const date = (order.paidAt || order.createdAt).slice(0, 10);
+    return date >= filter.startDate && date <= filter.endDate;
+  });
+  const productNames = new Map(products.map((product) => [product.id, product.name]));
+  const variantRevenue = summarizeRevenueByVariant(
+    periodOrders.filter(
+      (order) => selectedProductId === "all" || order.productId === selectedProductId,
+    ),
+  );
+
   return (
     <div className={dashboardPageClass}>
       <AnalyticsOverview
@@ -116,6 +131,33 @@ export default async function AnalyticsPage({
           store.analyticsCommerceMetric,
         )}
       />
+      {variantRevenue.length > 0 && (
+        <section className="mt-10" aria-label="Revenue by variant">
+          <h2 className="text-base font-semibold">Revenue by variant</h2>
+          <table className="mt-3 w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#e8e8ee] text-left text-[#85859d]">
+                <th className="py-2 font-medium">Product</th>
+                <th className="py-2 font-medium">Variant</th>
+                <th className="py-2 text-right font-medium">Orders</th>
+                <th className="py-2 text-right font-medium">Revenue</th>
+                <th className="py-2 text-right font-medium">Refunds</th>
+              </tr>
+            </thead>
+            <tbody>
+              {variantRevenue.map((row) => (
+                <tr key={`${row.productId}-${row.variantId}`} className="border-b border-[#f0f0f4]">
+                  <td className="py-2">{productNames.get(row.productId) ?? "Product"}</td>
+                  <td className="py-2">{row.variantName}</td>
+                  <td className="py-2 text-right">{row.orders}</td>
+                  <td className="py-2 text-right">{formatMoney(row.revenue, store.currency)}</td>
+                  <td className="py-2 text-right">{formatMoney(row.refunds, store.currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
     </div>
   );
 }

@@ -7,6 +7,9 @@ import * as featureRoute from "@/app/api/features/[feature]/route";
 import * as featureRecordRoute from "@/app/api/features/[feature]/[id]/route";
 import * as ordersRoute from "@/app/api/orders/route";
 import * as productsRoute from "@/app/api/products/route";
+import * as migrateConnectRoute from "@/app/api/settings/migrate/lemonsqueezy/connect/route";
+import * as migrateStartRoute from "@/app/api/settings/migrate/lemonsqueezy/start/route";
+import * as migrateStatusRoute from "@/app/api/settings/migrate/lemonsqueezy/status/route";
 import * as productRoute from "@/app/api/products/[id]/route";
 import {
   apiKeyResourceActions,
@@ -356,6 +359,74 @@ export const mcpTools: McpToolDefinition[] = [
         { feature, id: String(args.id) }
       );
     },
+  },
+  // Migration (Lemon Squeezy -> Paymug). Free: no Pro check.
+  {
+    name: "migrate_from_lemonsqueezy",
+    description:
+      "Start importing a Lemon Squeezy store (products, variants, files, customers, orders, license keys, discounts, affiliates, subscriptions) into the active Paymug store. Test keys import into sandbox, live keys into live. Omit lsStoreId to list the Lemon Squeezy stores first. Then call advance_migration until the job is completed.",
+    action: "write",
+    resources: ["migrations"],
+    input: () =>
+      z.object({
+        apiKey: z.string().min(20).describe("Lemon Squeezy API key (used for this job only)"),
+        mode: z.enum(["test", "live"]),
+        lsStoreId: z.string().optional().describe("Lemon Squeezy store ID"),
+        stages: z.array(z.string()).optional().describe("Subset of: files, customers, orders, licenses, discounts, affiliates, subscriptions"),
+      }),
+    run: async (args, ctx) => {
+      const connected = await callRoute(ctx, migrateConnectRoute.POST, "POST", "/api/settings/migrate/lemonsqueezy/connect", { apiKey: args.apiKey });
+      if (!connected.ok) return connected;
+      const stores = (connected.body as { stores: Array<{ id: string }> }).stores;
+      const lsStoreId = (args.lsStoreId as string | undefined) ?? (stores.length === 1 ? stores[0].id : undefined);
+      if (!lsStoreId) return { ok: true, status: 200, body: { chooseStore: stores } };
+      return callRoute(ctx, migrateStartRoute.POST, "POST", "/api/settings/migrate/lemonsqueezy/start", {
+        apiKey: args.apiKey,
+        lsStoreId,
+        mode: args.mode,
+        stages: args.stages,
+      });
+    },
+  },
+  {
+    name: "advance_migration",
+    description:
+      "Run up to `steps` import chunks of a Lemon Squeezy migration job and return its progress. Call repeatedly until status is completed.",
+    action: "write",
+    resources: ["migrations"],
+    input: () =>
+      z.object({
+        jobId: idField,
+        steps: z.number().int().min(1).max(20).default(5),
+      }),
+    run: async (args, ctx) => {
+      let last: McpToolResult = { ok: false, status: 500, body: null };
+      for (let step = 0; step < Number(args.steps ?? 5); step += 1) {
+        last = await callRoute(
+          ctx,
+          migrateStatusRoute.POST,
+          "POST",
+          `/api/settings/migrate/lemonsqueezy/status?id=${encodeURIComponent(String(args.jobId))}`,
+        );
+        const status = (last.body as { job?: { status?: string } } | null)?.job?.status;
+        if (!last.ok || status !== "running") break;
+      }
+      return last;
+    },
+  },
+  {
+    name: "get_migration_status",
+    description: "Read the progress of a Lemon Squeezy migration job (latest when jobId is omitted) without advancing it.",
+    action: "read",
+    resources: ["migrations"],
+    input: () => z.object({ jobId: z.string().optional() }),
+    run: (args, ctx) =>
+      callRoute(
+        ctx,
+        migrateStatusRoute.GET,
+        "GET",
+        `/api/settings/migrate/lemonsqueezy/status${args.jobId ? `?id=${encodeURIComponent(String(args.jobId))}` : ""}`,
+      ),
   },
 ];
 

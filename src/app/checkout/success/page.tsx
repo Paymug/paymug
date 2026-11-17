@@ -8,7 +8,7 @@ import {
   cardClass,
 } from "@/components/ui.styles";
 import { getOrderLicense } from "@/lib/commerce-features";
-import { findOrderById, findProductById } from "@/lib/db";
+import { findOrderById, findProductForOrder } from "@/lib/db";
 import { formatMoney } from "@/lib/format";
 import {
   formatProductFileSize,
@@ -79,7 +79,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   }
 
   if (order.status !== "paid") {
-    const product = await findProductById(order.productId);
+    const product = await findProductForOrder(order);
     return (
       <Shell>
         <h1 className="text-2xl font-bold">Payment incomplete</h1>
@@ -101,7 +101,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   }
 
   const [product, license] = await Promise.all([
-    findProductById(order.productId),
+    findProductForOrder(order),
     getOrderLicense(order.userId, order.id),
   ]);
   const licenseEntitlement = license

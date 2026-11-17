@@ -32,6 +32,11 @@ export function resolveProductCheckoutPrice(
   ) {
     throw new Error("Custom amount is outside the supported range");
   }
+  if (product.minPrice && customAmount < product.minPrice) {
+    throw new Error(
+      `Custom amount must be at least ${(product.minPrice / 100).toFixed(2)}`,
+    );
+  }
   return customAmount;
 }
 

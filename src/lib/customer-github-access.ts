@@ -2,7 +2,7 @@ import "server-only";
 
 import {
   findOrderById,
-  findProductById,
+  findProductForOrder,
   updateOrder,
 } from "./db";
 import { listFeatureRecords } from "./feature-records";
@@ -55,7 +55,7 @@ async function getAuthorizedCustomerGitHubOrder(
   if (requireActiveEntitlement && order.status !== "paid") {
     throw new Error("Repository access is only available for paid purchases");
   }
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   if (!product) throw new Error("Product is no longer available");
   const accessProduct = getOrderAccessProduct(order, product);
   if (!accessProduct.githubRepoOwner || !accessProduct.githubRepoName) {

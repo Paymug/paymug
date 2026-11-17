@@ -8,6 +8,7 @@ import {
   customerAccounts,
   featureRecords,
   orders,
+  productVariants,
   products,
   stores,
 } from "@/db/schema";
@@ -56,6 +57,13 @@ export async function exportStoreBackup(
     ]);
   if (!storeRow) throw new Error("Current store was not found");
   const productIds = new Set(productRows.map((product) => product.id));
+  // Filtered in memory: D1 limits bound parameters, products can exceed it.
+  const variantRows = (
+    await db.query.productVariants.findMany({
+      where: eq(productVariants.userId, userId),
+      orderBy: [asc(productVariants.sort)],
+    })
+  ).filter((variant) => productIds.has(variant.productId));
   const orderIds = new Set(orderRows.map((order) => order.id));
   const customerEmails = new Set(
     orderRows.map((order) => order.customerEmail.trim().toLowerCase()),
@@ -85,6 +93,7 @@ export async function exportStoreBackup(
     sourceStoreSlug: storeRow.slug,
     data: {
       products: productRows.map(({ userId: _userId, ...product }) => product),
+      variants: variantRows.map(({ userId: _userId, ...variant }) => variant),
       orders: orderRows.map(({ userId: _userId, ...order }) => order),
       checkoutReminders: reminderRows.map(
         ({ userId: _userId, ...reminder }) => reminder,

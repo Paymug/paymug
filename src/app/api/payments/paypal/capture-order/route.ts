@@ -6,7 +6,7 @@ import {
 } from "@/lib/commerce-features";
 import {
   findOrderById,
-  findProductById,
+  findProductForOrder,
   updateOrder,
 } from "@/lib/db";
 import {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     if (!order) return jsonError("Order not found", 404);
 
     if (order.status === "paid") {
-      const product = await findProductById(order.productId);
+      const product = await findProductForOrder(order);
       if (
         order.githubUsername &&
         (order.githubAccessStatus === "pending" ||
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       customerName: capture.payerName || order.customerName,
     });
 
-    const product = await findProductById(order.productId);
+    const product = await findProductForOrder(order);
     await completeCommerceFeatures(updated!, product);
     const license = await getOrderLicense(updated!.userId, updated!.id);
     await notifyPaymentReceived(updated!);

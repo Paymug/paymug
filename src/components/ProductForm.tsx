@@ -617,6 +617,7 @@ export function ProductForm({
         <ProductConfigurationEditor
           currency={currency}
           defaultPrice={autosavePriceCents}
+          productId={productId || undefined}
           options={options}
           bundles={bundles}
           onOptionsChange={(nextOptions) => {

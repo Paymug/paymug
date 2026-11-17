@@ -5,6 +5,7 @@ import handler from "./.open-next/worker.js";
 import { generateBiweeklyAffiliatePayoutReports } from "./src/worker/affiliate-payout-reports";
 import { processCheckoutReminders } from "./src/worker/checkout-reminders";
 import { processScheduledEmailCampaigns } from "./src/worker/email-campaigns";
+import { resumeStaleMigrationJobs } from "./src/worker/migration-resume";
 import { getStoreDomainRedirect } from "./store-domain-redirect";
 
 export default {
@@ -23,6 +24,11 @@ export default {
         }),
         processScheduledEmailCampaigns(env).then((result) => {
           console.info("Scheduled email campaigns processed", result);
+        }),
+        resumeStaleMigrationJobs(env, (request) =>
+          handler.fetch(request, env, context),
+        ).then((result) => {
+          console.info("Stalled migration jobs resumed", result);
         }),
       ]),
     );

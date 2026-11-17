@@ -7,7 +7,7 @@ import {
 import {
   findOrderByPaypalCaptureId,
   findOrderByPaypalOrderId,
-  findProductById,
+  findProductForOrder,
   updateOrder,
 } from "./db";
 import { revokeGitHubOrderAccess } from "./github-access";
@@ -79,7 +79,7 @@ async function processCaptureCompleted(
     paidAt,
     paymentFailureDetails: null,
   });
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   await completeCommerceFeatures(updated || order, product);
   const license = await getOrderLicense(
     (updated || order).userId,
@@ -137,7 +137,7 @@ async function processInvalidCapture(
     order.status === "refunded"
       ? order
       : await updateOrder(order.id, { status: "refunded" });
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   await revokeGitHubOrderAccess(updated || order, product);
   return true;
 }

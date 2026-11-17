@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { effectiveProduct } from "@/lib/product-variants";
 import { resolveDiscount } from "@/lib/commerce-features";
 import { findProductById } from "@/lib/db";
 import { calculateCheckoutPricing } from "@/lib/product-pricing";
@@ -21,7 +22,8 @@ export async function POST(req: Request) {
       return jsonError(parsed.error.issues[0]?.message || "Invalid input");
     }
 
-    const product = await findProductById(parsed.data.productId);
+    const loadedProduct = await findProductById(parsed.data.productId);
+    const product = loadedProduct && effectiveProduct(loadedProduct, parsed.data.custom);
     if (!product || product.status !== "published") {
       return jsonError("Product not available", 404);
     }

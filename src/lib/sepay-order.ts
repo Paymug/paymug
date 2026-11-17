@@ -2,7 +2,7 @@ import {
   completeCommerceFeatures,
   getOrderLicense,
 } from "./commerce-features";
-import { findOrderById, findProductById, updateOrder } from "./db";
+import { findOrderById, findProductForOrder, updateOrder } from "./db";
 import { grantGitHubOrderAccess } from "./github-access";
 import { notifyPaymentReceived } from "./notification-events";
 import {
@@ -33,7 +33,7 @@ export async function completeSepayOrder(
     throw new Error("Order not found");
   }
   if (order.status === "paid") {
-    const product = await findProductById(order.productId);
+    const product = await findProductForOrder(order);
     if (
       order.githubUsername &&
       (order.githubAccessStatus === "pending" ||
@@ -58,7 +58,7 @@ export async function completeSepayOrder(
     paymentFailureDetails: null,
   });
   if (!updated) throw new Error("Could not update order");
-  const product = await findProductById(order.productId);
+  const product = await findProductForOrder(order);
   await completeCommerceFeatures(updated, product);
   const license = await getOrderLicense(updated.userId, updated.id);
   await notifyPaymentReceived(updated);

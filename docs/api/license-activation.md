@@ -61,3 +61,18 @@ and remove one. A removed device fails its next validation.
 
 Keep the license key secret. Do not retry an activation conflict in a loop. See
 the [AI license runbook](/docs/license-activation.md) for a complete example.
+
+## Lemon Squeezy compatibility
+
+Apps that validate keys against Lemon Squeezy only need a new base URL. These
+endpoints accept form-encoded or JSON bodies and return the Lemon Squeezy shape:
+
+| Method | Path | Body |
+| --- | --- | --- |
+| `POST` | `/api/compat/lemonsqueezy/v1/licenses/validate` | `license_key`, optional `instance_id` |
+| `POST` | `/api/compat/lemonsqueezy/v1/licenses/activate` | `license_key`, `instance_name` |
+| `POST` | `/api/compat/lemonsqueezy/v1/licenses/deactivate` | `license_key`, `instance_id` |
+
+Keys imported from Lemon Squeezy keep working, including their activation limit,
+expiry and existing instance IDs. `activation_limit` is `0` for unlimited. The
+endpoints do not require an API key, matching Lemon Squeezy.

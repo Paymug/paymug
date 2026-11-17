@@ -5,10 +5,11 @@ import type {
   ProductBundle,
   ProductOption,
 } from "./product-configurations.types";
+import type { ProductVariantRecord } from "./product-variants";
 
 export type PayPalMode = "sandbox" | "live";
 export type PaymentGateway = "paypal" | "stripe" | "sepay";
-export type OrderGateway = "paypal" | "stripe" | "sepay" | "free";
+export type OrderGateway = "paypal" | "stripe" | "sepay" | "free" | "lemonsqueezy";
 export type AffiliateCommissionType = "percentage" | "fixed";
 export type AffiliateCommissionDuration = "one_time" | "recurring";
 export type AffiliateAttributionModel = "first_click" | "last_click";
@@ -130,6 +131,13 @@ export interface Product {
   categoryIds: string[];
   purchaseCount: number;
   options: ProductOption[];
+  /** Native variants. `options` mirrors these (id, name, price) for older code. */
+  variants?: ProductVariantRecord[];
+  /** Set when this product is the effective view of one variant. */
+  variantId?: string;
+  variantName?: string;
+  minPrice?: number | null;
+  suggestedPrice?: number | null;
   bundles: ProductBundle[];
   environment: PayPalMode;
   name: string;
@@ -209,6 +217,8 @@ export type OrderMetric = Pick<
   | "environment"
   | "createdAt"
   | "paidAt"
+  | "variantId"
+  | "variantName"
 >;
 
 /** Lean product projection for dashboard filters and counts. */
@@ -231,6 +241,8 @@ export interface Order {
   status: OrderStatus;
   customerEmail: string;
   customerName?: string;
+  variantId?: string | null;
+  variantName?: string | null;
   custom: CheckoutCustomData;
   discountCode?: string;
   discountAmount: number;

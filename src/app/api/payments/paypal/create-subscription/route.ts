@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { noteResubscribeStarted, resolveResubscribe } from "@/lib/lemonsqueezy/resubscribe.server";
+import { effectiveProduct } from "@/lib/product-variants";
 import { z } from "zod";
 import {
   findAffiliateByCode,
@@ -44,10 +46,30 @@ export async function POST(req: Request) {
       return jsonError(parsed.error.issues[0]?.message || "Invalid input");
     }
 
-    const product = await findProductById(parsed.data.productId);
-    if (!product || product.status !== "published") {
+    const loadedProduct = await findProductById(parsed.data.productId);
+    const effective = loadedProduct && effectiveProduct(loadedProduct, parsed.data.custom);
+    if (!effective || effective.status !== "published") {
       return jsonError("Product not available", 404);
     }
+    let resubscribe: Awaited<ReturnType<typeof resolveResubscribe>>;
+    try {
+      resubscribe = effective.billingType === "subscription"
+        ? await resolveResubscribe(
+            parsed.data.custom,
+            parsed.data.customerEmail,
+            effective.id,
+          )
+        : undefined;
+    } catch (resubscribeError) {
+      return jsonError(
+        resubscribeError instanceof Error ? resubscribeError.message : "Invalid re-subscribe link",
+        400,
+      );
+    }
+    const product = resubscribe
+      ? { ...effective, trialDays: resubscribe.trialDays }
+      : effective;
+    if (resubscribe) await noteResubscribeStarted(resubscribe.recordId);
     if (!isSubscriptionProduct(product)) {
       return jsonError("This product is not a subscription", 400);
     }
