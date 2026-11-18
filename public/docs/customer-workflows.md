@@ -34,6 +34,16 @@ confirm the email address, store URL, payment status, and test/live mode.
 If the seat limit did not change, confirm the payment completed and the order is
 paid. Subscription products do not offer extra seats in the portal.
 
+## Cancel a subscription
+
+1. Open the Subscriptions section of the portal.
+2. Select Cancel subscription on the plan and confirm.
+
+Billing stops immediately and the plan shows as cancelled. It cannot be undone:
+to subscribe again the customer buys the plan again. The button only appears for
+active, trialing, past due or paused plans. If it is missing or fails, send the
+customer to the store owner; the owner can cancel from the dashboard.
+
 ## Manage licensed devices
 
 1. Open a purchase that includes a license key.

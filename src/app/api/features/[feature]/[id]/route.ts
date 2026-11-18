@@ -13,6 +13,8 @@ import { notifySubscriptionUpdated } from "@/lib/notification-events";
 import { parseSubscriptionTrialDays } from "@/lib/subscription-trial.utils";
 import { jsonError } from "@/lib/utils";
 import { changePayPalSubscriptionState } from "@/lib/paypal-subscriptions";
+import { getStripeCredentials } from "@/lib/payment-credentials";
+import { cancelStripeSubscription } from "@/lib/stripe";
 import { sendSubscriptionStatusEmail } from "@/lib/transactional-emails";
 import { getStoreById } from "@/lib/stores";
 import { syncGitHubAccessForLicense } from "@/lib/github-access";
@@ -220,6 +222,34 @@ export async function PATCH(
           400
         );
       }
+    }
+  }
+
+  if (
+    feature === "subscriptions" &&
+    input.status === "cancelled" &&
+    existing.status !== "cancelled" &&
+    !existing.data.paypalSubscriptionId &&
+    existing.data.stripeSubscriptionId
+  ) {
+    try {
+      const stripe = await getStripeCredentials(
+        user.id,
+        existing.environment,
+        String(existing.data.storeId || "") || user.activeStoreId
+      );
+      if (!stripe) throw new Error("Stripe credentials are not configured");
+      await cancelStripeSubscription(
+        stripe.secretKey,
+        String(existing.data.stripeSubscriptionId)
+      );
+    } catch (error) {
+      return jsonError(
+        error instanceof Error
+          ? error.message
+          : "Could not cancel the Stripe subscription",
+        400
+      );
     }
   }
 

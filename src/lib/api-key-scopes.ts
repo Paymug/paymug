@@ -6,6 +6,7 @@ export const apiKeyResources = [
   "discounts",
   "licenses",
   "subscribers",
+  "subscriptions",
   "migrations",
 ] as const;
 
@@ -22,6 +23,8 @@ export const apiKeyResourceActions: Record<ApiKeyResource, ApiKeyAction[]> = {
   discounts: ["read", "write", "delete"],
   licenses: ["read", "write", "delete"],
   subscribers: ["read", "write", "delete"],
+  /** Recurring plans. `write` cancels; subscriptions cannot be deleted. */
+  subscriptions: ["read", "write"],
   migrations: ["read", "write"],
 };
 

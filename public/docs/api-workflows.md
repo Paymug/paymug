@@ -24,6 +24,16 @@ curl "$BASE_URL/api/v1/products" \
 Use the same key with `/api/v1/orders` and `/api/v1/customers`. The key owner
 limits what the agent can read. Keep test and live data separate.
 
+## Cancel a subscription
+
+1. Use a key with `subscriptions:write` and confirm the environment (sandbox or
+   live) with the user.
+2. `GET /api/v1/subscriptions` and match the customer by `subtitle` (email) and
+   `title` (plan). Never guess an id.
+3. Confirm with the user: cancelling stops billing now and cannot be undone.
+4. `POST /api/v1/subscriptions/{id}/cancel`, then check `subscription.status` is
+   `cancelled`. A `subscription_cancelled` webhook is sent if one is configured.
+
 ## Rotate a key
 
 Create and test a replacement key first. Update the integration secret. Revoke

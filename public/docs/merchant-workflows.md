@@ -22,7 +22,9 @@ explicitly allow it.
 
 Create a subscription product, set the plan and trial if needed, publish it, and
 complete a sandbox subscription. Check approval, active, failed, cancelled, and
-expired states using the provider test tools.
+expired states using the provider test tools. To test cancelling, cancel from the
+customer portal, the dashboard, or `POST /api/v1/subscriptions/{id}/cancel`, then
+check the status is `cancelled` and the `subscription_cancelled` webhook arrived.
 
 ## Product delivery
 

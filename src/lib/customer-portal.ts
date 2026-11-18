@@ -24,6 +24,7 @@ import {
 } from "./extra-seats";
 import { getPayPalCredentials, getStripeCredentials } from "./payment-credentials";
 import { loadCustomerPortalResources } from "./customer-portal.queries";
+import { isCancellableSubscriptionStatus } from "./subscription-cancel.utils";
 
 function parseRecordData(value: string): Record<string, FeatureRecordValue> {
   try {
@@ -255,6 +256,7 @@ export async function getCustomerPortalData(
               ? data.nextBillingAt
               : undefined,
           updatedAt: record.updatedAt,
+          cancellable: isCancellableSubscriptionStatus(record.status),
           affiliateProgramEnabled:
             affiliatesUnlocked && (store?.affiliatesEnabled ?? false),
         };

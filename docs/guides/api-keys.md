@@ -19,7 +19,7 @@ file, browser bundle, or issue report. See the [API quickstart](../api/quickstar
 ## MCP server
 
 AI clients can manage products, categories, orders, customers, discounts,
-licenses and subscribers through the MCP server at `POST /api/mcp`
+licenses, subscribers and subscriptions through the MCP server at `POST /api/mcp`
 (Streamable HTTP, `Authorization: Bearer <key>`). The tools a client sees
 depend on the key's permissions; calls outside them are rejected. Writes act on
 the store and environment (sandbox/live) active for the key's owner.
@@ -37,6 +37,12 @@ Example client config:
   }
 }
 ```
+
+The `subscriptions` permission (read / write) unlocks `list_subscriptions` and
+`cancel_subscription`, and `GET /api/v1/subscriptions` and
+`POST /api/v1/subscriptions/{id}/cancel`. Write means cancel: it stops billing
+at PayPal or Stripe immediately and cannot be undone. Subscriptions have no
+delete permission.
 
 The `migrations` permission (read / write) unlocks the import tools:
 `migrate_from_lemonsqueezy`, `migrate_from_source` (Polar, Paddle, Dodo

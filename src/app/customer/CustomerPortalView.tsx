@@ -14,6 +14,7 @@ import { formatMoney } from "@/lib/format";
 import type { CustomerPortalPurchase } from "@/lib/customer-portal.types";
 import { CustomerPortalFrame } from "./CustomerPortalFrame";
 import { CustomerPurchaseModal } from "./CustomerPurchaseModal";
+import { CustomerSubscriptionCancel } from "./CustomerSubscriptionCancel";
 import type { CustomerPortalViewProps } from "./CustomerPortalView.types";
 import {
   formatCustomerPortalDateTime,
@@ -218,6 +219,12 @@ export function CustomerPortalView({
                         : "Price unavailable"}
                       {subscription.interval ? ` / ${subscription.interval}` : ""}
                     </p>
+                    {subscription.cancellable && (
+                      <CustomerSubscriptionCancel
+                        subscriptionId={subscription.id}
+                        planName={subscription.planName}
+                      />
+                    )}
                   </article>
                 ))
               ) : (

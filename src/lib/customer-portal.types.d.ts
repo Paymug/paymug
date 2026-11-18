@@ -83,6 +83,8 @@ export interface CustomerPortalSubscription {
   trialEndsAt?: string;
   nextBillingAt?: string;
   updatedAt: string;
+  /** True when the customer can cancel this plan from the portal. */
+  cancellable: boolean;
   affiliateProgramEnabled: boolean;
 }
 

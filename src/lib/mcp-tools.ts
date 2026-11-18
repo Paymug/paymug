@@ -13,6 +13,12 @@ import * as migrateStatusRoute from "@/app/api/settings/migrate/lemonsqueezy/sta
 import * as migrateSourceConnectRoute from "@/app/api/settings/migrate/[source]/connect/route";
 import * as migrateSourceStartRoute from "@/app/api/settings/migrate/[source]/start/route";
 import * as productRoute from "@/app/api/products/[id]/route";
+import { getSessionUser } from "./auth";
+import { listFeatureRecords } from "./feature-records";
+import {
+  cancelSubscriptionForOwner,
+  SubscriptionCancelError,
+} from "./subscription-cancel";
 import {
   apiKeyResourceActions,
   hasApiKeyScope,
@@ -360,6 +366,59 @@ export const mcpTools: McpToolDefinition[] = [
         undefined,
         { feature, id: String(args.id) }
       );
+    },
+  },
+  // Subscriptions: list and cancel (never deleted)
+  {
+    name: "list_subscriptions",
+    description:
+      "List recurring subscriptions in the active environment, newest first. Each has a status (active, trialing, cancelled, ...) and the customer email in `subtitle`.",
+    action: "read",
+    resources: ["subscriptions"],
+    input: () =>
+      z.object({
+        limit: z.number().int().min(1).max(500).optional().describe("Default 100"),
+        status: z.string().optional().describe("Only subscriptions with this status"),
+      }),
+    run: async (args) => {
+      const user = await getSessionUser();
+      if (!user) return { ok: false, status: 401, body: { error: "Unauthorized" } };
+      const records = await listFeatureRecords(user.id, "subscriptions", user.environment);
+      const filtered = args.status
+        ? records.filter((record) => record.status === args.status)
+        : records;
+      return {
+        ok: true,
+        status: 200,
+        body: { subscriptions: filtered.slice(0, Number(args.limit) || 100) },
+      };
+    },
+  },
+  {
+    name: "cancel_subscription",
+    description:
+      "Cancel a subscription at its payment provider (PayPal or Stripe) and mark it cancelled. Takes effect immediately and cannot be undone: the customer must buy again to resume. Safe to repeat on an already-cancelled subscription.",
+    action: "write",
+    resources: ["subscriptions"],
+    input: () => z.object({ id: idField.describe("Subscription record ID") }),
+    run: async (args, ctx) => {
+      const user = await getSessionUser();
+      if (!user) return { ok: false, status: 401, body: { error: "Unauthorized" } };
+      try {
+        const subscription = await cancelSubscriptionForOwner({
+          id: String(args.id),
+          userId: user.id,
+          environment: user.environment,
+          source: "mcp",
+          requestUrl: ctx.origin,
+        });
+        return { ok: true, status: 200, body: { subscription } };
+      } catch (error) {
+        if (error instanceof SubscriptionCancelError) {
+          return { ok: false, status: error.status, body: { error: error.message } };
+        }
+        throw error;
+      }
     },
   },
   // Migration (Lemon Squeezy -> Paymug). Free: no Pro check.

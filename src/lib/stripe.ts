@@ -223,3 +223,18 @@ export async function createStripeMigratedSubscription(
     body,
   });
 }
+
+/**
+ * Cancels a Stripe subscription immediately. Stripe answers 404 for an
+ * unknown or already-deleted subscription; callers treat that as cancelled.
+ */
+export async function cancelStripeSubscription(
+  secretKey: string,
+  subscriptionId: string,
+): Promise<void> {
+  await stripeRequest<{ id: string; status: string }>(
+    secretKey,
+    `/subscriptions/${encodeURIComponent(subscriptionId)}`,
+    { method: "DELETE" },
+  );
+}

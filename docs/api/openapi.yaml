@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Paymug Public API
   version: 0.1.0
-  description: API-key resource endpoints for products, orders, and customers.
+  description: API-key resource endpoints for products, orders, customers, and subscriptions.
 servers:
   - url: https://{host}
     variables:
@@ -78,8 +78,93 @@ paths:
                       additionalProperties: true
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/v1/subscriptions:
+    get:
+      operationId: listSubscriptions
+      summary: List subscriptions
+      description: Requires the `subscriptions:read` permission. Returns the key owner's subscriptions in their active environment.
+      security:
+        - bearerApiKey: []
+        - apiKeyHeader: []
+      responses:
+        '200':
+          description: Subscriptions owned by the API-key owner.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [subscriptions]
+                properties:
+                  subscriptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The key lacks `subscriptions:read`.
+  /api/v1/subscriptions/{id}/cancel:
+    post:
+      operationId: cancelSubscription
+      summary: Cancel a subscription
+      description: |
+        Requires the `subscriptions:write` permission. Cancels the subscription at
+        its payment provider (PayPal or Stripe) immediately and sets its status to
+        `cancelled`. This cannot be undone. Repeating the call on a cancelled
+        subscription returns it unchanged with `200`.
+      security:
+        - bearerApiKey: []
+        - apiKeyHeader: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription record ID, from `GET /api/v1/subscriptions`.
+      responses:
+        '200':
+          description: The cancelled subscription.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [subscription]
+                properties:
+                  subscription:
+                    $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The key lacks `subscriptions:write`.
+        '404':
+          description: No such subscription in the key owner's active environment.
+        '409':
+          description: The subscription is in a state that cannot be cancelled (for example a pending migration).
+        '502':
+          description: The payment provider rejected the cancellation. The subscription is unchanged; retry later.
 components:
   schemas:
+    Subscription:
+      type: object
+      additionalProperties: true
+      required: [id, title, status]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          description: Plan or product name.
+        subtitle:
+          type: string
+          description: Customer email.
+        status:
+          type: string
+          description: For example `active`, `trialing`, `suspended`, `cancelled`.
+        data:
+          type: object
+          additionalProperties: true
+          description: Includes `cancelledAt` and `cancelledBy` (`customer`, `api` or `mcp`) after a cancellation made through Paymug.
     ExtraSeatTier:
       type: object
       required: [from, price]

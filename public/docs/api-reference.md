@@ -15,6 +15,8 @@ Authentication: API key in `Authorization: Bearer <key>` or `x-api-key`.
 | `GET` | `/api/v1/products` | Products for the API-key owner |
 | `GET` | `/api/v1/orders` | Orders for the API-key owner |
 | `GET` | `/api/v1/customers` | Customers for the API-key owner |
+| `GET` | `/api/v1/subscriptions` | Subscriptions for the API-key owner (`subscriptions:read`) |
+| `POST` | `/api/v1/subscriptions/{id}/cancel` | Cancel a subscription (`subscriptions:write`) |
 | `POST` | `/api/v1/licenses/activate` | Activate a Pro installation |
 | `POST` | `/api/v1/licenses/validate` | Validate a Pro installation |
 | `POST` | `/api/v1/licenses/deactivate` | Deactivate a Pro installation |
@@ -55,6 +57,26 @@ checkout custom fields `seat_addon_order` (the original order ID) and
 license's current extra seats; options and bundles are ignored. The email must
 match the original purchase, and subscription products are rejected. When the
 order is paid, the license `seatLimit` and `extraSeats` increase by that count.
+
+## Cancel a subscription
+
+`POST /api/v1/subscriptions/{id}/cancel` needs a key with `subscriptions:write`.
+Take `{id}` from `GET /api/v1/subscriptions`. It has no body.
+
+- Cancels at PayPal or Stripe **immediately**; it cannot be undone and the
+  customer must buy again to resume. Get the customer's or owner's explicit
+  confirmation before calling it.
+- `200` returns `{ "subscription": { ... "status": "cancelled" } }`. The record's
+  `data.cancelledAt` and `data.cancelledBy` (`api`) are set.
+- Calling it on an already-cancelled subscription is safe and returns `200`.
+- `404`: the id is not in the key owner's active environment (sandbox/live).
+- `409`: the status cannot be cancelled (for example `migration_pending`). Do not retry.
+- `502`: the provider refused it and nothing changed. Retry later, once.
+- Check `status` is `cancelled` in the response; then report it.
+
+The MCP server at `POST /api/mcp` offers the same through `list_subscriptions`
+and `cancel_subscription` (`{ "id": "..." }`) for keys with the matching
+permission.
 
 ## Authentication example
 
