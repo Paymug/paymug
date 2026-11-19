@@ -12,6 +12,7 @@ import { getStripeCredentials } from "./payment-credentials";
 import { notifyPaymentReceived } from "./notification-events";
 import { retrieveStripeCheckoutSession } from "./stripe";
 import { sendStoreOrderPaymentEmail } from "./store-notification-emails";
+import { ensureStripeSubscriptionRecord } from "./stripe-subscriptions";
 import { sendPurchaseConfirmationEmail } from "./transactional-emails";
 
 export async function completeStripeOrder(
@@ -63,6 +64,9 @@ export async function completeStripeOrder(
   ) {
     throw new Error(`Stripe payment is ${session.payment_status}`);
   }
+  // Before marking the order paid, so a failure here is retried by the next
+  // success redirect or webhook delivery instead of being skipped as "paid".
+  await ensureStripeSubscriptionRecord(session, order);
   const updated = await updateOrder(order.id, {
     status: "paid",
     amount: session.amount_total ?? order.amount,

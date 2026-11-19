@@ -121,6 +121,17 @@ export function StripeConnectionCard({
             <code className="font-mono text-xs">{connection.webhookUrl}</code>
           </p>
         )}
+        <p className="mt-1 text-muted">
+          <span className="text-foreground">Events:</span>{" "}
+          <code className="font-mono text-xs">
+            checkout.session.completed, checkout.session.async_payment_succeeded,
+            checkout.session.async_payment_failed, invoice.paid,
+            invoice.payment_failed, customer.subscription.updated,
+            customer.subscription.deleted
+          </code>
+          . The invoice and subscription events keep recurring subscriptions in
+          sync.
+        </p>
       </div>
 
       <div className="mt-6 rounded-xl border border-border bg-background p-4 text-sm text-muted">

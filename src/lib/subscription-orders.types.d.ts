@@ -28,6 +28,13 @@ export interface RecordSubscriptionPaymentOrderInput {
   isRenewal: boolean;
   paymentNumber?: number;
   provisionBenefits: boolean;
+  /**
+   * Stripe renewals: a deterministic order id derived from the invoice, so a
+   * redelivered webhook finds the order it already created.
+   */
+  gateway?: "paypal" | "stripe";
+  orderId?: string;
+  stripePaymentIntentId?: string;
 }
 
 export interface ActivateSubscriptionTrialOrderInput {

@@ -2,6 +2,16 @@ import { getStripeCredentials } from "@/lib/payment-credentials";
 import { completeStripeOrder } from "@/lib/stripe-order";
 import { failStripeOrder } from "@/lib/stripe-order-failure";
 import { parseVerifiedStripeWebhook } from "@/lib/stripe-webhooks";
+import {
+  handleStripeInvoicePaid,
+  handleStripeInvoicePaymentFailed,
+  handleStripeSubscriptionChange,
+} from "@/lib/stripe-subscriptions";
+import type {
+  StripeCheckoutSession,
+  StripeInvoice,
+  StripeSubscription,
+} from "@/lib/stripe.types";
 import type { PayPalMode } from "@/lib/types";
 import type { StripeWebhookRouteContext } from "./route.types";
 
@@ -38,7 +48,7 @@ export async function POST(
       event.type === "checkout.session.completed" ||
       event.type === "checkout.session.async_payment_succeeded"
     ) {
-      const session = event.data.object;
+      const session = event.data.object as StripeCheckoutSession;
       const orderId =
         session.metadata.orderId || session.client_reference_id;
       if (!orderId) throw new Error("Stripe event has no order reference");
@@ -46,11 +56,34 @@ export async function POST(
         await completeStripeOrder(orderId, session.id, request.url);
       }
     } else if (event.type === "checkout.session.async_payment_failed") {
-      const session = event.data.object;
+      const session = event.data.object as StripeCheckoutSession;
       const orderId =
         session.metadata.orderId || session.client_reference_id;
       if (!orderId) throw new Error("Stripe event has no order reference");
       await failStripeOrder(orderId, userId, rawMode, event);
+    } else if (event.type === "invoice.paid") {
+      await handleStripeInvoicePaid(event.data.object as StripeInvoice, {
+        userId,
+        mode: rawMode,
+      });
+    } else if (event.type === "invoice.payment_failed") {
+      await handleStripeInvoicePaymentFailed(
+        event.data.object as StripeInvoice,
+        { userId, mode: rawMode, requestUrl: request.url },
+      );
+    } else if (
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      await handleStripeSubscriptionChange(
+        event.data.object as StripeSubscription,
+        {
+          userId,
+          mode: rawMode,
+          deleted: event.type === "customer.subscription.deleted",
+          requestUrl: request.url,
+        },
+      );
     }
     return Response.json({ received: true });
   } catch (error) {

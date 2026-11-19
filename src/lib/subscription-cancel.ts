@@ -90,6 +90,13 @@ export async function cancelSubscriptionRecord(
     );
   }
 
+  // Stripe's `customer.subscription.deleted` webhook may already have marked
+  // this record cancelled (and emailed the customer) while we waited.
+  if (text(record.data.stripeSubscriptionId)) {
+    const current = await findFeatureRecord(record.id, record.userId);
+    if (current && isTerminalSubscriptionStatus(current.status)) return current;
+  }
+
   const updated = await updateFeatureRecord(record.id, record.userId, {
     status: "cancelled",
     data: {

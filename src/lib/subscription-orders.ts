@@ -204,12 +204,16 @@ function createPaidSubscriptionOrder(
     affiliateId:
       typeof data.affiliateId === "string" ? data.affiliateId : undefined,
     environment: input.subscription.environment,
-    paypalOrderId:
-      typeof data.paypalSubscriptionId === "string"
-        ? data.paypalSubscriptionId
-        : undefined,
-    paypalCaptureId: input.paymentId,
-    gateway: "paypal",
+    ...(input.gateway === "stripe"
+      ? { stripePaymentIntentId: input.stripePaymentIntentId }
+      : {
+          paypalOrderId:
+            typeof data.paypalSubscriptionId === "string"
+              ? data.paypalSubscriptionId
+              : undefined,
+          paypalCaptureId: input.paymentId,
+        }),
+    gateway: input.gateway || "paypal",
     createdAt: input.paidAt,
     paidAt: input.paidAt,
     githubUsername:
@@ -273,10 +277,9 @@ export async function recordSubscriptionPaymentOrder(
   input: RecordSubscriptionPaymentOrderInput
 ): Promise<Order | undefined> {
   const environment = input.subscription.environment;
-  const existingPayment = await findOrderByPaypalCaptureId(
-    input.paymentId,
-    environment
-  );
+  const existingPayment = input.orderId
+    ? await findOrderById(input.orderId)
+    : await findOrderByPaypalCaptureId(input.paymentId, environment);
   if (existingPayment) {
     return fulfillSubscriptionPaymentOrder(existingPayment, input);
   }
@@ -292,7 +295,11 @@ export async function recordSubscriptionPaymentOrder(
       ? input.subscription.data.currency
       : initialOrder?.currency);
 
-  if (!input.isRenewal && initialOrder?.status === "pending") {
+  if (
+    !input.isRenewal &&
+    initialOrder?.status === "pending" &&
+    (input.gateway || "paypal") === "paypal"
+  ) {
     const order = await updateOrder(initialOrder.id, {
       status: "paid",
       amount,
@@ -317,16 +324,16 @@ export async function recordSubscriptionPaymentOrder(
   const order = createPaidSubscriptionOrder(
     input,
     product,
-    !initialOrder && initialOrderId ? initialOrderId : uid()
+    input.orderId ||
+      (!initialOrder && initialOrderId ? initialOrderId : uid())
   );
   let created: Order;
   try {
     created = await createOrder(order);
   } catch (error) {
-    const concurrentlyCreated = await findOrderByPaypalCaptureId(
-      input.paymentId,
-      environment
-    );
+    const concurrentlyCreated = input.orderId
+      ? await findOrderById(input.orderId)
+      : await findOrderByPaypalCaptureId(input.paymentId, environment);
     if (!concurrentlyCreated) throw error;
     created = concurrentlyCreated;
   }

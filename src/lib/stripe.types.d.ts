@@ -13,6 +13,10 @@ export interface StripeCheckoutSession {
   currency: string | null;
   client_reference_id: string | null;
   metadata: Record<string, string>;
+  mode?: "payment" | "subscription" | "setup";
+  /** Subscription id (unexpanded) when `mode` is "subscription". */
+  subscription?: string | null;
+  customer?: string | null;
   customer_details?: {
     email?: string | null;
     name?: string | null;
@@ -52,4 +56,32 @@ export interface StripeTaxSettings {
     tax_code?: string | null;
   };
   head_office?: { address?: { country?: string | null } | null } | null;
+}
+
+export interface StripeInvoice {
+  id: string;
+  /** Present on API versions before 2025-03-31 (basil). */
+  subscription?: string | null;
+  parent?: {
+    subscription_details?: {
+      subscription?: string | null;
+      metadata?: Record<string, string> | null;
+    } | null;
+  } | null;
+  billing_reason?: string | null;
+  amount_paid: number;
+  currency: string;
+  /** Unix seconds. */
+  created: number;
+  status_transitions?: { paid_at?: number | null } | null;
+  attempt_count?: number;
+  next_payment_attempt?: number | null;
+}
+
+export interface StripeSubscription {
+  id: string;
+  /** "active" | "trialing" | "past_due" | "unpaid" | "canceled" | "paused" | "incomplete" | "incomplete_expired" */
+  status: string;
+  cancel_at_period_end?: boolean;
+  metadata?: Record<string, string> | null;
 }

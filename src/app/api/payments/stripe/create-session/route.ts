@@ -267,6 +267,14 @@ export async function POST(request: Request) {
           ...(discountPeriods
             ? { discountPeriods: String(discountPeriods) }
             : {}),
+          ...(subscription
+            ? {
+                recurringAmountCents: String(recurringAmountCents),
+                regularTransactionFeeAmount: String(
+                  fullPricing.transactionFeeAmount,
+                ),
+              }
+            : {}),
         },
       });
     } catch (error) {
