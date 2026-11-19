@@ -260,6 +260,13 @@
       "when": 1790056800000,
       "tag": "0036_webhook_product_ids",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1790143200000,
+      "tag": "0037_checkout_return_url",
+      "breakpoints": true
     }
   ]
 }

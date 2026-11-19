@@ -19,6 +19,9 @@ import { PendingConfirmationClient } from "./PendingConfirmationClient";
 import { getLicenseEntitlementSummary } from "@/lib/license-entitlements";
 import { getProductPublicPath } from "@/lib/product-paths";
 import { resolveProductRedirectUrl } from "@/lib/product-redirect-url";
+import { resolveReturnUrl, returnUrlCustomKey } from "@/lib/return-url";
+import { getStoreById } from "@/lib/stores";
+import { AutoRedirect } from "./AutoRedirect";
 
 type Props = {
   searchParams: Promise<{ orderId?: string }>;
@@ -127,13 +130,28 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
   const deliveryContent = currentUpdatesIncluded
     ? product?.deliveryContent || order.deliveryContent
     : order.deliveryContent || product?.deliveryContent;
-  const redirectUrl = product?.redirectUrl
+  // Per-checkout return URL (?[return_url]=), validated against the store's
+  // allowlist because anyone can edit it. Invalid values fall back to the
+  // product redirect URL.
+  const requestedReturnUrl = order.custom[returnUrlCustomKey];
+  const returnUrl = requestedReturnUrl
+    ? resolveReturnUrl(requestedReturnUrl, {
+        allowedDomains:
+          (await getStoreById(order.storeId))?.allowedRedirectDomains ?? [],
+        sandbox: order.environment === "sandbox",
+      })
+    : undefined;
+  const productRedirectUrl = product?.redirectUrl
     ? resolveProductRedirectUrl(product.redirectUrl, {
         orderId: order.id,
         email: order.customerEmail,
         productId: order.productId,
+        custom: order.custom,
       })
     : undefined;
+  const redirectUrl = returnUrl ?? productRedirectUrl;
+  const autoRedirectUrl =
+    returnUrl && (product?.autoRedirect ?? true) ? returnUrl : undefined;
 
   return (
     <Shell>
@@ -212,8 +230,10 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         </div>
       )}
 
+      {autoRedirectUrl && <AutoRedirect url={autoRedirectUrl} />}
+
       <div className="mt-6 flex flex-wrap justify-center gap-2">
-        {redirectUrl && (
+        {redirectUrl && !autoRedirectUrl && (
           <a
             href={redirectUrl}
             className={`${buttonBaseClass} ${buttonVariantClasses.primary}`}

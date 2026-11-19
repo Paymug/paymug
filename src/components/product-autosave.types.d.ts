@@ -20,6 +20,7 @@ export interface ProductFormSavePayload {
   hideFromStorefront: boolean;
   deliveryContent?: string;
   redirectUrl?: string | null;
+  autoRedirect?: boolean;
   productFiles: ProductFile[];
   generateLicense: boolean;
   licenseType: "standard" | "perpetual";

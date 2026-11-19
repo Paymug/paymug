@@ -48,6 +48,7 @@ export function CheckoutClient({
   maxExtraSeats,
   onExtraSeatsChange,
   lockedEmail,
+  initialEmail,
   defaultProductPrice,
   customAmountEnabled,
   allowNote,
@@ -77,7 +78,7 @@ export function CheckoutClient({
     [initialDiscountCode],
   );
   const configurationKey = JSON.stringify(custom);
-  const [email, setEmail] = useState(lockedEmail ?? "");
+  const [email, setEmail] = useState(lockedEmail ?? initialEmail ?? "");
   const [name, setName] = useState("");
   const [noteVisible, setNoteVisible] = useState(false);
   const [note, setNote] = useState("");

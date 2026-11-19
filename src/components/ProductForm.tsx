@@ -70,6 +70,9 @@ export function ProductForm({
     product?.deliveryContent || "",
   );
   const [redirectUrl, setRedirectUrl] = useState(product?.redirectUrl || "");
+  const [autoRedirect, setAutoRedirect] = useState(
+    product?.autoRedirect ?? true,
+  );
   const [productFiles, setProductFiles] = useState(product?.productFiles || []);
   const [generateLicense, setGenerateLicense] = useState(
     product?.generateLicense || false,
@@ -190,6 +193,7 @@ export function ProductForm({
     hideFromStorefront,
     deliveryContent: deliveryContent || undefined,
     redirectUrl: redirectUrl.trim() || null,
+    autoRedirect,
     productFiles,
     generateLicense,
     licenseType: perpetualLicenseEnabled ? "perpetual" : "standard",
@@ -679,10 +683,21 @@ export function ProductForm({
           />
           <p className="mt-2 text-xs leading-5 text-muted">
             Shows a Continue button after payment. Available placeholders: {" "}
-            <code>[order_id]</code>, <code>[email]</code>, and {" "}
-            <code>[product_id]</code>.
+            <code>[order_id]</code>, <code>[email]</code>,{" "}
+            <code>[product_id]</code>, and <code>[custom][name]</code> (a
+            custom checkout value).
           </p>
         </div>
+
+        <FormSwitch
+          label="Auto-redirect to the checkout return URL"
+          description="When a checkout link sets ?[return_url]= on an allowed domain, send the buyer there a few seconds after payment."
+          checked={autoRedirect}
+          onToggle={(checked) => {
+            setAutoRedirect(checked);
+            requestAutosave(1);
+          }}
+        />
 
         <ProductFileUploader
           files={productFiles}

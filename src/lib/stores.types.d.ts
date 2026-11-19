@@ -30,6 +30,7 @@ export interface UpdateStoreInput {
   stripeTaxEnabled?: boolean;
   abandonmentQuestion?: string | null;
   abandonmentOptions?: string[];
+  allowedRedirectDomains?: string[];
   currency?: string;
   transactionFeeType?: "fixed" | "percentage";
   transactionFeeValue?: number;

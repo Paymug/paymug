@@ -103,6 +103,10 @@ export const stores = sqliteTable(
       .default(false),
     abandonmentQuestion: text("abandonment_question"),
     abandonmentOptions: text("abandonment_options").notNull().default("[]"),
+    /** JSON array of host patterns a per-checkout return URL may use. */
+    allowedRedirectDomains: text("allowed_redirect_domains")
+      .notNull()
+      .default("[]"),
     currency: text("currency").notNull().default("USD"),
     transactionFeeType: text("transaction_fee_type", {
       enum: ["fixed", "percentage"],
@@ -191,6 +195,9 @@ export const products = sqliteTable(
   imageUrl: text("image_url"),
   deliveryContent: text("delivery_content"),
   redirectUrl: text("redirect_url"),
+  autoRedirect: integer("auto_redirect", { mode: "boolean" })
+    .notNull()
+    .default(true),
   productFiles: text("product_files").notNull().default("[]"),
   generateLicense: integer("generate_license", { mode: "boolean" })
     .notNull()

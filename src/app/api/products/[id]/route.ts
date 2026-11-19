@@ -85,6 +85,7 @@ const updateSchema = z.object({
   hideFromStorefront: z.boolean().optional(),
   deliveryContent: z.string().max(100000).optional(),
   redirectUrl: productRedirectUrlSchema.nullable().optional(),
+  autoRedirect: z.boolean().optional(),
   productFiles: z.array(productFileInputSchema).max(20).optional(),
   generateLicense: z.boolean().optional(),
   licenseType: z.enum(["standard", "perpetual"]).optional(),

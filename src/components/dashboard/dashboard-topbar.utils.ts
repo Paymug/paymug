@@ -16,6 +16,7 @@ const dashboardTitles: Record<string, string> = {
   "/dashboard/analytics": "Analytics",
   "/dashboard/settings/payments": "Payments",
   "/dashboard/settings/tax": "Tax",
+  "/dashboard/settings/redirects": "Redirects",
   "/dashboard/settings/migrate": "Migrate",
   "/dashboard/settings/github": "GitHub",
   "/dashboard/setup": "Setup",

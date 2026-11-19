@@ -12,6 +12,7 @@ import type {
 import { uid } from "./utils";
 import { slugify } from "./format";
 import { parseAbandonmentOptions } from "./abandonment";
+import { parseRedirectDomains } from "./return-url";
 
 function rowToStore(row: typeof stores.$inferSelect): Store {
   const emailFrom =
@@ -59,6 +60,7 @@ function rowToStore(row: typeof stores.$inferSelect): Store {
     stripeTaxEnabled: row.stripeTaxEnabled,
     abandonmentQuestion: row.abandonmentQuestion ?? undefined,
     abandonmentOptions: parseAbandonmentOptions(row.abandonmentOptions),
+    allowedRedirectDomains: parseRedirectDomains(row.allowedRedirectDomains),
     currency: row.currency,
     transactionFeeType: row.transactionFeeType,
     transactionFeeValue: row.transactionFeeValue,
@@ -178,6 +180,7 @@ export async function createStore(
     stripeTaxEnabled: false,
     abandonmentQuestion: undefined,
     abandonmentOptions: [],
+    allowedRedirectDomains: [],
     currency: "USD",
     transactionFeeType: "fixed",
     transactionFeeValue: 0,
@@ -195,6 +198,7 @@ export async function createStore(
     analyticsCommerceMetric: null,
     abandonmentQuestion: null,
     abandonmentOptions: "[]",
+    allowedRedirectDomains: "[]",
     paymentCredentialSourceStoreId:
       store.paymentCredentialSourceStoreId ?? null,
     githubCredentialSourceStoreId:
@@ -382,6 +386,13 @@ export async function updateStore(
         : {}),
       ...(input.abandonmentOptions !== undefined
         ? { abandonmentOptions: JSON.stringify(input.abandonmentOptions) }
+        : {}),
+      ...(input.allowedRedirectDomains !== undefined
+        ? {
+            allowedRedirectDomains: JSON.stringify(
+              input.allowedRedirectDomains,
+            ),
+          }
         : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.transactionFeeType !== undefined

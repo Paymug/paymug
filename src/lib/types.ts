@@ -91,6 +91,8 @@ export interface Store {
   stripeTaxEnabled: boolean;
   abandonmentQuestion?: string;
   abandonmentOptions: string[];
+  /** Host patterns (for example "*.example.com") allowed as checkout return URLs. */
+  allowedRedirectDomains: string[];
   currency: string;
   transactionFeeType: "fixed" | "percentage";
   transactionFeeValue: number;
@@ -156,6 +158,8 @@ export interface Product {
   deliveryContent?: string;
   /** Optional destination shown after a completed purchase. */
   redirectUrl?: string;
+  /** Send the buyer to a per-checkout return URL automatically after payment. */
+  autoRedirect: boolean;
   productFiles: ProductFile[];
   generateLicense: boolean;
   /** A perpetual license keeps usage active while updates expire separately. */

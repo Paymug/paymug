@@ -24,6 +24,8 @@ export interface CheckoutClientProps {
   onExtraSeatsChange?(seats: number): void;
   /** Email of the license owner; the buyer cannot change it. */
   lockedEmail?: string;
+  /** Prefills the email field from `?email=`; the buyer can still edit it. */
+  initialEmail?: string;
   affiliateRef?: string;
   initialDiscountCode?: string;
   initialTransactionFeeAmount: number;

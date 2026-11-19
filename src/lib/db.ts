@@ -272,6 +272,7 @@ function rowToProduct(
     imageUrl: row.imageUrl ?? undefined,
     deliveryContent: row.deliveryContent ?? undefined,
     redirectUrl: row.redirectUrl ?? undefined,
+    autoRedirect: row.autoRedirect,
     productFiles: parseProductFiles(row.productFiles),
     generateLicense: row.generateLicense,
     licenseType: row.licenseType === "perpetual" ? "perpetual" : "standard",
@@ -683,6 +684,7 @@ export async function createProduct(input: Product): Promise<Product> {
     imageUrl: product.imageUrl ?? null,
     deliveryContent: product.deliveryContent ?? null,
     redirectUrl: product.redirectUrl ?? null,
+    autoRedirect: product.autoRedirect,
     productFiles: serializeProductFiles(product.productFiles),
     generateLicense: product.generateLicense,
     licenseType: product.licenseType || "standard",
@@ -768,6 +770,9 @@ export async function updateProduct(
       ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl ?? null } : {}),
       ...(patch.deliveryContent !== undefined
         ? { deliveryContent: patch.deliveryContent ?? null }
+        : {}),
+      ...(patch.autoRedirect !== undefined
+        ? { autoRedirect: patch.autoRedirect }
         : {}),
       ...(patch.redirectUrl !== undefined
         ? { redirectUrl: patch.redirectUrl ?? null }

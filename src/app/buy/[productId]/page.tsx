@@ -40,7 +40,10 @@ import {
   parseCustomCheckoutAmount,
   resolveProductCheckoutPrice,
 } from "@/lib/custom-product-amount";
-import { parseCheckoutCustomData } from "@/lib/checkout-custom-data";
+import {
+  parseCheckoutCustomData,
+  parseInitialCheckoutEmail,
+} from "@/lib/checkout-custom-data";
 import { getProductPublicPath } from "@/lib/product-paths";
 import { canSellExtraSeats } from "@/lib/extra-seats";
 import { ProductConfigurationPicker } from "@/components/ProductConfigurationPicker";
@@ -58,6 +61,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
   const resolvedSearchParams = await searchParams;
   const { amount, cancelled, discount, preview, ref } = resolvedSearchParams;
   const custom = parseCheckoutCustomData(resolvedSearchParams);
+  const initialEmail = parseInitialCheckoutEmail(resolvedSearchParams.email);
   const requestedVariant = resolvedSearchParams.variant;
   if (typeof requestedVariant === "string" && !custom[variantCustomKey]) {
     custom[variantCustomKey] = requestedVariant;
@@ -336,6 +340,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   extraSeatsPrice={configuration.extraSeatsPrice}
                   seatAddOn={Boolean(seatAddOn)}
                   lockedEmail={seatAddOn?.customerEmail}
+                  initialEmail={initialEmail}
                   affiliateRef={ref?.trim() || undefined}
                   initialDiscountCode={discount?.trim() || undefined}
                   initialTransactionFeeAmount={

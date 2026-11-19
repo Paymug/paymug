@@ -304,5 +304,12 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
       "ALTER TABLE `webhooks` ADD `product_ids` text DEFAULT '[]' NOT NULL;",
       "UPDATE `webhooks` SET `product_ids` = json_array(`product_id`) WHERE `product_id` IS NOT NULL;"
     ]
+  },
+  {
+    "name": "0037_checkout_return_url.sql",
+    "statements": [
+      "ALTER TABLE `stores` ADD `allowed_redirect_domains` text DEFAULT '[]' NOT NULL;",
+      "ALTER TABLE `products` ADD `auto_redirect` integer DEFAULT true NOT NULL;"
+    ]
   }
 ];
