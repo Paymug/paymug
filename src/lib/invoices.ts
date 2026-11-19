@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getProductDescriptionPlainText } from "@/components/product-description.utils";
 import { getCustomerSession } from "./customer-auth";
 import { getSessionUser } from "./auth";
 import { findOrderById, findProductById } from "./db";
@@ -40,10 +41,15 @@ async function buildInvoice(order: Order): Promise<Invoice> {
     customerEmail: order.customerEmail,
     productName: order.productName,
     variantName: order.variantName ?? undefined,
-    description: order.productDescription
-      ? order.productDescription.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240) ||
-        undefined
-      : undefined,
+    description:
+      getProductDescriptionPlainText(order.productDescription || "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#0?39;/g, "'")
+        .replace(/&amp;/g, "&")
+        .slice(0, 240) || undefined,
     currency: order.currency,
     subtotal,
     discountCode: order.discountCode,
