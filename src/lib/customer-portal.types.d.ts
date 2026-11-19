@@ -71,6 +71,20 @@ export interface CustomerPortalPurchase {
   affiliateProgramEnabled: boolean;
 }
 
+export interface CustomerPortalInvoice {
+  id: string;
+  number: string;
+  productName: string;
+  storeName: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  paidAt?: string;
+  /** True when the invoice is unpaid and can still be paid. */
+  payable: boolean;
+}
+
 export interface CustomerPortalSubscription {
   id: string;
   planName: string;
@@ -90,6 +104,7 @@ export interface CustomerPortalSubscription {
 
 export interface CustomerPortalData {
   purchases: CustomerPortalPurchase[];
+  invoices: CustomerPortalInvoice[];
   subscriptions: CustomerPortalSubscription[];
   affiliatesEnabled: boolean;
   branding?: CustomerPortalBranding;

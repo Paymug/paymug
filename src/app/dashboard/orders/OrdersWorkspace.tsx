@@ -87,6 +87,12 @@ function OrderDetailDrawer({
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-3">
           <StatusBadge status={order.status} />
+          <a
+            href={`/invoices/${encodeURIComponent(order.id)}`}
+            className="rounded-lg border border-[#e0e0e8] px-3 py-1.5 text-xs font-semibold text-[#34343e] transition hover:bg-[#f7f7f8]"
+          >
+            View invoice
+          </a>
           <span className="text-xs capitalize text-[#8b8ba3]">
             {order.gateway}
             {order.environment === "sandbox" ? " · Test" : ""}

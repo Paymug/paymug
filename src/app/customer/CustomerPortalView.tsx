@@ -185,6 +185,76 @@ export function CustomerPortalView({
             </div>
           </section>
 
+          <section id="invoices" className="scroll-mt-6 pt-12">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold tracking-[-0.025em]">
+                  Invoices
+                </h2>
+                <p className="mt-1 text-sm text-[#85859d]">
+                  View, pay, or download your invoices.
+                </p>
+              </div>
+              <span className="text-sm font-medium text-[#85859d]">
+                {portal.invoices.length} total
+              </span>
+            </div>
+            <div className="mt-5 overflow-hidden rounded-xl border border-[#e8e8ee] bg-white">
+              {portal.invoices.length === 0 ? (
+                <p className="p-6 text-sm text-[#85859d]">
+                  No invoices yet.
+                </p>
+              ) : (
+                portal.invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#eeeeF2] px-4 py-4 last:border-b-0 md:px-5"
+                  >
+                    <div className="min-w-0 flex-1 basis-48">
+                      <p className="truncate text-sm font-semibold text-[#34343e]">
+                        {invoice.productName}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-[#85859d]">
+                        {invoice.number} · {invoice.storeName} ·{" "}
+                        {formatDateInTimeZone(invoice.createdAt, browserTimeZone)}
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {formatMoney(invoice.amount, invoice.currency)}
+                    </span>
+                    <span
+                      className={`w-fit rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getCustomerStatusClass(invoice.status)}`}
+                    >
+                      {invoice.status}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {invoice.payable && (
+                        <a
+                          href={`/api/invoices/${encodeURIComponent(invoice.id)}/pay`}
+                          className="rounded-lg bg-[#ffd84d] px-3 py-1.5 text-xs font-semibold text-[#2a2a33] transition hover:bg-[#ffcf1f]"
+                        >
+                          Pay now
+                        </a>
+                      )}
+                      <a
+                        href={`/invoices/${encodeURIComponent(invoice.id)}`}
+                        className="rounded-lg border border-[#e0e0e8] px-3 py-1.5 text-xs font-semibold text-[#34343e] transition hover:bg-[#f7f7f8]"
+                      >
+                        View
+                      </a>
+                      <a
+                        href={`/api/invoices/${encodeURIComponent(invoice.id)}/download`}
+                        className="rounded-lg border border-[#e0e0e8] px-3 py-1.5 text-xs font-semibold text-[#34343e] transition hover:bg-[#f7f7f8]"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
           <section id="subscriptions" className="scroll-mt-6 pt-12">
             <h2 className="text-xl font-semibold tracking-[-0.025em]">
               Subscriptions

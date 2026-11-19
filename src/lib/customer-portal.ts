@@ -10,8 +10,10 @@ import {
   parseLicenseSeatLimit,
 } from "./license-activations.utils";
 import type { FeatureRecordValue } from "./feature-records.types";
+import { formatInvoiceNumber, isInvoicePayable } from "./invoices";
 import type {
   CustomerPortalData,
+  CustomerPortalInvoice,
   CustomerPortalPurchase,
   CustomerPortalSubscription,
 } from "./customer-portal.types";
@@ -40,10 +42,10 @@ export async function getCustomerPortalData(
 ): Promise<CustomerPortalData> {
   const db = await getDb();
   const normalizedEmail = email.trim().toLowerCase();
-  const [licenseStatus, orderRows, records] = await Promise.all([
+  const [licenseStatus, allOrderRows, records] = await Promise.all([
     getAppLicenseStatus(),
     db.query.orders.findMany({
-      where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = ${environment} AND ${orders.status} IN ('paid', 'refunded')`,
+      where: sql`lower(${orders.customerEmail}) = ${normalizedEmail} AND ${orders.environment} = ${environment} `,
       orderBy: [desc(orders.createdAt)],
     }),
     db.query.featureRecords.findMany({
@@ -51,6 +53,9 @@ export async function getCustomerPortalData(
       orderBy: [desc(featureRecords.updatedAt)],
     }),
   ]);
+  const orderRows = allOrderRows.filter(
+    (order) => order.status === "paid" || order.status === "refunded",
+  );
   const affiliatesUnlocked =
     licenseStatus.pro && licenseStatus.features.includes("affiliates");
   const githubUnlocked =
@@ -64,7 +69,7 @@ export async function getCustomerPortalData(
   const { productsById, storesById } = await loadCustomerPortalResources(
     orderRows.map((order) => order.productId),
     [
-      ...orderRows.flatMap((order) => (order.storeId ? [order.storeId] : [])),
+      ...allOrderRows.flatMap((order) => (order.storeId ? [order.storeId] : [])),
       ...subscriptionsWithData.flatMap(({ data }) =>
         typeof data.storeId === "string" ? [data.storeId] : [],
       ),
@@ -262,8 +267,21 @@ export async function getCustomerPortalData(
         };
       },
   );
+  const invoices: CustomerPortalInvoice[] = allOrderRows.map((order) => ({
+    id: order.id,
+    number: formatInvoiceNumber(order),
+    productName: order.productName,
+    storeName: (order.storeId && storesById.get(order.storeId)?.name) || "Store",
+    amount: order.amount,
+    currency: order.currency,
+    status: order.status,
+    createdAt: order.createdAt,
+    paidAt: order.paidAt ?? undefined,
+    payable: isInvoicePayable(order.status),
+  }));
   return {
     purchases,
+    invoices,
     subscriptions,
     affiliatesEnabled:
       purchases.some((purchase) => purchase.affiliateProgramEnabled) ||

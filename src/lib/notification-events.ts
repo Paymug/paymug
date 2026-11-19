@@ -15,7 +15,7 @@ export async function notifyInvoiceCreated(order: Order) {
     type: "invoice_created",
     title: "Invoice created",
     message: `${order.customerName || order.customerEmail} started checkout for ${order.productName} — ${formatMoney(order.amount, order.currency)}.`,
-    href: "/dashboard/orders",
+    href: `/invoices/${order.id}`,
     sourceKey: `invoice:${order.id}`,
   });
 }
