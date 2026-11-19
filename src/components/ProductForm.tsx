@@ -679,10 +679,10 @@ export function ProductForm({
             name="redirectUrl"
             value={redirectUrl}
             onChange={(event) => setRedirectUrl(event.target.value)}
-            placeholder="https://example.com/welcome?id=[order_id]"
+            placeholder="https://[custom][subdomain].example.com/welcome?id=[order_id]"
           />
           <p className="mt-2 text-xs leading-5 text-muted">
-            Shows a Continue button after payment. Available placeholders: {" "}
+            Where the buyer goes after payment (automatically, unless auto-redirect is off). Placeholders work anywhere in the URL, including the host: {" "}
             <code>[order_id]</code>, <code>[email]</code>,{" "}
             <code>[product_id]</code>, and <code>[custom][name]</code> (a
             custom checkout value).
@@ -690,8 +690,8 @@ export function ProductForm({
         </div>
 
         <FormSwitch
-          label="Auto-redirect to the checkout return URL"
-          description="When a checkout link sets ?[return_url]= on an allowed domain, send the buyer there a few seconds after payment."
+          label="Auto-redirect after purchase"
+          description="Send the buyer to the redirect URL (or to ?[return_url]= on an allowed domain) a few seconds after payment."
           checked={autoRedirect}
           onToggle={(checked) => {
             setAutoRedirect(checked);

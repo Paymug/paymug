@@ -141,7 +141,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         sandbox: order.environment === "sandbox",
       })
     : undefined;
-  const productRedirectUrl = product?.redirectUrl
+  const resolvedProductRedirect = product?.redirectUrl
     ? resolveProductRedirectUrl(product.redirectUrl, {
         orderId: order.id,
         email: order.customerEmail,
@@ -149,9 +149,14 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
         custom: order.custom,
       })
     : undefined;
+  // The seller's own template (may put custom data in the host, e.g. https://[custom][subdomain].example.com).
+  // Buyer-supplied values are URL-encoded, so they cannot change the template's scheme or path. A result that is
+  // not a valid http(s) URL (e.g. a missing custom value) is dropped.
+  const productRedirectUrl = resolvedProductRedirect && isHttpUrl(resolvedProductRedirect)
+    ? resolvedProductRedirect
+    : undefined;
   const redirectUrl = returnUrl ?? productRedirectUrl;
-  const autoRedirectUrl =
-    returnUrl && (product?.autoRedirect ?? true) ? returnUrl : undefined;
+  const autoRedirectUrl = redirectUrl && (product?.autoRedirect ?? true) ? redirectUrl : undefined;
 
   return (
     <Shell>
@@ -303,4 +308,13 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="font-medium">{value}</span>
     </div>
   );
+}
+
+function isHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "https:" || url.protocol === "http:") && url.hostname.length > 0 && !url.hostname.startsWith(".") && !url.hostname.includes("..");
+  } catch {
+    return false;
+  }
 }
