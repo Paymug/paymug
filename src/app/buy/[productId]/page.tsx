@@ -352,6 +352,7 @@ export default async function BuyPage({ params, searchParams }: BuyPageProps) {
                   mode={paypal?.mode || stripe?.mode || sepay?.mode || "sandbox"}
                   currency={product.currency}
                   isSubscription={isSubscriptionProduct(product)}
+                  trialDays={product.trialDays}
                   billingSummary={billingSummary}
                   priceSuffix={priceSuffix}
                 />

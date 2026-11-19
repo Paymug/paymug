@@ -37,6 +37,8 @@ export interface CheckoutClientProps {
   /** Recurring product subscription checkout. */
   isSubscription?: boolean;
   billingSummary?: string | null;
+  /** Free trial length in days; when set, the first charge is due after the trial. */
+  trialDays?: number;
   priceSuffix?: string;
   abandonmentEnabled?: boolean;
   abandonmentQuestion?: string | null;

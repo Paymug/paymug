@@ -11,6 +11,7 @@ import { PayPalButtons } from "@/components/PayPalButtons";
 import { SepayCheckoutButton } from "@/components/SepayCheckoutButton";
 import { StripeCheckoutButton } from "@/components/StripeCheckoutButton";
 import { Button, Input } from "@/components/ui";
+import { payPalButtonClass } from "@/components/ui.styles";
 import {
   completeFreePurchase,
   fetchDiscountPreview,
@@ -65,12 +66,31 @@ export function CheckoutClient({
   currency,
   isSubscription = false,
   billingSummary,
+  trialDays = 0,
   priceSuffix = "",
   abandonmentEnabled = false,
   abandonmentQuestion,
   abandonmentOptions = [],
 }: CheckoutClientProps) {
   const router = useRouter();
+  // Set after mount so server and client render the same markup.
+  const [trialDueDate, setTrialDueDate] = useState<string | null>(null);
+  const hasTrial = isSubscription && trialDays > 0;
+  useEffect(() => {
+    if (!hasTrial) {
+      setTrialDueDate(null);
+      return;
+    }
+    const due = new Date();
+    due.setDate(due.getDate() + trialDays);
+    setTrialDueDate(
+      due.toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      }),
+    );
+  }, [hasTrial, trialDays]);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const normalizedInitialDiscountCode = useMemo(
@@ -607,8 +627,20 @@ export function CheckoutClient({
               </span>
             </div>
           )}
+          {hasTrial && trialDueDate && (
+            <div className="flex items-center justify-between gap-4 text-emerald-600">
+              <span>Due today · {trialDays}-day free trial</span>
+              <span>{formatProductPageMoney(0, currency)}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-4 py-3 font-semibold">
-            <span>{isSubscription ? "Due per period" : "Total"}</span>
+            <span>
+              {!isSubscription
+                ? "Total"
+                : hasTrial && trialDueDate
+                  ? `Due on ${trialDueDate}`
+                  : "Due per period"}
+            </span>
             <span>
               {formatProductPageMoney(pricing.total, currency)}
               {priceSuffix}
@@ -669,14 +701,14 @@ export function CheckoutClient({
               </div>
             )}
             {paypalClientId && (
-              <Button
+              <button
                 type="button"
-                className="w-full bg-accent hover:bg-accent-hover"
+                className={`${payPalButtonClass} disabled:cursor-not-allowed disabled:opacity-50`}
                 disabled={!paymentReady || submitting}
                 onClick={() => void onSubscribeWithPayPal()}
               >
                 {submitting ? "Redirecting to PayPal…" : "Subscribe with PayPal"}
-              </Button>
+              </button>
             )}
             {!stripeEnabled && !paypalClientId && (
               <p className="rounded-lg bg-[#f7f7f8] px-3 py-2 text-sm text-muted">
