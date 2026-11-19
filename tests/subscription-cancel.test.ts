@@ -36,7 +36,7 @@ test("subscriptions scope allows read and write, never delete", () => {
   assert.ok(hasApiKeyScope(granted, "subscriptions", "write"));
 });
 
-test("cancelStripeSubscription sends DELETE and surfaces Stripe errors", async () => {
+test("cancelStripeSubscription sends DELETE and treats a missing subscription as cancelled", async () => {
   const original = globalThis.fetch;
   const calls: Array<{ url: string; method?: string; auth?: string }> = [];
   globalThis.fetch = (async (url: string, init?: RequestInit) => {
@@ -54,9 +54,23 @@ test("cancelStripeSubscription sends DELETE and surfaces Stripe errors", async (
     assert.equal(calls[0].method, "DELETE");
     assert.match(calls[0].url, /\/subscriptions\/sub_1$/);
     assert.equal(calls[0].auth, "Bearer sk_test_x");
+    // Already deleted at Stripe counts as cancelled.
+    await cancelStripeSubscription("sk_test_x", "sub_missing");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("cancelStripeSubscription still surfaces non-404 Stripe errors", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ error: { message: "Invalid API Key" } }), {
+      status: 401,
+    })) as typeof fetch;
+  try {
     await assert.rejects(
-      () => cancelStripeSubscription("sk_test_x", "sub_missing"),
-      /No such subscription/,
+      () => cancelStripeSubscription("sk_test_x", "sub_1"),
+      /Invalid API Key/,
     );
   } finally {
     globalThis.fetch = original;

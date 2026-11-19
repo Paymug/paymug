@@ -10,6 +10,13 @@ const STRIPE_API_URL =
   (typeof process !== "undefined" && process.env?.STRIPE_API_BASE) ||
   "https://api.stripe.com/v1";
 
+class StripeRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "StripeRequestError";
+  }
+}
+
 async function stripeRequest<T>(
   secretKey: string,
   path: string,
@@ -26,7 +33,10 @@ async function stripeRequest<T>(
     const body = (await response.json().catch(() => null)) as {
       error?: { message?: string };
     } | null;
-    throw new Error(body?.error?.message || `Stripe request failed (${response.status})`);
+    throw new StripeRequestError(
+      body?.error?.message || `Stripe request failed (${response.status})`,
+      response.status,
+    );
   }
   return (await response.json()) as T;
 }
@@ -232,9 +242,15 @@ export async function cancelStripeSubscription(
   secretKey: string,
   subscriptionId: string,
 ): Promise<void> {
-  await stripeRequest<{ id: string; status: string }>(
-    secretKey,
-    `/subscriptions/${encodeURIComponent(subscriptionId)}`,
-    { method: "DELETE" },
-  );
+  try {
+    await stripeRequest<{ id: string; status: string }>(
+      secretKey,
+      `/subscriptions/${encodeURIComponent(subscriptionId)}`,
+      { method: "DELETE" },
+    );
+  } catch (error) {
+    // Already deleted at Stripe: the goal (no more billing) is met.
+    if (error instanceof StripeRequestError && error.status === 404) return;
+    throw error;
+  }
 }
