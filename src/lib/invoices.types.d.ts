@@ -15,7 +15,6 @@ export interface Invoice {
   customerEmail: string;
   productName: string;
   variantName?: string;
-  description?: string;
   currency: string;
   /** Product price before discount, in cents. */
   subtotal: number;

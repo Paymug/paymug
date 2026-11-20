@@ -4,7 +4,6 @@ import { getSessionUser } from "@/lib/auth";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatMoney } from "@/lib/format";
 import { getInvoiceAccess, isInvoicePayable } from "@/lib/invoices";
-import { ProductDescription } from "@/components/ProductDescription";
 import { PrintButton } from "../PrintButton";
 import { CopyPayLinkButton } from "../CopyPayLinkButton";
 
@@ -131,12 +130,6 @@ export default async function InvoicePage({
                     {invoice.productName}
                     {invoice.variantName ? ` — ${invoice.variantName}` : ""}
                   </p>
-                  {invoice.description && (
-                    <ProductDescription
-                      value={invoice.description}
-                      className="mt-1 text-[#85859d]"
-                    />
-                  )}
                 </td>
                 <td className="py-3 text-right">{money(invoice.subtotal)}</td>
               </tr>
