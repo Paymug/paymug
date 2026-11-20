@@ -18,7 +18,9 @@ export async function listOriginVisitsByEmail(
   if (visitorIds.length === 0) return visitsByEmail;
 
   const db = await getDb();
-  for (let offset = 0; offset < visitorIds.length; offset += 400) {
+  // D1 caps bound parameters at 100 per query; leave room for storeId.
+  const chunkSize = 90;
+  for (let offset = 0; offset < visitorIds.length; offset += chunkSize) {
     const rows = await db
       .select({
         visitorId: visitorEvents.visitorId,
@@ -31,7 +33,7 @@ export async function listOriginVisitsByEmail(
       .where(
         and(
           eq(visitorEvents.storeId, storeId),
-          inArray(visitorEvents.visitorId, visitorIds.slice(offset, offset + 400)),
+          inArray(visitorEvents.visitorId, visitorIds.slice(offset, offset + chunkSize)),
         ),
       );
     for (const visit of rows) {
