@@ -3,8 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatMoney } from "@/lib/format";
-import { getInvoiceAccess } from "@/lib/invoices";
+import { getInvoiceAccess, isInvoicePayable } from "@/lib/invoices";
+import { ProductDescription } from "@/components/ProductDescription";
 import { PrintButton } from "../PrintButton";
+import { CopyPayLinkButton } from "../CopyPayLinkButton";
 
 export const metadata: Metadata = {
   title: "Invoice",
@@ -59,6 +61,9 @@ export default async function InvoicePage({
               >
                 Pay {money(invoice.total)}
               </a>
+            )}
+            {role === "merchant" && isInvoicePayable(invoice.status) && (
+              <CopyPayLinkButton />
             )}
             <a
               href={`/api/invoices/${encodeURIComponent(invoice.id)}/download`}
@@ -127,7 +132,10 @@ export default async function InvoicePage({
                     {invoice.variantName ? ` — ${invoice.variantName}` : ""}
                   </p>
                   {invoice.description && (
-                    <p className="mt-1 text-[#85859d]">{invoice.description}</p>
+                    <ProductDescription
+                      value={invoice.description}
+                      className="mt-1 text-[#85859d]"
+                    />
                   )}
                 </td>
                 <td className="py-3 text-right">{money(invoice.subtotal)}</td>
