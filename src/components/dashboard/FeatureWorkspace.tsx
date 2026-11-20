@@ -13,6 +13,7 @@ import { RightDrawerModal } from "./RightDrawerModal";
 import { FeatureImportButton } from "./FeatureImportButton";
 import { FeatureRecordForm } from "./FeatureRecordForm";
 import { EnvironmentCopyMenu } from "./EnvironmentCopyMenu";
+import { SubscriptionsView } from "./SubscriptionsView";
 import { useRowSelection } from "./use-row-selection";
 import {
   deleteDiscountRecord,
@@ -332,6 +333,13 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
 
       {!formOpen && error && <Alert>{error}</Alert>}
 
+      {feature.key === "subscriptions" && !loading && records.length > 0 ? (
+        <SubscriptionsView
+          records={records}
+          onEdit={startEdit}
+          onDelete={(record) => void removeRecord(record)}
+        />
+      ) : (
       <div className={`${dashboardCardClass} mt-3 overflow-hidden`}>
         {loading ? (
           <div className="flex min-h-56 items-center justify-center text-sm text-muted">
@@ -525,6 +533,7 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
           </div>
         )}
       </div>
+      )}
       {selectedAffiliate && (
         <AffiliateDetailsDrawer
           affiliate={selectedAffiliate}
