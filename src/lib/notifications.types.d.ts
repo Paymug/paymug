@@ -9,6 +9,8 @@ export type NotificationType =
   | "payment_failed"
   | "payment_refunded"
   | "affiliate_applied"
+  | "subscription_created"
+  | "subscription_trial_started"
   | "subscription_updated"
   | "subscription_renewed";
 

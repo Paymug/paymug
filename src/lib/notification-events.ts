@@ -16,7 +16,9 @@ export async function notifyInvoiceCreated(order: Order) {
     title: "Invoice created",
     message: `${order.customerName || order.customerEmail} started checkout for ${order.productName} — ${formatMoney(order.amount, order.currency)}.`,
     href: `/invoices/${order.id}`,
-    sourceKey: `invoice:${order.id}`,
+    // One notification per customer + product per 30 minutes: every checkout
+    // attempt creates a new order, and retries would otherwise repeat the alert.
+    sourceKey: `invoice:${order.customerEmail.trim().toLowerCase()}:${order.productId}:${Math.floor(new Date(order.createdAt).getTime() / 1_800_000)}`,
   });
 }
 
@@ -59,6 +61,30 @@ export async function notifyAffiliateApplied(
     message: `${affiliate.title}${affiliate.subtitle ? ` (${affiliate.subtitle})` : ""} applied to your affiliate program.`,
     href: "/dashboard/affiliates",
     sourceKey: `affiliate-applied:${affiliate.id}:${affiliate.updatedAt}`,
+  });
+}
+
+function isTrialSubscription(subscription: FeatureRecord) {
+  return (
+    subscription.status === "trialing" ||
+    (Boolean(subscription.data.trialEndsAt) && !subscription.data.lastPaymentAt)
+  );
+}
+
+/** `sourceKey` should be stable per subscription so retries never repeat it. */
+export async function notifySubscriptionCreated(
+  userId: string,
+  subscription: FeatureRecord,
+  sourceKey = `subscription-created:${subscription.id}`
+) {
+  const trial = isTrialSubscription(subscription);
+  await createNotificationSafely(userId, {
+    environment: subscription.environment,
+    type: trial ? "subscription_trial_started" : "subscription_created",
+    title: trial ? "Subscription created (trial)" : "Subscription created",
+    message: `${subscription.subtitle || "A customer"} ${trial ? "started a trial of" : "subscribed to"} ${subscription.title}.`,
+    href: "/dashboard/subscriptions",
+    sourceKey,
   });
 }
 
@@ -130,6 +156,11 @@ export async function notifyPayPalSubscriptionEvent({
     return;
   }
 
+  if (event.event_type === "BILLING.SUBSCRIPTION.ACTIVATED") {
+    await notifySubscriptionCreated(userId, record);
+    return;
+  }
+
   if (event.event_type.startsWith("BILLING.SUBSCRIPTION.")) {
     await createNotificationSafely(userId, {
       environment: record.environment,
@@ -137,7 +168,11 @@ export async function notifyPayPalSubscriptionEvent({
       title: "Subscription updated",
       message: `${record.title} for ${record.subtitle || "the customer"}: ${event.event_type.replace("BILLING.SUBSCRIPTION.", "").toLowerCase().replaceAll("_", " ")}.`,
       href: "/dashboard/subscriptions",
-      sourceKey: `paypal:${event.id}`,
+      // Shares the key with in-app cancellation so one cancel shows once.
+      sourceKey:
+        event.event_type === "BILLING.SUBSCRIPTION.CANCELLED"
+          ? `subscription-status:${record.id}:cancelled`
+          : `paypal:${event.id}`,
     });
   }
 }

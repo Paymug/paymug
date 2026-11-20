@@ -317,14 +317,14 @@ function OrderDetailDrawer({
           </div>
         </section>
 
-        {order.timeline && order.timeline.length > 1 && (
+        {order.timeline && order.timeline.length > 0 && (
           <section>
             <div className="mb-3 flex items-center gap-2">
               <h3 className="text-sm font-semibold text-[#2a2a33]">
                 Activity timeline
               </h3>
               <span className="text-xs text-[#8b8ba3]">
-                {order.timeline.length} orders
+                {order.timeline.length} {order.timeline.length === 1 ? "order" : "orders"}
               </span>
             </div>
             <ol className="space-y-3 border-l border-[#ececf1] pl-4">

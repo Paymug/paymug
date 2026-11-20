@@ -13,7 +13,7 @@ import {
 import { validateNewFeatureRecord } from "@/lib/feature-validation";
 import {
   notifyAffiliateApplied,
-  notifySubscriptionUpdated,
+  notifySubscriptionCreated,
 } from "@/lib/notification-events";
 import { provisionPayPalSubscription } from "@/lib/paypal-subscriptions";
 import { createPayPalPayout } from "@/lib/paypal-payouts";
@@ -235,11 +235,7 @@ export async function POST(
     await notifyAffiliateApplied(user.id, record);
   }
   if (feature === "subscriptions") {
-    await notifySubscriptionUpdated(
-      user.id,
-      record,
-      `subscription-created:${record.id}`
-    );
+    await notifySubscriptionCreated(user.id, record);
     await sendSubscriptionApprovalEmail({
       subscription: record,
       requestUrl: req.url,

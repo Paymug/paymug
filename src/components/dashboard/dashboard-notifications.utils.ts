@@ -23,11 +23,12 @@ export function getNotificationAccentClass(type: NotificationType) {
   if (
     type === "payment_received" ||
     type === "order_completed" ||
-    type === "subscription_renewed"
+    type === "subscription_renewed" ||
+    type === "subscription_created"
   ) {
     return "bg-[#27a56d]";
   }
-  if (type === "affiliate_applied") return "bg-[#e6932f]";
+  if (type === "affiliate_applied" || type === "subscription_trial_started") return "bg-[#e6932f]";
   return "bg-accent";
 }
 

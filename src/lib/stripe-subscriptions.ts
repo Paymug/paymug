@@ -6,7 +6,11 @@ import {
   updateFeatureRecord,
 } from "./feature-records";
 import { findOrderById, findProductById } from "./db";
-import { notifyPaymentReceived, notifySubscriptionUpdated } from "./notification-events";
+import {
+  notifyPaymentReceived,
+  notifySubscriptionCreated,
+  notifySubscriptionUpdated,
+} from "./notification-events";
 import { getProductBillingCadence } from "./product-billing";
 import { effectiveProduct } from "./product-variants";
 import { sendStoreOrderPaymentEmail } from "./store-notification-emails";
@@ -139,10 +143,10 @@ export async function ensureStripeSubscriptionRecord(
     environment: order.environment,
     data,
   });
-  await notifySubscriptionUpdated(
+  await notifySubscriptionCreated(
     order.userId,
     record,
-    `subscription-update:${record.id}:${record.updatedAt}`,
+    `subscription-created:stripe:${session.subscription}`,
   );
   return record;
 }

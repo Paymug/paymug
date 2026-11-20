@@ -110,7 +110,7 @@ export async function cancelSubscriptionRecord(
   await notifySubscriptionUpdated(
     record.userId,
     updated,
-    `subscription-update:${updated.id}:${updated.updatedAt}`,
+    `subscription-status:${updated.id}:cancelled`,
   );
   // PayPal sends its own cancellation webhook, which emails the customer.
   if (!text(record.data.paypalSubscriptionId)) {

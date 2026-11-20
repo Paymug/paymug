@@ -271,7 +271,11 @@ export async function PATCH(
       },
     });
   }
-  if (feature === "subscriptions" && updated) {
+  if (
+    feature === "subscriptions" &&
+    updated &&
+    updated.status !== existing.status
+  ) {
     await notifySubscriptionUpdated(
       user.id,
       updated,
