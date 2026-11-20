@@ -43,10 +43,19 @@ export async function listCustomerAccountsByEmails(
   const normalized = [...new Set(emails.map((email) => email.trim().toLowerCase()))];
   if (normalized.length === 0) return [];
   const db = await getDb();
-  const rows = await db.query.customerAccounts.findMany({
-    where: inArray(customerAccounts.email, normalized),
-  });
-  return rows.map(rowToCustomerAccount);
+  // D1 caps bound parameters at 100 per query.
+  const chunkSize = 90;
+  const accounts: CustomerAccount[] = [];
+  for (let offset = 0; offset < normalized.length; offset += chunkSize) {
+    const rows = await db.query.customerAccounts.findMany({
+      where: inArray(
+        customerAccounts.email,
+        normalized.slice(offset, offset + chunkSize),
+      ),
+    });
+    accounts.push(...rows.map(rowToCustomerAccount));
+  }
+  return accounts;
 }
 
 export async function findCustomerById(

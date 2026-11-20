@@ -42,15 +42,25 @@ export async function listVisitorVisitMinutes(
   if (visitorIds.length === 0) return [];
   const db = await getDb();
   const minute = sql<string>`substr(${visitorEvents.createdAt}, 1, 16)`;
-  return db
-    .selectDistinct({ visitorId: visitorEvents.visitorId, minute })
-    .from(visitorEvents)
-    .where(
-      and(
-        eq(visitorEvents.storeId, storeId),
-        inArray(visitorEvents.visitorId, visitorIds),
-      ),
-    );
+  // D1 caps bound parameters at 100 per query; leave room for storeId.
+  const chunkSize = 90;
+  const results: Array<{ visitorId: string; minute: string }> = [];
+  for (let offset = 0; offset < visitorIds.length; offset += chunkSize) {
+    const rows = await db
+      .selectDistinct({ visitorId: visitorEvents.visitorId, minute })
+      .from(visitorEvents)
+      .where(
+        and(
+          eq(visitorEvents.storeId, storeId),
+          inArray(
+            visitorEvents.visitorId,
+            visitorIds.slice(offset, offset + chunkSize),
+          ),
+        ),
+      );
+    results.push(...rows);
+  }
+  return results;
 }
 
 export async function getEarliestVisitorEventDate(storeId: string): Promise<string | undefined> {

@@ -1,20 +1,29 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowUpRight01Icon,
-  Delete02Icon,
-  PencilEdit01Icon,
-  Search01Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowUpRight01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { useMemo, useState } from "react";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
 import { CustomSelect } from "@/components/CustomSelect";
 import { AreaChart } from "@/components/dashboard/charts";
 import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { getGravatarUrl } from "@/lib/customer-avatar";
-import { formatInTimeZone } from "@/lib/timezone";
-import { dashboardCardClass, dashboardIconButtonClass } from "./dashboard.styles";
+import { RightDrawerModal } from "./RightDrawerModal";
+import { dashboardCardClass } from "./dashboard.styles";
+import {
+  DataTableColgroup,
+  DataTableHeadCell,
+  DataTableSettingsCell,
+  DataTableSettingsHeadCell,
+} from "./data-table/DataTableParts";
+import type { DataTableColumn } from "./data-table/data-table.types";
+import { useDataTable } from "./data-table/use-data-table";
+import { badgeBaseClass } from "@/components/ui.styles";
+import {
+  formatOrderDateTime,
+  formatOrderListDate,
+} from "@/app/dashboard/orders/orders.utils";
+import type { FeatureRecord } from "@/lib/feature-records.types";
 import {
   buildSubscriptionSeries,
   buildSubscriptionsCsv,
@@ -45,6 +54,14 @@ const statusFilterOptions = [
   { value: "expired", label: "Expired" },
 ];
 
+const subscriptionColumns: DataTableColumn[] = [
+  { id: "date", label: "Date", width: 150 },
+  { id: "status", label: "Status", width: 150 },
+  { id: "customer", label: "Customer", width: 220 },
+  { id: "product", label: "Product", width: 240 },
+  { id: "revenue", label: "Revenue", width: 150, align: "right" },
+];
+
 export function SubscriptionsView({
   records,
   onEdit,
@@ -56,6 +73,9 @@ export function SubscriptionsView({
   const [metric, setMetric] = useState<SubscriptionMetric>("total");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const table = useDataTable("subscriptions", subscriptionColumns);
+  const selected = records.find((record) => record.id === selectedId) || null;
 
   const range = useMemo(
     () => getSubscriptionRange(preset, records, timeZone),
@@ -228,25 +248,24 @@ export function SubscriptionsView({
         </div>
       </div>
 
-      <div className="mt-3 overflow-x-auto border-t border-border">
-        <table className="w-full min-w-[860px] text-left text-sm">
+      <div className={`${dashboardCardClass} mt-3 overflow-x-auto`}>
+        <table className="text-left text-sm" style={table.tableStyle}>
+          <DataTableColgroup table={table} />
           <thead>
-            <tr className="border-b border-border text-muted">
-              <th className="py-3 pr-4 font-medium">Order</th>
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Product</th>
-              <th className="px-4 py-3 text-right font-medium">Revenue</th>
-              <th className="w-24 py-3 pl-4 text-right font-medium">
-                <span className="sr-only">Actions</span>
-              </th>
+            <tr className="border-b border-border text-sm text-muted">
+              {table.visibleColumns.map((column) => (
+                <DataTableHeadCell key={column.id} table={table} column={column} />
+              ))}
+              <DataTableSettingsHeadCell table={table} />
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-muted">
+                <td
+                  colSpan={table.visibleColumns.length + 1}
+                  className="py-12 text-center text-muted"
+                >
                   No subscriptions match your filters.
                 </td>
               </tr>
@@ -258,64 +277,57 @@ export function SubscriptionsView({
                 return (
                   <tr
                     key={record.id}
-                    className="group border-b border-border last:border-0"
+                    className="group/row cursor-pointer border-b border-border transition last:border-0 hover:bg-[#fafafd]"
+                    onClick={() => setSelectedId(record.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedId(record.id);
+                      }
+                    }}
+                    tabIndex={0}
                   >
-                    <td className="py-4 pr-4 tabular-nums">
-                      {getSubscriptionOrderLabel(record)}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4">
-                      {formatInTimeZone(record.createdAt, timeZone, {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex whitespace-nowrap rounded-lg px-2.5 py-1 text-sm font-medium ${style.className}`}
-                      >
-                        {style.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <CustomerAvatar
-                          name={name}
-                          email={email}
-                          avatarUrl={email ? getGravatarUrl(email, 64) : undefined}
-                          size="sm"
-                        />
-                        <span className="max-w-48 truncate" title={email}>
-                          {name || "—"}
+                    {table.isVisible("date") && (
+                      <td className="truncate px-4 py-3 text-muted">
+                        {formatOrderListDate(record.createdAt, timeZone)}
+                      </td>
+                    )}
+                    {table.isVisible("status") && (
+                      <td className="px-4 py-3">
+                        <span className={`${badgeBaseClass} ${style.className}`}>
+                          {style.label}
                         </span>
-                      </div>
-                    </td>
-                    <td className="max-w-56 truncate px-4 py-4">{record.title}</td>
-                    <td className="whitespace-nowrap px-4 py-4 text-right tabular-nums">
-                      {formatSubscriptionRevenue(record)}
-                    </td>
-                    <td className="py-4 pl-4">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          className={`${dashboardIconButtonClass} !h-8 !w-8`}
-                          onClick={() => onEdit(record)}
-                          aria-label={`Edit ${record.title}`}
-                        >
-                          <HugeiconsIcon icon={PencilEdit01Icon} size={15} aria-hidden />
-                        </button>
-                        <button
-                          type="button"
-                          className={`${dashboardIconButtonClass} !h-8 !w-8 hover:!text-red-500`}
-                          onClick={() => onDelete(record)}
-                          aria-label={`Delete ${record.title}`}
-                        >
-                          <HugeiconsIcon icon={Delete02Icon} size={15} aria-hidden />
-                        </button>
-                      </div>
-                    </td>
+                      </td>
+                    )}
+                    {table.isVisible("customer") && (
+                      <td className="overflow-hidden px-4 py-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <CustomerAvatar
+                            name={name}
+                            email={email}
+                            avatarUrl={email ? getGravatarUrl(email, 64) : undefined}
+                            size="xs"
+                          />
+                          <span
+                            className="truncate font-medium text-[#2a2a33]"
+                            title={email}
+                          >
+                            {name || "—"}
+                          </span>
+                        </div>
+                      </td>
+                    )}
+                    {table.isVisible("product") && (
+                      <td className="truncate px-4 py-3" title={record.title}>
+                        {record.title}
+                      </td>
+                    )}
+                    {table.isVisible("revenue") && (
+                      <td className="truncate px-4 py-3 text-right font-medium tabular-nums">
+                        {formatSubscriptionRevenue(record)}
+                      </td>
+                    )}
+                    <DataTableSettingsCell />
                   </tr>
                 );
               })
@@ -323,6 +335,118 @@ export function SubscriptionsView({
           </tbody>
         </table>
       </div>
+
+      {selected && (
+        <SubscriptionDetailDrawer
+          record={selected}
+          onClose={() => setSelectedId(null)}
+          onEdit={(record) => {
+            setSelectedId(null);
+            onEdit(record);
+          }}
+          onDelete={(record) => {
+            setSelectedId(null);
+            onDelete(record);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function SubscriptionDetailDrawer({
+  record,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  record: FeatureRecord;
+  onClose(): void;
+  onEdit(record: FeatureRecord): void;
+  onDelete(record: FeatureRecord): void;
+}) {
+  const timeZone = useTimeZone();
+  const style = getSubscriptionStatusStyle(record.status);
+  const name = getSubscriptionCustomerName(record);
+  const email = record.subtitle || "";
+  return (
+    <RightDrawerModal
+      eyebrow="Subscription"
+      title={record.title}
+      description={formatOrderDateTime(record.createdAt, timeZone)}
+      onClose={onClose}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-3">
+          <span className={`${badgeBaseClass} ${style.className}`}>{style.label}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onEdit(record)}
+              className="cursor-pointer rounded-lg border border-[#e0e0e8] px-3 py-1.5 text-xs font-semibold text-[#34343e] transition hover:bg-[#f7f7f8]"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(record)}
+              className="cursor-pointer rounded-lg border border-[#e0e0e8] px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-[#2a2a33]">Details</h3>
+          <dl className="space-y-2.5 rounded-xl border border-[#ececf1] px-4 py-3 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#8b8ba3]">Order</dt>
+              <dd className="font-medium tabular-nums">
+                {getSubscriptionOrderLabel(record)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#8b8ba3]">Product</dt>
+              <dd className="min-w-0 truncate text-right font-medium">{record.title}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#8b8ba3]">Revenue</dt>
+              <dd className="font-medium tabular-nums">
+                {formatSubscriptionRevenue(record)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#8b8ba3]">Created</dt>
+              <dd className="font-medium">
+                {formatOrderDateTime(record.createdAt, timeZone)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-[#8b8ba3]">Updated</dt>
+              <dd className="font-medium">
+                {formatOrderDateTime(record.updatedAt, timeZone)}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section>
+          <h3 className="mb-3 text-sm font-semibold text-[#2a2a33]">Customer</h3>
+          <div className="flex items-center gap-3 rounded-xl border border-[#ececf1] px-4 py-3">
+            <CustomerAvatar
+              name={name}
+              email={email}
+              avatarUrl={email ? getGravatarUrl(email, 64) : undefined}
+              size="lg"
+            />
+            <div className="min-w-0">
+              <p className="truncate font-medium text-[#2a2a33]">{name || "—"}</p>
+              <p className="mt-0.5 truncate text-sm text-[#8b8ba3]">{email}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </RightDrawerModal>
   );
 }
