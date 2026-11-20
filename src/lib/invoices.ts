@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getProductDescriptionPlainText } from "@/components/product-description.utils";
+import { renderProductDescriptionHtml } from "@/components/product-description-renderer.utils";
 import { getCustomerSession } from "./customer-auth";
 import { getSessionUser } from "./auth";
 import { findOrderById, findProductById } from "./db";
@@ -41,15 +41,7 @@ async function buildInvoice(order: Order): Promise<Invoice> {
     customerEmail: order.customerEmail,
     productName: order.productName,
     variantName: order.variantName ?? undefined,
-    description:
-      getProductDescriptionPlainText(order.productDescription || "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#0?39;/g, "'")
-        .replace(/&amp;/g, "&")
-        .slice(0, 240) || undefined,
+    description: order.productDescription || undefined,
     currency: order.currency,
     subtotal,
     discountCode: order.discountCode,
@@ -140,6 +132,7 @@ h1{font-size:28px;margin:0}.muted{color:#7a7a8c}.top{display:flex;justify-conten
 .badge.paid{background:#d1fae5;color:#065f46}.badge.failed,.badge.refunded{background:#fee2e2;color:#991b1b}
 table{width:100%;border-collapse:collapse;margin-top:28px}th,td{text-align:left;padding:10px 0;border-bottom:1px solid #e8e8ee}
 td.r,th.r{text-align:right}.total td{font-weight:700;font-size:16px;border-bottom:0}
+.desc p{margin:4px 0}.desc h2,.desc h3,.desc h4,.desc h5{font-size:14px;margin:8px 0 2px}.desc ul,.desc ol{margin:4px 0;padding-left:20px}
 .meta{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
 </style></head><body>
 <div class="top"><div><h1>Invoice</h1><div class="muted">${escapeHtml(invoice.number)}</div></div>
@@ -147,7 +140,7 @@ td.r,th.r{text-align:right}.total td{font-weight:700;font-size:16px;border-botto
 <div class="meta"><div><div class="muted">Billed to</div>${escapeHtml(invoice.customerName)}<br>${escapeHtml(invoice.customerEmail)}</div>
 <div><div class="muted">Issued</div>${date(invoice.issuedAt)}${invoice.paidAt ? `<div class="muted" style="margin-top:8px">Paid</div>${date(invoice.paidAt)}` : ""}</div></div>
 <table><thead><tr><th>Description</th><th class="r">Amount</th></tr></thead><tbody>
-<tr><td>${escapeHtml(invoice.productName)}${invoice.variantName ? ` — ${escapeHtml(invoice.variantName)}` : ""}${invoice.description ? `<div class="muted">${escapeHtml(invoice.description)}</div>` : ""}</td><td class="r">${money(invoice.subtotal)}</td></tr>
+<tr><td>${escapeHtml(invoice.productName)}${invoice.variantName ? ` — ${escapeHtml(invoice.variantName)}` : ""}${invoice.description ? `<div class="muted desc">${renderProductDescriptionHtml(invoice.description)}</div>` : ""}</td><td class="r">${money(invoice.subtotal)}</td></tr>
 ${rows.slice(1).map(([label, value]) => `<tr><td class="muted">${escapeHtml(label)}</td><td class="r">${escapeHtml(value)}</td></tr>`).join("\n")}
 <tr class="total"><td>${invoice.status === "paid" ? "Total paid" : "Amount due"}</td><td class="r">${money(invoice.total)}</td></tr>
 </tbody></table>
