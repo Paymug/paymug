@@ -4,11 +4,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Camera01Icon,
   Delete02Icon,
-  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Alert, Button, Input } from '@/components/ui';
+import { getCustomerInitials } from '@/components/CustomerAvatar';
 import { readCustomerAvatarFile } from '../customer-avatar.utils';
 import type {
   CustomerProfileDetailsProps,
@@ -87,11 +87,14 @@ export function CustomerProfileDetails({
                 <img
                   src={avatarImageUrl || customer.gravatarUrl}
                   alt="Profile preview"
+                  referrerPolicy="no-referrer"
                   onError={() => setAvatarError(true)}
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <HugeiconsIcon icon={UserCircleIcon} size={38} />
+                <span className="text-xl font-semibold text-[#6f6f84]">
+                  {getCustomerInitials(name, customer.email)}
+                </span>
               )}
               <span className="absolute inset-0 grid place-items-center bg-black/40 text-white opacity-0 transition group-hover:opacity-100">
                 <HugeiconsIcon icon={Camera01Icon} size={20} />

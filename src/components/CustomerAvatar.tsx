@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function getCustomerInitials(name: string, email: string): string {
   const source = name.trim() || email.trim();
@@ -31,16 +31,27 @@ export function CustomerAvatar({
   size?: keyof typeof sizes;
 }) {
   const [failed, setFailed] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setFailed(false);
   }, [avatarUrl]);
 
+  // Gravatar answers 404 when the email has no avatar. A server-rendered <img>
+  // can finish failing before hydration attaches onError, so re-check here.
+  useEffect(() => {
+    const image = imageRef.current;
+    if (image?.complete && image.naturalWidth === 0) setFailed(true);
+  }, [avatarUrl]);
+
   if (avatarUrl && !failed) {
     return (
       <img
+        ref={imageRef}
         src={avatarUrl}
         alt=""
+        referrerPolicy="no-referrer"
+        loading="lazy"
         onError={() => setFailed(true)}
         className={`${sizes[size]} shrink-0 rounded-full object-cover ring-1 ring-[#ececf1]`}
       />
