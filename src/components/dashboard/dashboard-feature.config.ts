@@ -19,7 +19,7 @@ const rootFeatures: Record<string, DashboardFeatureConfig> = {
         type: "select",
         source: "status",
         options: [
-          { label: "Approval pending", value: "approval_pending" },
+          { label: "Pending", value: "approval_pending" },
           { label: "Active", value: "active" },
           { label: "Trialing", value: "trialing" },
           { label: "Paused", value: "paused" },

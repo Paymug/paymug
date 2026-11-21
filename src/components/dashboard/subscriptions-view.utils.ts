@@ -35,7 +35,7 @@ const statusStyles: Record<string, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-[#edfbf3] text-[#179a58]" },
   trialing: { label: "Trialing", className: "bg-[#fff4e5] text-[#c26a00]" },
   approval_pending: {
-    label: "Approval pending",
+    label: "Pending",
     className: "bg-[#fff9db] text-[#a07800]",
   },
   past_due: { label: "Past due", className: "bg-[#fff0e6] text-[#d4500a]" },

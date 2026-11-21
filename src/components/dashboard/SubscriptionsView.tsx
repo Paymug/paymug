@@ -46,7 +46,7 @@ const statusFilterOptions = [
   { value: "all", label: "All Subscriptions" },
   { value: "active", label: "Active" },
   { value: "trialing", label: "Trialing" },
-  { value: "approval_pending", label: "Approval pending" },
+  { value: "approval_pending", label: "Pending" },
   { value: "past_due", label: "Past due" },
   { value: "paused", label: "Paused" },
   { value: "suspended", label: "Suspended" },
