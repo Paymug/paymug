@@ -43,6 +43,8 @@ export interface ChartCommerceSeries {
   data: ChartPoint[];
   format: ChartValueFormat;
   currency?: string;
+  /** Also draw this series as a line on the chart. */
+  line?: boolean;
 }
 
 export interface ChartTooltipContext {

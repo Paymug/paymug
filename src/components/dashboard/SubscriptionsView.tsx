@@ -1,10 +1,16 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowUpRight01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowUpRight01Icon,
+  PlusSignIcon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
 import { useMemo, useState } from "react";
 import { CustomerAvatar } from "@/components/CustomerAvatar";
 import { CustomSelect } from "@/components/CustomSelect";
+import { Button } from "@/components/ui";
+import { StatusMultiFilter } from "./StatusMultiFilter";
 import { AreaChart } from "@/components/dashboard/charts";
 import { useTimeZone } from "@/components/dashboard/TimeZoneProvider";
 import { getGravatarUrl } from "@/lib/customer-avatar";
@@ -24,6 +30,7 @@ import {
   formatOrderListDate,
 } from "@/app/dashboard/orders/orders.utils";
 import type { FeatureRecord } from "@/lib/feature-records.types";
+import type { ChartCommerceSeries } from "./charts.types";
 import {
   buildSubscriptionSeries,
   buildSubscriptionsCsv,
@@ -43,7 +50,6 @@ import {
 import type { SubscriptionsViewProps } from "./SubscriptionsView.types";
 
 const statusFilterOptions = [
-  { value: "all", label: "All Subscriptions" },
   { value: "active", label: "Active" },
   { value: "trialing", label: "Trialing" },
   { value: "approval_pending", label: "Pending" },
@@ -52,6 +58,12 @@ const statusFilterOptions = [
   { value: "suspended", label: "Suspended" },
   { value: "cancelled", label: "Cancelled" },
   { value: "expired", label: "Expired" },
+];
+
+/** Statuses that get their own chart line when selected in the filter. */
+const statusLines: Array<{ status: string; label: string; color: string }> = [
+  { status: "active", label: "Active", color: "#179a58" },
+  { status: "trialing", label: "Trial", color: "#c26a00" },
 ];
 
 const subscriptionColumns: DataTableColumn[] = [
@@ -64,6 +76,8 @@ const subscriptionColumns: DataTableColumn[] = [
 
 export function SubscriptionsView({
   records,
+  onCreate,
+  createLabel = "Add subscription",
   onEdit,
   onDelete,
 }: SubscriptionsViewProps) {
@@ -72,7 +86,7 @@ export function SubscriptionsView({
   const [interval, setInterval] = useState<SubscriptionInterval>("daily");
   const [metric, setMetric] = useState<SubscriptionMetric>("total");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
+  const [statuses, setStatuses] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const table = useDataTable("subscriptions", subscriptionColumns);
   const selected = records.find((record) => record.id === selectedId) || null;
@@ -90,10 +104,33 @@ export function SubscriptionsView({
     [records, range, interval, metric, timeZone],
   );
 
+  const statusSeries = useMemo<ChartCommerceSeries[]>(
+    () =>
+      statusLines
+        .filter((line) => statuses.includes(line.status))
+        .map((line) => ({
+          label: line.label,
+          color: line.color,
+          format: "number" as const,
+          line: true,
+          data: buildSubscriptionSeries(
+            records.filter((record) => record.status === line.status),
+            range,
+            interval,
+            metric,
+            timeZone,
+          ).data,
+        })),
+    [records, statuses, range, interval, metric, timeZone],
+  );
+
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return records
-      .filter((record) => status === "all" || record.status === status)
+      .filter(
+        (record) =>
+          statuses.length === 0 || statuses.includes(record.status),
+      )
       .filter(
         (record) =>
           !needle ||
@@ -103,7 +140,7 @@ export function SubscriptionsView({
             .includes(needle),
       )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [records, query, status]);
+  }, [records, query, statuses]);
 
   function exportCsv() {
     const blob = new Blob([buildSubscriptionsCsv(rows)], {
@@ -164,6 +201,15 @@ export function SubscriptionsView({
             <span className="h-2.5 w-2.5 rounded-full border-2 border-[#a3a3ad]" />
             Last Period
           </span>
+          {statusSeries.map((line) => (
+            <span key={line.label} className="inline-flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full border-2"
+                style={{ borderColor: line.color }}
+              />
+              {line.label}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -174,6 +220,7 @@ export function SubscriptionsView({
           height={220}
           color="#f5c518"
           comparisonColor="#a3a3ad"
+          commerceSeries={statusSeries}
           fillOpacity={0.025}
           showAxis={false}
           valueFormat="number"
@@ -227,13 +274,12 @@ export function SubscriptionsView({
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-1.5 text-sm text-muted">
             <span>Status:</span>
-            <CustomSelect
-              value={status}
-              onValueChange={setStatus}
+            <StatusMultiFilter
+              values={statuses}
+              onChange={setStatuses}
               options={statusFilterOptions}
-              variant="plain"
+              allLabel="All Subscriptions"
               ariaLabel="Filter by status"
-              triggerClassName="text-sm text-[#27272f]"
             />
           </div>
           <button
@@ -245,6 +291,12 @@ export function SubscriptionsView({
             <HugeiconsIcon icon={ArrowUpRight01Icon} size={16} aria-hidden />
             Export
           </button>
+          {onCreate && (
+            <Button type="button" onClick={onCreate}>
+              <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
+              {createLabel}
+            </Button>
+          )}
         </div>
       </div>
 

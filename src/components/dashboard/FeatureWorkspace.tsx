@@ -107,6 +107,9 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
   const showDiscountStatusToggle =
     feature.key === "discounts" && isEditing && Boolean(editingRecord);
 
+  const showSubscriptionsView =
+    feature.key === "subscriptions" && !loading && records.length > 0;
+
   function startCreate() {
     setEditingId(null);
     setValues(createEmptyFeatureValues(feature));
@@ -238,7 +241,7 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
   return (
     <div className="mt-6">
       <div className="flex items-start justify-end gap-2">
-        {feature.allowCreate && !formOpen && (
+        {feature.allowCreate && !formOpen && !showSubscriptionsView && (
           <Button type="button" onClick={startCreate}>
             <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
             {feature.createLabel}
@@ -333,9 +336,13 @@ export function FeatureWorkspace({ feature }: FeatureWorkspaceProps) {
 
       {!formOpen && error && <Alert>{error}</Alert>}
 
-      {feature.key === "subscriptions" && !loading && records.length > 0 ? (
+      {showSubscriptionsView ? (
         <SubscriptionsView
           records={records}
+          onCreate={
+            feature.allowCreate && !formOpen ? startCreate : undefined
+          }
+          createLabel={feature.createLabel}
           onEdit={startEdit}
           onDelete={(record) => void removeRecord(record)}
         />
