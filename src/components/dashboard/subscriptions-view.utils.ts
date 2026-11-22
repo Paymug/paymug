@@ -33,7 +33,7 @@ const liveStatuses = new Set(["active", "trialing"]);
 /** Tailwind classes per status so each state reads differently. */
 const statusStyles: Record<string, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-[#edfbf3] text-[#179a58]" },
-  trialing: { label: "Trialing", className: "bg-[#fff4e5] text-[#c26a00]" },
+  trialing: { label: "Trial", className: "bg-[#fff4e5] text-[#c26a00]" },
   approval_pending: {
     label: "Pending",
     className: "bg-[#fff9db] text-[#a07800]",
@@ -42,6 +42,10 @@ const statusStyles: Record<string, { label: string; className: string }> = {
   paused: { label: "Paused", className: "bg-[#eef1ff] text-[#4a5bd0]" },
   suspended: { label: "Suspended", className: "bg-[#f3eaff] text-[#7a3fd1]" },
   cancelled: { label: "Cancelled", className: "bg-[#fff0f4] text-[#ef174c]" },
+  approval_cancelled: {
+    label: "Cancelled",
+    className: "bg-[#fff0f4] text-[#ef174c]",
+  },
   expired: { label: "Expired", className: "bg-[#f1f1f5] text-[#6f6f84]" },
 };
 

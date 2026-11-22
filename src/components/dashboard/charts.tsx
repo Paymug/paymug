@@ -72,6 +72,7 @@ export function AreaChart({
   className = "",
   commerceSeries,
   categoryOffset = false,
+  hideBaseSeries = false,
 }: ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -102,6 +103,9 @@ export function AreaChart({
     () => ({
       labels: data.map((_, index) => String(index)),
       datasets: [
+        ...(hideBaseSeries
+          ? []
+          : [
         {
           label: "Current",
           data: data.map((point) => point.value),
@@ -114,9 +118,9 @@ export function AreaChart({
           pointHoverBorderColor: color,
           pointHoverBorderWidth: compact ? 2 : 3,
           tension: 0,
-          fill: "origin",
-          borderCapStyle: "butt",
-          borderJoinStyle: "miter",
+          fill: "origin" as const,
+          borderCapStyle: "butt" as const,
+          borderJoinStyle: "miter" as const,
         },
         {
           label: "Previous",
@@ -137,9 +141,10 @@ export function AreaChart({
           pointHoverBorderWidth: compact ? 2 : 3,
           tension: 0,
           fill: false,
-          borderCapStyle: "butt",
-          borderJoinStyle: "miter",
+          borderCapStyle: "butt" as const,
+          borderJoinStyle: "miter" as const,
         },
+          ]),
         ...(commerceSeries || [])
           .filter((series) => series.line)
           .map((series) => ({
@@ -168,6 +173,7 @@ export function AreaChart({
       comparisonData,
       data,
       fillOpacity,
+      hideBaseSeries,
     ]
   );
 
@@ -390,7 +396,10 @@ export function AreaChart({
       >
         <div className={styles.tooltipHeader}>
           <div className={styles.tooltipTitle}>{title}</div>
-          <div className={`${styles.tooltipTrend} ${trendClass}`}>
+          <div
+            className={`${styles.tooltipTrend} ${trendClass}`}
+            style={hideBaseSeries ? { display: "none" } : undefined}
+          >
             <span className={styles.tooltipArrow}>{trendArrow}</span>
             <span>{Math.round(Math.abs(trend))}%</span>
           </div>
@@ -401,6 +410,7 @@ export function AreaChart({
         <div className={styles.tooltipBody}>
           <div
             className={`${styles.tooltipRow} ${styles.rowCurrent}`}
+            style={hideBaseSeries ? { display: "none" } : undefined}
             data-tooltip-role="current-row"
           >
             <span className={styles.tooltipDot} />
@@ -415,6 +425,7 @@ export function AreaChart({
           </div>
           <div
             className={`${styles.tooltipRow} ${styles.rowPrevious}`}
+            style={hideBaseSeries ? { display: "none" } : undefined}
             data-tooltip-role="previous-row"
           >
             <span className={styles.tooltipDot} />

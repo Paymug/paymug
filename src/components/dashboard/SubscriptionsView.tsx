@@ -51,7 +51,7 @@ import type { SubscriptionsViewProps } from "./SubscriptionsView.types";
 
 const statusFilterOptions = [
   { value: "active", label: "Active" },
-  { value: "trialing", label: "Trialing" },
+  { value: "trialing", label: "Trial" },
   { value: "approval_pending", label: "Pending" },
   { value: "past_due", label: "Past due" },
   { value: "paused", label: "Paused" },
@@ -63,10 +63,11 @@ const statusFilterOptions = [
 /** Statuses that get their own chart line when selected in the filter. */
 const statusLines: Array<{ status: string; label: string; color: string }> = [
   { status: "active", label: "Active", color: "#179a58" },
-  { status: "trialing", label: "Trial", color: "#c26a00" },
+  { status: "trialing", label: "Trial", color: "#f5c518" },
 ];
 
 const subscriptionColumns: DataTableColumn[] = [
+  { id: "order", label: "Order Number", width: 150 },
   { id: "date", label: "Date", width: 150 },
   { id: "status", label: "Status", width: 150 },
   { id: "customer", label: "Customer", width: 220 },
@@ -107,7 +108,9 @@ export function SubscriptionsView({
   const statusSeries = useMemo<ChartCommerceSeries[]>(
     () =>
       statusLines
-        .filter((line) => statuses.includes(line.status))
+        .filter(
+          (line) => statuses.length === 0 || statuses.includes(line.status),
+        )
         .map((line) => ({
           label: line.label,
           color: line.color,
@@ -129,7 +132,10 @@ export function SubscriptionsView({
     return records
       .filter(
         (record) =>
-          statuses.length === 0 || statuses.includes(record.status),
+          statuses.length === 0 ||
+          statuses.includes(
+            record.status === "approval_cancelled" ? "cancelled" : record.status,
+          ),
       )
       .filter(
         (record) =>
@@ -193,14 +199,6 @@ export function SubscriptionsView({
           />
         </div>
         <div className="flex items-center gap-5 text-sm text-muted">
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full border-2 border-[#f5c518]" />
-            Chosen Period
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full border-2 border-[#a3a3ad]" />
-            Last Period
-          </span>
           {statusSeries.map((line) => (
             <span key={line.label} className="inline-flex items-center gap-2">
               <span
@@ -217,6 +215,7 @@ export function SubscriptionsView({
         <AreaChart
           data={series.data}
           comparisonData={series.comparisonData}
+          hideBaseSeries
           height={220}
           color="#f5c518"
           comparisonColor="#a3a3ad"
@@ -292,9 +291,14 @@ export function SubscriptionsView({
             Export
           </button>
           {onCreate && (
-            <Button type="button" onClick={onCreate}>
-              <HugeiconsIcon icon={PlusSignIcon} size={15} aria-hidden strokeWidth={2} />
-              {createLabel}
+            <Button
+              type="button"
+              onClick={onCreate}
+              aria-label={createLabel}
+              title={createLabel}
+              className="!h-9 !w-9 !min-h-0 !rounded-full !p-0"
+            >
+              <HugeiconsIcon icon={PlusSignIcon} size={18} aria-hidden strokeWidth={2} />
             </Button>
           )}
         </div>
@@ -339,6 +343,11 @@ export function SubscriptionsView({
                     }}
                     tabIndex={0}
                   >
+                    {table.isVisible("order") && (
+                      <td className="truncate px-4 py-3 font-medium tabular-nums">
+                        {getSubscriptionOrderLabel(record)}
+                      </td>
+                    )}
                     {table.isVisible("date") && (
                       <td className="truncate px-4 py-3 text-muted">
                         {formatOrderListDate(record.createdAt, timeZone)}

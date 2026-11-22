@@ -52,7 +52,9 @@ export function DashboardMetricChart({
           }))}
           variant="plain"
           ariaLabel={`Select ${group.key} graph`}
-          triggerClassName="text-sm"
+          className="shrink-0"
+          triggerClassName="text-sm whitespace-nowrap"
+          menuClassName="!w-max !max-w-none whitespace-nowrap"
           menuFooter={
             <button
               type="button"

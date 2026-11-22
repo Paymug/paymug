@@ -35,6 +35,8 @@ export interface ChartProps {
   commerceSeries?: ChartCommerceSeries[];
   /** Centers category points within their slots (aligns with overlaid bars). */
   categoryOffset?: boolean;
+  /** Draw only the `line` series from `commerceSeries`, not the current/previous lines. */
+  hideBaseSeries?: boolean;
 }
 
 export interface ChartCommerceSeries {
