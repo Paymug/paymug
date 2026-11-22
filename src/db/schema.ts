@@ -912,3 +912,28 @@ export const appMeta = sqliteTable("app_meta", {
   value: text("value").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
+
+/** Reusable PayPal product/plan pairs, keyed by identical price and terms. */
+export const paypalPlans = sqliteTable(
+  "paypal_plans",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    environment: text("environment", { enum: ["sandbox", "live"] }).notNull(),
+    clientId: text("client_id").notNull(),
+    signature: text("signature").notNull(),
+    paypalProductId: text("paypal_product_id").notNull(),
+    paypalPlanId: text("paypal_plan_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("paypal_plans_terms_idx").on(
+      table.userId,
+      table.environment,
+      table.clientId,
+      table.signature,
+    ),
+  ],
+);

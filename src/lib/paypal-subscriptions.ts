@@ -1,5 +1,9 @@
 import "server-only";
 
+import { and, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { paypalPlans } from "@/db/schema";
+
 import {
   getPayPalAccessToken,
   paypalBaseUrl,
@@ -104,85 +108,139 @@ export async function provisionPayPalSubscription(
     input.introductoryAmount !== undefined &&
     input.introductoryAmount < input.amount;
 
-  const product = await paypalPost<{ id: string }>(
-    `${baseUrl}/v1/catalogs/products`,
-    token,
-    {
-      name: input.planName,
-      description: `Paymug subscription: ${input.planName}`,
-      type: "DIGITAL",
-      category: "SOFTWARE",
-    }
+  const signature = JSON.stringify([
+    input.planName,
+    cadence.unit,
+    cadence.count,
+    currency,
+    input.amount.toFixed(2),
+    input.trialDays > 0 ? input.trialDays : 0,
+    hasIntroductoryDiscount ? introductoryPeriodCount : 0,
+    hasIntroductoryDiscount ? input.introductoryAmount!.toFixed(2) : null,
+  ]);
+  const db = await getDb();
+  const termsWhere = and(
+    eq(paypalPlans.userId, input.userId),
+    eq(paypalPlans.environment, input.mode),
+    eq(paypalPlans.clientId, connection.clientId),
+    eq(paypalPlans.signature, signature)
   );
+  let cached = await db.query.paypalPlans.findFirst({ where: termsWhere });
 
-  const plan = await paypalPost<{ id: string }>(
-    `${baseUrl}/v1/billing/plans`,
-    token,
-    {
-      product_id: product.id,
-      name: input.planName.slice(0, 127),
-      description:
-        input.trialDays > 0
-          ? `Recurring every ${intervalLabel} with a ${input.trialDays}-day free trial`
-          : `Recurring every ${intervalLabel}`,
-      billing_cycles: [
-        ...(input.trialDays > 0
-          ? [
-              {
-                frequency: {
-                  interval_unit: "DAY",
-                  interval_count: input.trialDays,
+  if (!cached) {
+    const product = await paypalPost<{ id: string }>(
+      `${baseUrl}/v1/catalogs/products`,
+      token,
+      {
+        name: input.planName,
+        description: `Paymug subscription: ${input.planName}`,
+        type: "DIGITAL",
+        category: "SOFTWARE",
+      }
+    );
+
+    const plan = await paypalPost<{ id: string }>(
+      `${baseUrl}/v1/billing/plans`,
+      token,
+      {
+        product_id: product.id,
+        name: input.planName.slice(0, 127),
+        description:
+          input.trialDays > 0
+            ? `Recurring every ${intervalLabel} with a ${input.trialDays}-day free trial`
+            : `Recurring every ${intervalLabel}`,
+        billing_cycles: [
+          ...(input.trialDays > 0
+            ? [
+                {
+                  frequency: {
+                    interval_unit: "DAY",
+                    interval_count: input.trialDays,
+                  },
+                  tenure_type: "TRIAL",
+                  sequence: 1,
+                  total_cycles: 1,
                 },
-                tenure_type: "TRIAL",
-                sequence: 1,
-                total_cycles: 1,
-              },
-            ]
-          : []),
-        ...(hasIntroductoryDiscount
-          ? [
-              {
-                frequency: {
-                  interval_unit: toPayPalIntervalUnit(cadence.unit),
-                  interval_count: cadence.count,
-                },
-                tenure_type: "TRIAL",
-                sequence: input.trialDays > 0 ? 2 : 1,
-                total_cycles: introductoryPeriodCount,
-                pricing_scheme: {
-                  fixed_price: {
-                    value: input.introductoryAmount!.toFixed(2),
-                    currency_code: currency,
+              ]
+            : []),
+          ...(hasIntroductoryDiscount
+            ? [
+                {
+                  frequency: {
+                    interval_unit: toPayPalIntervalUnit(cadence.unit),
+                    interval_count: cadence.count,
+                  },
+                  tenure_type: "TRIAL",
+                  sequence: input.trialDays > 0 ? 2 : 1,
+                  total_cycles: introductoryPeriodCount,
+                  pricing_scheme: {
+                    fixed_price: {
+                      value: input.introductoryAmount!.toFixed(2),
+                      currency_code: currency,
+                    },
                   },
                 },
+              ]
+            : []),
+          {
+            frequency: {
+              interval_unit: toPayPalIntervalUnit(cadence.unit),
+              interval_count: cadence.count,
+            },
+            tenure_type: "REGULAR",
+            sequence:
+              1 +
+              (input.trialDays > 0 ? 1 : 0) +
+              (hasIntroductoryDiscount ? 1 : 0),
+            total_cycles: 0,
+            pricing_scheme: {
+              fixed_price: {
+                value: input.amount.toFixed(2),
+                currency_code: currency,
               },
-            ]
-          : []),
-        {
-          frequency: {
-            interval_unit: toPayPalIntervalUnit(cadence.unit),
-            interval_count: cadence.count,
-          },
-          tenure_type: "REGULAR",
-          sequence:
-            1 +
-            (input.trialDays > 0 ? 1 : 0) +
-            (hasIntroductoryDiscount ? 1 : 0),
-          total_cycles: 0,
-          pricing_scheme: {
-            fixed_price: {
-              value: input.amount.toFixed(2),
-              currency_code: currency,
             },
           },
+        ],
+        payment_preferences: {
+          auto_bill_outstanding: true,
+          payment_failure_threshold: 1,
         },
-      ],
-      payment_preferences: {
-        auto_bill_outstanding: true,
-        payment_failure_threshold: 1,
-      },
+      }
+    );
+
+
+    await db
+      .insert(paypalPlans)
+      .values({
+        id: uid(),
+        userId: input.userId,
+        environment: input.mode,
+        clientId: connection.clientId,
+        signature,
+        paypalProductId: product.id,
+        paypalPlanId: plan.id,
+        createdAt: new Date().toISOString(),
+      })
+      .onConflictDoNothing();
+    // Concurrent request may have won the race; use the stored row.
+    cached =
+      (await db.query.paypalPlans.findFirst({ where: termsWhere })) ??
+      undefined;
+    if (!cached) {
+      cached = {
+        id: "",
+        userId: input.userId,
+        environment: input.mode,
+        clientId: connection.clientId,
+        signature,
+        paypalProductId: product.id,
+        paypalPlanId: plan.id,
+        createdAt: "",
+      };
     }
-  );
+  }
+  const product = { id: cached.paypalProductId };
+  const plan = { id: cached.paypalPlanId };
 
   const subscription = await paypalPost<{
     id: string;

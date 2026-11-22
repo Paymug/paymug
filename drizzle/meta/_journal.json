@@ -267,6 +267,13 @@
       "when": 1790143200000,
       "tag": "0037_checkout_return_url",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1790229600000,
+      "tag": "0038_paypal_plans",
+      "breakpoints": true
     }
   ]
 }
