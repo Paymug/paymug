@@ -9,7 +9,7 @@ import {
   getNotificationAccentClass,
 } from "./dashboard-notifications.utils";
 
-export function NotificationHistory({ onClose }: { onClose: () => void }) {
+export function NotificationHistory() {
   const timeZone = useTimeZone();
   const [items, setItems] = useState<NotificationRecord[]>([]);
   const [cursor, setCursor] = useState<string>();
@@ -48,39 +48,13 @@ export function NotificationHistory({ onClose }: { onClose: () => void }) {
     return () => observer.disconnect();
   }, [loadMore, error]);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <div
-      className="fixed inset-0 z-[60] grid place-items-center bg-black/30 p-4"
-      onClick={onClose}
-    >
-      <div
-        role="dialog"
-        aria-label="Notification history"
-        className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[#e8e8ee] bg-white shadow-[0_18px_45px_rgb(42_38_63/16%)]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-[#e8e8ee] px-4 py-3">
-          <p className="text-sm font-semibold">All notifications</p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm text-[#85859d] transition hover:text-accent-hover"
-          >
-            Close
-          </button>
-        </div>
-        <div className="overflow-y-auto">
+    <div className="overflow-hidden rounded-xl border border-[#e8e8ee] bg-white">
+        <div>
           {items.map((notification) => (
             <Link
               key={notification.id}
               href={notification.href || "/dashboard"}
-              onClick={onClose}
               className={`flex gap-3 border-b border-[#f0f0f4] px-4 py-3 transition hover:bg-accent-soft ${
                 !notification.readAt ? "bg-accent-soft" : "bg-white"
               }`}
@@ -114,7 +88,6 @@ export function NotificationHistory({ onClose }: { onClose: () => void }) {
             {done && items.length > 0 && "End of history"}
           </div>
         </div>
-      </div>
     </div>
   );
 }
