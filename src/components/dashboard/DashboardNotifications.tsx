@@ -12,6 +12,7 @@ import {
   getNotificationAccentClass,
   markNotificationsRead,
 } from "./dashboard-notifications.utils";
+import { NotificationHistory } from "./NotificationHistory";
 import type { DashboardNotificationsProps } from "./DashboardNotifications.types";
 
 export function DashboardNotifications({
@@ -22,6 +23,7 @@ export function DashboardNotifications({
 }: DashboardNotificationsProps) {
   const timeZone = useTimeZone();
   const [open, setOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(initialHasUnread);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [notifications, setNotifications] = useState(initialNotifications);
@@ -68,11 +70,16 @@ export function DashboardNotifications({
         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-[#e8e8ee] bg-white shadow-[0_18px_45px_rgb(42_38_63/16%)]">
           <div className="flex items-center justify-between border-b border-[#e8e8ee] px-4 py-3">
             <p className="text-sm font-semibold">Notifications</p>
-            {notifications.length > 0 && (
-              <span className="text-sm text-[#85859d]">
-                {notifications.length} recent
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setHistoryOpen(true);
+              }}
+              className="text-sm text-[#85859d] transition hover:text-accent-hover"
+            >
+              View all
+            </button>
           </div>
 
           {notifications.length === 0 ? (
@@ -114,6 +121,9 @@ export function DashboardNotifications({
             </div>
           )}
         </div>
+      )}
+      {historyOpen && (
+        <NotificationHistory onClose={() => setHistoryOpen(false)} />
       )}
     </div>
   );

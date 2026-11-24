@@ -1,5 +1,5 @@
 import { formatInTimeZone } from "@/lib/timezone";
-import type { NotificationType } from "@/lib/notifications.types";
+import type { NotificationRecord, NotificationType } from "@/lib/notifications.types";
 
 export function formatNotificationAge(createdAt: string, timeZone: string) {
   const elapsed = Date.now() - new Date(createdAt).getTime();
@@ -35,4 +35,15 @@ export function getNotificationAccentClass(type: NotificationType) {
 export async function markNotificationsRead() {
   const response = await fetch("/api/notifications", { method: "PATCH" });
   return response.ok;
+}
+
+export async function fetchNotificationsPage(cursor?: string) {
+  const query = new URLSearchParams({ limit: "20" });
+  if (cursor) query.set("cursor", cursor);
+  const response = await fetch(`/api/notifications?${query}`);
+  if (!response.ok) throw new Error("Failed to load notifications");
+  return (await response.json()) as {
+    items: NotificationRecord[];
+    nextCursor?: string;
+  };
 }

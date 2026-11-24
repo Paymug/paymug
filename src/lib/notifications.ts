@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lt, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   notifications as notificationsTable,
@@ -47,6 +47,45 @@ export async function listNotifications(
     limit,
   });
   return rows.map(mapNotification);
+}
+
+export async function listNotificationsPage(
+  userId: string,
+  environment: NotificationRecord["environment"] | undefined,
+  limit = 20,
+  cursor?: { createdAt: string; id: string }
+): Promise<{ items: NotificationRecord[]; nextCursor?: string }> {
+  const db = await getDb();
+  const rows = await db.query.notifications.findMany({
+    where: and(
+      eq(notificationsTable.userId, userId),
+      ...(environment
+        ? [eq(notificationsTable.environment, environment)]
+        : []),
+      ...(cursor
+        ? [
+            or(
+              lt(notificationsTable.createdAt, cursor.createdAt),
+              and(
+                eq(notificationsTable.createdAt, cursor.createdAt),
+                lt(notificationsTable.id, cursor.id)
+              )
+            )!,
+          ]
+        : [])
+    ),
+    orderBy: [desc(notificationsTable.createdAt), desc(notificationsTable.id)],
+    limit: limit + 1,
+  });
+  const page = rows.slice(0, limit);
+  const last = page[page.length - 1];
+  return {
+    items: page.map(mapNotification),
+    nextCursor:
+      rows.length > limit && last
+        ? `${last.createdAt}|${last.id}`
+        : undefined,
+  };
 }
 
 export async function hasUnreadNotifications(
