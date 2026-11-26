@@ -2,13 +2,22 @@ import "server-only";
 
 import { getCustomerSession } from "./customer-auth";
 import { getSessionUser } from "./auth";
-import { findOrderById, findProductById } from "./db";
+import { findOrderById, findProductById, findProductForOrder } from "./db";
+import {
+  defaultExtraSeatLabel,
+  extraSeatsCustomKey,
+  getExtraSeatUnitPrice,
+  parseExtraSeatCount,
+  seatAddOnCustomKey,
+} from "./extra-seats";
+import { resolveProductConfiguration } from "./product-configurations";
 import { formatMoney } from "./format";
 import { getStoreById } from "./stores";
-import type { Order } from "./types";
+import type { Order, Product } from "./types";
 import type {
   Invoice,
   InvoiceAccess,
+  InvoiceItem,
   InvoiceViewerRole,
 } from "./invoices.types";
 
@@ -21,6 +30,78 @@ export function isInvoicePayable(status: Order["status"]) {
   return status === "pending" || status === "failed";
 }
 
+/**
+ * Splits the order price into product, add-on and extra seat lines. Orders only
+ * store the combined price, so the split comes from the product's current
+ * pricing and is used only when it adds up to exactly what was ordered.
+ */
+export function buildInvoiceItems(
+  order: Pick<Order, "productName" | "variantName" | "custom">,
+  subtotal: number,
+  product?: Product,
+): InvoiceItem[] {
+  const name = order.variantName
+    ? `${order.productName} — ${order.variantName}`
+    : order.productName;
+  const seats = parseExtraSeatCount(order.custom);
+  const seatLabel = product?.extraSeatLabel || defaultExtraSeatLabel;
+  const line = (description: string, amount: number): InvoiceItem => ({
+    description,
+    quantity: 1,
+    unitAmount: amount,
+    amount,
+  });
+
+  if (order.custom[seatAddOnCustomKey] && seats > 0) {
+    return [
+      {
+        description: `${seatLabel} — ${name}`,
+        quantity: seats,
+        unitAmount: subtotal % seats === 0 ? subtotal / seats : undefined,
+        amount: subtotal,
+      },
+    ];
+  }
+
+  if (product) {
+    const configuration = resolveProductConfiguration(product, order.custom);
+    if (
+      configuration.price === subtotal &&
+      configuration.extraSeats === seats
+    ) {
+      const addOns = configuration.selectedBundleChoices.map(
+        ({ bundle, choice }) =>
+          line(`${bundle.name}: ${choice.name}`, choice.price),
+      );
+      const base = addOns.reduce(
+        (remaining, item) => remaining - (item.amount ?? 0),
+        subtotal - configuration.extraSeatsPrice,
+      );
+      // Consecutive seats sharing a tier price become one line.
+      const seatLines: InvoiceItem[] = [];
+      for (let seat = 1; seat <= seats; seat += 1) {
+        const price = getExtraSeatUnitPrice(product.extraSeatTiers, seat);
+        const last = seatLines.at(-1);
+        if (last && last.unitAmount === price) {
+          last.quantity += 1;
+          last.amount = last.quantity * price;
+        } else {
+          seatLines.push(line(seatLabel, price));
+        }
+      }
+      return [line(name, base), ...addOns, ...seatLines];
+    }
+  }
+
+  // Pricing changed since the order (or a custom amount): keep one price.
+  return [
+    line(name, subtotal),
+    ...(order.custom[extraSeatsCustomKey] && seats > 0
+      ? [{ description: `${seatLabel} (included above)`, quantity: seats }]
+      : []),
+  ];
+}
+
 async function buildInvoice(order: Order): Promise<Invoice> {
   const store = order.storeId
     ? await getStoreById(order.storeId).catch(() => undefined)
@@ -28,6 +109,7 @@ async function buildInvoice(order: Order): Promise<Invoice> {
   const subtotal =
     order.productPrice ??
     order.amount + order.discountAmount - order.transactionFeeAmount;
+  const product = await findProductForOrder(order).catch(() => undefined);
   return {
     id: order.id,
     number: formatInvoiceNumber(order),
@@ -38,13 +120,15 @@ async function buildInvoice(order: Order): Promise<Invoice> {
     storeLogoImageUrl: store?.logoImageUrl || undefined,
     customerName: order.customerName || order.customerEmail,
     customerEmail: order.customerEmail,
-    productName: order.productName,
-    variantName: order.variantName ?? undefined,
+    items: buildInvoiceItems(order, subtotal, product),
     currency: order.currency,
     subtotal,
     discountCode: order.discountCode,
     discountAmount: order.discountAmount,
     transactionFeeAmount: order.transactionFeeAmount,
+    adjustmentAmount:
+      order.amount -
+      (subtotal - order.discountAmount + order.transactionFeeAmount),
     total: order.amount,
     gateway: order.gateway,
     environment: order.environment,
@@ -101,25 +185,31 @@ const escapeHtml = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
+/** Label and formatted value of each row between the items and the total. */
+export function getInvoiceSummary(invoice: Invoice): [string, string][] {
+  const money = (cents: number) => formatMoney(cents, invoice.currency);
+  const rows: [string, string][] = [["Subtotal", money(invoice.subtotal)]];
+  if (invoice.discountAmount) {
+    const code = invoice.discountCode ? ` (${invoice.discountCode})` : "";
+    rows.push([`Discount${code}`, `-${money(invoice.discountAmount)}`]);
+  }
+  if (invoice.transactionFeeAmount) {
+    rows.push(["Fees", money(invoice.transactionFeeAmount)]);
+  }
+  if (invoice.adjustmentAmount) {
+    rows.push(["Adjustment", money(invoice.adjustmentAmount)]);
+  }
+  return rows;
+}
+
 /** Self-contained HTML document used for the downloadable invoice. */
 export function renderInvoiceHtml(invoice: Invoice): string {
   const money = (cents: number) => formatMoney(cents, invoice.currency);
   const date = (value: string) =>
     new Date(value).toLocaleDateString("en-US", { dateStyle: "long" });
-  const rows: [string, string][] = [
-    ["Subtotal", money(invoice.subtotal)],
-    ...(invoice.discountAmount
-      ? ([
-          [
-            `Discount${invoice.discountCode ? ` (${invoice.discountCode})` : ""}`,
-            `-${money(invoice.discountAmount)}`,
-          ],
-        ] as [string, string][])
-      : []),
-    ...(invoice.transactionFeeAmount
-      ? ([["Fees", money(invoice.transactionFeeAmount)]] as [string, string][])
-      : []),
-  ];
+  const rows = getInvoiceSummary(invoice);
+  const optionalMoney = (cents?: number) =>
+    cents === undefined ? "—" : money(cents);
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Invoice ${escapeHtml(invoice.number)}</title>
@@ -129,17 +219,17 @@ h1{font-size:28px;margin:0}.muted{color:#7a7a8c}.top{display:flex;justify-conten
 .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;text-transform:capitalize;background:#fef3c7;color:#92400e}
 .badge.paid{background:#d1fae5;color:#065f46}.badge.failed,.badge.refunded{background:#fee2e2;color:#991b1b}
 table{width:100%;border-collapse:collapse;margin-top:28px}th,td{text-align:left;padding:10px 0;border-bottom:1px solid #e8e8ee}
-td.r,th.r{text-align:right}.total td{font-weight:700;font-size:16px;border-bottom:0}
+td.r,th.r{text-align:right;padding-left:16px;white-space:nowrap}.total td{font-weight:700;font-size:16px;border-bottom:0}
 .meta{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
 </style></head><body>
 <div class="top"><div><h1>Invoice</h1><div class="muted">${escapeHtml(invoice.number)}</div></div>
 <div style="text-align:right"><strong>${escapeHtml(invoice.storeName)}</strong><br><span class="badge ${escapeHtml(invoice.status)}">${escapeHtml(invoice.status)}</span></div></div>
 <div class="meta"><div><div class="muted">Billed to</div>${escapeHtml(invoice.customerName)}<br>${escapeHtml(invoice.customerEmail)}</div>
 <div><div class="muted">Issued</div>${date(invoice.issuedAt)}${invoice.paidAt ? `<div class="muted" style="margin-top:8px">Paid</div>${date(invoice.paidAt)}` : ""}</div></div>
-<table><thead><tr><th>Description</th><th class="r">Amount</th></tr></thead><tbody>
-<tr><td>${escapeHtml(invoice.productName)}${invoice.variantName ? ` — ${escapeHtml(invoice.variantName)}` : ""}</td><td class="r">${money(invoice.subtotal)}</td></tr>
-${rows.slice(1).map(([label, value]) => `<tr><td class="muted">${escapeHtml(label)}</td><td class="r">${escapeHtml(value)}</td></tr>`).join("\n")}
-<tr class="total"><td>${invoice.status === "paid" ? "Total paid" : "Amount due"}</td><td class="r">${money(invoice.total)}</td></tr>
+<table><thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody>
+${invoice.items.map((item) => `<tr><td>${escapeHtml(item.description)}</td><td class="r">${item.quantity}</td><td class="r">${optionalMoney(item.unitAmount)}</td><td class="r">${optionalMoney(item.amount)}</td></tr>`).join("\n")}
+${rows.map(([label, value]) => `<tr><td class="muted" colspan="3">${escapeHtml(label)}</td><td class="r">${escapeHtml(value)}</td></tr>`).join("\n")}
+<tr class="total"><td colspan="3">${invoice.status === "paid" ? "Total paid" : "Amount due"}</td><td class="r">${money(invoice.total)}</td></tr>
 </tbody></table>
 ${invoice.paymentReference ? `<p class="muted">Payment reference: ${escapeHtml(invoice.paymentReference)} (${escapeHtml(invoice.gateway)})</p>` : ""}
 </body></html>`;

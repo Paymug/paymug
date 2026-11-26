@@ -3,7 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatMoney } from "@/lib/format";
-import { getInvoiceAccess, isInvoicePayable } from "@/lib/invoices";
+import {
+  getInvoiceAccess,
+  getInvoiceSummary,
+  isInvoicePayable,
+} from "@/lib/invoices";
 import { PrintButton } from "../PrintButton";
 import { CopyPayLinkButton } from "../CopyPayLinkButton";
 
@@ -43,6 +47,9 @@ export default async function InvoicePage({
   }
   const { invoice, role, payable } = access;
   const money = (cents: number) => formatMoney(cents, invoice.currency);
+  const optionalMoney = (cents?: number) =>
+    cents === undefined ? "—" : money(cents);
+  const summary = getInvoiceSummary(invoice);
   const backHref = role === "merchant" ? "/dashboard/orders" : "/customer#invoices";
 
   return (
@@ -120,38 +127,31 @@ export default async function InvoicePage({
             <thead>
               <tr className="border-b border-[#e8e8ee] text-left text-xs uppercase tracking-wide text-[#9999aa]">
                 <th className="py-2 font-semibold">Description</th>
-                <th className="py-2 text-right font-semibold">Amount</th>
+                <th className="py-2 pl-3 text-right font-semibold">Qty</th>
+                <th className="py-2 pl-3 text-right font-semibold">Unit price</th>
+                <th className="py-2 pl-3 text-right font-semibold">Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-[#eeeef2] align-top">
-                <td className="py-3">
-                  <p className="font-medium">
-                    {invoice.productName}
-                    {invoice.variantName ? ` — ${invoice.variantName}` : ""}
-                  </p>
-                </td>
-                <td className="py-3 text-right">{money(invoice.subtotal)}</td>
-              </tr>
-              {invoice.discountAmount > 0 && (
-                <tr className="border-b border-[#eeeef2]">
-                  <td className="py-3 text-[#696978]">
-                    Discount{invoice.discountCode ? ` (${invoice.discountCode})` : ""}
-                  </td>
-                  <td className="py-3 text-right">-{money(invoice.discountAmount)}</td>
+              {invoice.items.map((item, index) => (
+                <tr key={index} className="border-b border-[#eeeef2] align-top">
+                  <td className="py-3 font-medium">{item.description}</td>
+                  <td className="py-3 pl-3 text-right">{item.quantity}</td>
+                  <td className="py-3 pl-3 text-right">{optionalMoney(item.unitAmount)}</td>
+                  <td className="py-3 pl-3 text-right">{optionalMoney(item.amount)}</td>
                 </tr>
-              )}
-              {invoice.transactionFeeAmount > 0 && (
-                <tr className="border-b border-[#eeeef2]">
-                  <td className="py-3 text-[#696978]">Fees</td>
-                  <td className="py-3 text-right">{money(invoice.transactionFeeAmount)}</td>
+              ))}
+              {summary.map(([label, value]) => (
+                <tr key={label} className="border-b border-[#eeeef2]">
+                  <td colSpan={3} className="py-3 text-[#696978]">{label}</td>
+                  <td className="py-3 pl-3 text-right">{value}</td>
                 </tr>
-              )}
+              ))}
               <tr>
-                <td className="py-4 text-base font-semibold">
+                <td colSpan={3} className="py-4 text-base font-semibold">
                   {invoice.status === "paid" ? "Total paid" : "Amount due"}
                 </td>
-                <td className="py-4 text-right text-base font-semibold">{money(invoice.total)}</td>
+                <td className="py-4 pl-3 text-right text-base font-semibold">{money(invoice.total)}</td>
               </tr>
             </tbody>
           </table>
